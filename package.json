@@ -1,0 +1,17 @@
+{
+  "name": "isabellebot",
+  "version": "0.0.1",
+  "description": "A Discord music bot to serve as a replacement for Groovy Bot. Made for private use.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Douglas T.",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/opus": "^0.7.0",
+    "ffmpeg": "^0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "ytdl-core": "^4.9.2"
+  }
+}
