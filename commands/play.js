@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { joinVoiceChannel, createAudioPlayer, createAudioResource  } = require('@discordjs/voice');
-const ytdl  = require('ytdl-core');
+const { joinVoiceChannel, createAudioResource, getVoiceConnection } = require('@discordjs/voice');
 
 module.exports = {
 	
@@ -45,12 +44,10 @@ module.exports = {
 			) 
 		),
 	
-	async play( interaction ) {
+	async play( interaction, guildContract ) {
 		try {
 			const urlPattern = /^(https\:\/\/www\.youtube\.com\/watch\?v\=(.){11}){1}$/; //RegEx used to match YouTube video URLs.
 			const reqStr = interaction.options.getString( 'request' ); //Input command string option for requested song.
-			const audioPlayer = createAudioPlayer(); //Holds AudioPlayer of a given guild.
-			let voiceConnection; //Holds current VoiceConnection of the bot for a given guild.
 			
 			console.log( `Request: '${reqStr}'` );
 			
@@ -62,7 +59,7 @@ module.exports = {
 				return;
 			}//end if
 			
-			const reqResource = createAudioResource( ytdl(reqStr) ); //Holds audio resource created from the input request.
+//			const reqResource = createAudioResource( await ytdl(reqStr) ); //Holds audio resource created from the input request.
 			
 			switch( interaction.options.getSubcommand() ) {
 				case 'a' :
@@ -73,23 +70,29 @@ module.exports = {
 				case 'in' :
 					const channel = interaction.options.getChannel('channel', true);
 					
-					//TODO: Add request to queue
-					
 					//Disregard command if requested non-voice channel
 					if( !channel.isVoice() ) { 
 						await interaction.reply(`Unable to join channel: #${channel.name} is not a voice channel.`);
 						break;
 					}//end if
 					
+					//Add new resource to the queue
+					guildContract.queue.push( { resource: reqStr, type: 'youtube_url' } );
+					console.log( 'Pushing request to guild queue ' );
+					
 					//Join specified voice channel
-					voiceConnection = joinVoiceChannel(
-						{	channelId: channel.id,
-							guildId: channel.guildId,
-							adapterCreator: channel.guild.voiceAdapterCreator
-						}//end object
-					);
-					voiceConnection.subscribe( audioPlayer );
-					audioPlayer.play( reqResource );
+					if( !getVoiceConnection(interaction.guild.id) || interaction.guild.me.voice.channel != channel ) {
+						joinVoiceChannel(
+							{	channelId: channel.id,
+								guildId: channel.guildId,
+								adapterCreator: channel.guild.voiceAdapterCreator
+							}//end object
+						);
+					}//end if
+					
+					//If not currently playing, begin playing.
+					if( guildContract.status != 'playing' )
+						guildContract.updateStatus( 'playing' );
 					
 					await interaction.reply( 'Success! Playing request.' );
 					
