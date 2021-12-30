@@ -22,6 +22,11 @@ for (const file of commandFiles) {
 			Routes.applicationGuildCommands(clientId, guildId),
 			{ body: commands },
 		);
+		
+		await rest.put(
+			Routes.applicationCommands(clientId),
+			{ body: commands },
+		);
 
 		console.log('Successfully reloaded application (/) commands.');
 	} catch (error) {
