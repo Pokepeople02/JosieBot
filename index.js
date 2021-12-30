@@ -3,6 +3,7 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
 const { token } = require('./config.json');
+const { GuildContract } = require('./guild-contract.js');
 const { play } = require('./commands/play.js');
 const fs = require('fs');
 
@@ -23,7 +24,8 @@ for (const file of eventFiles) {
     }//end if-else
 }//end for
 
-//TODO: Create queue:guild mapping to store queues
+//Create Guild:GuildContract mapping to store queues and guild-specific information about bot status
+const contractMap = new Map();
 
 //Respond to interactions
 client.on('interactionCreate', async interaction => {
@@ -33,9 +35,15 @@ client.on('interactionCreate', async interaction => {
 	//Log command
 	console.log( interaction.toString() );
 	
+	//If guild does not yet have a contract for the current guild, create one.
+	if( !contractMap.get(interaction.guild) ) {
+		console.log( `Creating new contract for guild '${interaction.guild.name}'` );
+		contractMap.set( interaction.guild, new GuildContract(interaction.guild) );
+	}//end if
+	
 	//Handle individual command as appropriate
 	try {
-		if( interaction.commandName === 'play' ) 	await play(interaction);
+		if( interaction.commandName === 'play' ) 	await play(interaction, contractMap.get(interaction.guild) );
 		else										throw 'Error: Unrecognized command';
 	} catch (error) {
 		
