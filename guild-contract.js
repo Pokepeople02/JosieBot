@@ -1,4 +1,4 @@
-const { joinVoiceChannel, createAudioPlayer, getVoiceConnection, AudioPlayerStatus, createAudioResource } = require('@discordjs/voice');
+const { joinVoiceChannel, createAudioPlayer, getVoiceConnection, AudioPlayerStatus, createAudioResource, VoiceConnectionStatus } = require('@discordjs/voice');
 const ytdl  = require('ytdl-core');
 
 module.exports = {
@@ -30,7 +30,6 @@ module.exports = {
 					
 					clearTimeout( this.standbyTimer ); //Clear standby timer
 
-
 					getVoiceConnection( this.guild.id )?.destroy(); //Disconnect from audio connection
 					console.log( 'Destroyed audio connection and disconnected from voice channel.' );
 					
@@ -50,14 +49,26 @@ module.exports = {
 						//Resolve resource
 						audioResource = resolveResource( rawResource.resource, rawResource.type ); 
 						
+						//Play resource
 						this.audioPlayer.play( audioResource );
+						
+						//On finish, play the next resource or transition to standby.
 						this.audioPlayer.once( AudioPlayerStatus.Idle, () => {
-								console.log( 'Current resource has concluded.' );
+								console.log( '\nCurrent resource has concluded.' );
 							
 								if( this.queue.size == 0 || this.guild.me.voice.channel.members.size <= 1 )
 									this.updateStatus( 'standby' );
 								else
 									this.updateStatus( 'playing' );
+							}//end function
+						);
+						
+						//On error
+						this.audioPlayer.on( 
+							'error',
+							error => {
+								console.log( 'Encountered error with current resource: ' + error.message );
+								this.audioPlayer.pause();
 							}//end function
 						);
 						
@@ -98,7 +109,7 @@ function resolveResource( resourceURL, resourceType ) {
 	
 	switch( resourceType ) {
 		case 'youtube_url' :
-			return createAudioResource( ytdl( resourceURL ) );
+			return createAudioResource( ytdl( resourceURL, { filter: 'audioonly', quality: 'highestaudio' } ) );
 			break;
 		default:
 			throw 'Invalid resource type: ' + resourceType;
@@ -106,3 +117,4 @@ function resolveResource( resourceURL, resourceType ) {
 	
 	return audioResource;
 }//end function resolveResource
+
