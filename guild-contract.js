@@ -39,7 +39,7 @@ module.exports = {
 					console.log( `Setting status for guild '${this.guild.name}' to playing.` );
 					
 					clearTimeout( this.standbyTimer ); //Clear standby timer
-					let rawResource = this.queue.pop(); //Pop next resource
+					let rawResource = this.queue.shift(); //Pop next resource
 					let audioResource;
 					
 					if( rawResource ) { //Play next resource, if one exists
