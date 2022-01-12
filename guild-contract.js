@@ -1,5 +1,13 @@
-const { joinVoiceChannel, createAudioPlayer, getVoiceConnection, AudioPlayerStatus, createAudioResource, VoiceConnectionStatus } = require('@discordjs/voice');
-const ytdl  = require('ytdl-core');
+const { 
+	AudioPlayerStatus,
+	VoiceConnectionStatus,
+	createAudioPlayer,
+	createAudioResource,
+	getVoiceConnection,
+	joinVoiceChannel,    
+} = require('@discordjs/voice');
+
+const ytdl = require('ytdl-core');
 
 module.exports = {
 	GuildContract: function(guild) {
