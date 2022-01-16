@@ -19,6 +19,10 @@
     "ffmpeg-static": "^4.4.0",
     "fluent-ffmpeg": "^2.1.2",
     "libsodium-wrappers": "^0.7.9",
-    "ytdl-core": "^4.9.2"
+    "node": "^17.3.0",
+    "ytdl-core": "^4.10.0"
+  },
+  "compilerOptions": {
+    "resolveJsonModule": true
   }
 }

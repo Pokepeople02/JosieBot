@@ -3,12 +3,13 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
 const { token } = require('./config.json');
-const { GuildContract } = require('./guild-contract.js');
+const { GuildSubscription } = require('./guild-subscription.js');
 const { play } = require('./commands/play.js');
 const fs = require('fs');
 
-// Create a new client instance
+// Create the global client instance
 const client = new Client( {intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES]} );
+globalThis.client = client;
 
 //Ready event files
 const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
@@ -24,8 +25,10 @@ for (const file of eventFiles) {
     }//end if-else
 }//end for
 
-//Create Guild:GuildContract mapping to store queues and guild-specific information about bot status
-const contractMap = new Map();
+//Create global Guild ID--to--GuildSubscription mapping
+//Stores queues and guild-specific information about bot status
+const subMap = new Map();
+globalThis.subMap = subMap;
 
 //Respond to interactions
 client.on('interactionCreate', async interaction => {
@@ -36,20 +39,36 @@ client.on('interactionCreate', async interaction => {
 	console.log( interaction.toString() );
 	
 	//If guild does not yet have a contract for the current guild, create one.
-	if( !contractMap.get(interaction.guild) ) {
-		console.log( `Creating new contract for guild '${interaction.guild.name}'` );
-		contractMap.set( interaction.guild, new GuildContract(interaction.guild) );
+	if( !globalThis.subMap.has(interaction.guildId) ) {
+		subMap.set( interaction.guildId, new GuildSubscription(interaction.guild) );
 	}//end if
 	
 	//Handle individual command as appropriate
 	try {
-		if( interaction.commandName === 'play' ) 	await play(interaction, contractMap.get(interaction.guild) );
-		else										throw 'Error: Unrecognized command';
+		switch( interaction.commandName ) {
+			case 'help' : break;
+			case 'jump' : break;
+			case 'move' : break;
+			case 'play' :
+				await play(interaction);
+				break;
+			case 'queue' : break;
+			case 'seek' : break;
+			case 'sethome' : break;
+			case 'settings' : break;
+			case 'skip' : break;
+			default :
+				interaction.reply( {
+					content: `Unknown command '${interaction.commandName}'! Please enter a valid command.`,
+					ephemeral: true,
+				} );
+		}//end switch
 	} catch (error) {
-		
 		console.error(error);
-		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true});
-		
+		await interaction.reply({ 
+			content: 'There was an error while executing this command!', 
+			ephemeral: true,
+		});
     }//end try-catch
 });
 
