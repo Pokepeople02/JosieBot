@@ -6,6 +6,7 @@ const {
 	createAudioResource,
 	entersState,
 	getVoiceConnection,  
+	joinVoiceChannel,
 } = require ('@discordjs/voice');
 const { promisify } = require( 'node:util' );
 const wait = promisify(setTimeout);
@@ -36,7 +37,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 				console.log( 'Transition to Idle from non-Idle state.' );
 				
 				//On finish, play the next resource or transition to standby.
-				if( this.queue.length == 0 || this.guild.me.voice.channel.members.size <= 1 ) {
+				if( this.queue.length == 0 || this.queue[0].channel.members.size <= 1 ) {
 					this.updateStatus( 'standby' );
 				} else {
 					this.updateStatus( 'playing' );
@@ -63,7 +64,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 	 *	'waiting' : The bot has played the last queued request. The the queue is now empty.
 	 *		After a 10 minute standby timer, the bot will enter idle.
 	 */
-	updateStatus(newStatus) {
+	async updateStatus(newStatus) {
 		
 		//If not defined yet and if voice connection is active, define bot voice connection behaviors
 		if( !this.botBehaviorDefFlag && getVoiceConnection(this.guild.id) )
@@ -74,47 +75,58 @@ module.exports.GuildSubscription = class GuildSubscription {
 				this.botStatus = 'idle';
 				console.log( `\nSetting status for guild '${this.guild.name}' to idle.` );
 				
+				console.log( 'Locking the queue.' );
 				this.queueLock = true;
-				console.log( 'Locked the queue.' );
 				
+				console.log( 'Force-stopping the audio player.' );
 				this.audioPlayer.stop(true); //Force-stop the audio player
-				console.log( 'Stopped audio player.' );
 				
+				console.log( 'Clearing the queue.' );
 				this.queue = []; //Clear queue
-				console.log( 'Cleared queue.' );
 				
+				console.log( 'Clearing the standby timer.' );
 				clearTimeout( this.standbyTimer ); //Clear standby timer
-				console.log( 'Cleared the standby timer.' );
 
+				console.log( 'Destroying the audio connection.' );
 				getVoiceConnection( this.guild.id )?.destroy(); //Disconnect from audio connection
-				console.log( 'Destroyed audio connection and disconnected from voice channel.' );
 				
+				console.log( 'Unlocking the queue.' );
 				this.queueLock = false;
-				console.log( 'Locked the queue.' );
 				
 				break;
 			case 'playing' :
 				this.botStatus = 'playing';
 				console.log( `Setting status for guild '${this.guild.name}' to playing.` );
 				
+				console.log( 'Clearing the standby timer.' );
 				clearTimeout( this.standbyTimer ); //Clear standby timer
-				console.log( 'Cleared the standby timer.' );
 				
+				console.log( 'Shifting the first entry off of the queue.' );
 				let nextEntry = this.queue.shift(); //Pop next resource
-				console.log( 'Shifted the first entry off of the queue.' );
 				
 				//Play next resource, if one exists
 				if( nextEntry ) {
-					getVoiceConnection( this.guild.id ).subscribe( this.audioPlayer );
-					console.log( 'Subscribed audio connection to player, playing next resource from queue.' );
-					
 					//Resolve resource
-					let audioResource = nextEntry.resolve(); 
+					let audioResource = await nextEntry.resolve(); 
 					
 					//Play resource
-					if( audioResource )
+					if( audioResource ) {
+						
+						//Join appropriate channel
+						if( this.guild.me.voice?.channelId !== nextEntry.channel.id ) {
+							console.log( `Joining voice channel '${nextEntry.channel.name}'.` );
+							joinVoiceChannel( {
+								channelId: nextEntry.channel.id,
+								guildId: this.guild.id,
+								adapterCreator: this.guild.voiceAdapterCreator,
+							} );
+						}//end if
+						
+						console.log( 'Subscribing voice connection to audio player.' );
+						getVoiceConnection(this.guild.id).subscribe( this.audioPlayer );
+						
 						this.audioPlayer.play( audioResource );
-					else {
+					} else {
 						console.log( 'Unable to resolve audio resource. Attempting to play next resource.' );
 						this.updateStatus( 'playing' );
 					}//end if-else
@@ -188,7 +200,6 @@ module.exports.GuildSubscription = class GuildSubscription {
 				
 			}//end if-else
 			
-//			console.log('');
 		} );
 
 		this.botBehaviorDefFlag = true;

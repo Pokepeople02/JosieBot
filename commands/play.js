@@ -1,12 +1,12 @@
 const { SlashCommandBuilder } = require( '@discordjs/builders' );
-const { joinVoiceChannel, createAudioResource, getVoiceConnection } = require( '@discordjs/voice' );
 const { GuildSubscription } = require( '../guild-subscription.js' );
-const { QueueEntry } = require( '../queue-entry.js' );
+const { QueueEntry, EntryType } = require( '../queue-entry.js' );
 
 module.exports.data = new SlashCommandBuilder()
 	.setName( 'play' )
 	.setDescription( 'Adds request to the queue and plays requests from queue in a voice channel.' )
-	/*.addSubcommand( subcommand => subcommand
+	/*
+	.addSubcommand( subcommand => subcommand
 		.setName( 'a' )
 		.setDescription( 'Adds request to the queue. If the bot is idle, begins playing in the requesting user\'s channel.' )
 		.addStringOption( option => option
@@ -14,7 +14,8 @@ module.exports.data = new SlashCommandBuilder()
 			.setDescription( 'The URL of the requested video.' )
 			.setRequired(true)
 		)
-	)*/
+	)
+	*/
 	.addSubcommand( subcommand => subcommand
 		.setName( 'in' )
 		.setDescription( 'Adds request to the queue to be played in the requested channel.' )
@@ -28,7 +29,8 @@ module.exports.data = new SlashCommandBuilder()
 			.setDescription( 'The URL of the video requested.' )
 			.setRequired(true)
 		) 
-	)/*
+	)
+	/*
 	.addSubcommand( subcommand => subcommand
 		.setName( 'at' )
 		.setDescription( 'Adds request to the queue to be played in the requested user\'s channel.' )
@@ -42,81 +44,101 @@ module.exports.data = new SlashCommandBuilder()
 			.setDescription( 'The URL of the video requested.' )
 			.setRequired(true)
 		) 
-	);*/
+	);
+	*/
 	
 module.exports.play = async function play( interaction ) {
-	const reqStr = interaction.options.getString( 'request' ); //Request string
 	const guildSub = globalThis.subMap.get( interaction.guildId ); //GuildSubscription object for current guild.
-	let reqChannel; //Channel object for the requested voice channel to join.
-	let reqQueueEntry; //QueueEntry object created from play request.
+	const requestString = interaction.options.getString( 'request' ); //request string option from input command.
 	
-	//TEMP: Validate request is a valid youtube video URL
-	//Only needed until I implement youtube search queries
-//	if( !urlPattern.test(reqStr) ) {
-//		await interaction.reply( {
-//				content: 'Support for formats other than full YouTube video URLs is not yet implemented.',
-//				ephemeral: true,
-//		} );
-//		console.log( 'Requested failed: Invalid format.' );
-//		return;
-//	}//end if
+	await interaction.deferReply();
+	
+	//If queue is locked, request fails.
+	if( guildSub.queueLock ) {
+		console.log( 'Request failed: Queue locked.' );
+		await interaction.editReply( `Unable to process request: The queue is currently locked.` );
+		return;
+	}//end if
+	
+	console.log( 'Locking queue.' );
+	guildSub.queueLock = true; //Lock queue
 	
 	//Determine appropriate channel to join, depending on subcommand
-	const subcom = interaction.options.getSubcommand();
+	let channel; //Channel object for the requested voice channel to join.
+	const subcom = interaction.options.getSubcommand(); //String representation of subcommand requested.
 	switch( subcom ) {
+		/*
 		case 'a' : //'play a request' subcommand
-			await interaction.reply( { 
+			await interaction.editReply( { 
 				content: 'Unfinished or unimplemented command!',
 				ephemeral: true,
 			} );
 			console.log( 'Requested failed: Unimplemented command.' );
 			
 			break;
+		*/
 		case 'in' : //'play in channel' subcommand
-			//Get requested channel to join.
-			reqChannel = interaction.options.getChannel('channel', true);
-			
-			//Disregard command if requested non-voice channel
-			if( !reqChannel.isVoice() ) { 
-				console.log( 'Request failed: Attempt to join non-voice channel.' );
-				await interaction.reply( {
-					content: `Unable to join channel: #${channel.name} is not a voice channel.`,
-					ephemeral: true,
-				} );
-				break;
-			}//end if
-			
+			channel = interaction.options.getChannel('channel', true);
 			break;
+		/*
 		case 'at' : //'play at user' subcommand
-			await interaction.reply( 'Unfinished or unimplemented command!' );
+			await interaction.editReply( 'Unfinished or unimplemented command!' );
 			console.log( 'Requested failed: Unimplemented command.' );
 			
 			break;
-		default:
+		*/
+		default:			
 			console.log( `Request failed: Unknown subcommand: ${subcom}` );
-			await interaction.reply( `Unable to process request: Unknown 'play' subcommand: ${subcom}` );
+			await interaction.editReply( `Unable to process request: Unknown subcommand '${subcom}'` );
+			
+			console.log( 'Unlocking the queue.' );
+			guildSub.queueLock = false;
+			
+			return;
 	}//end switch
+	
+	//Validate voice channel
+	if( !channel || !channel.isVoice() || !interaction.guild.channels.resolve(channel) ) {
+		//Disregard command if requested non-voice channel
+		console.log( 'Play command failed: Request for invalid or non-voice channel.' );
 		
-	//Join specified voice channel
-	if( !interaction.guild.me.voice?.channel != reqChannel ) {
-		joinVoiceChannel( {	
-			channelId: reqChannel.id,
-			guildId: reqChannel.guildId,
-			adapterCreator: reqChannel.guild.voiceAdapterCreator
+		await interaction.editReply( {
+			content: `Unable to process request: '${channel?.name}' is not a voice channel in this guild.`,
+			ephemeral: true,
 		} );
+		
+		console.log( 'Unlocking the queue.' );
+		guildSub.queueLock = false;
+		
+		return;
 	}//end if
 	
 	//Add new resource to the queue
-	reqQueueEntry = new QueueEntry( reqStr, 'youtube_url' );
-	guildSub.queue.push( reqQueueEntry );
-	console.log( 'Pushing request to guild queue. ' );
+	try {
+		const request = new QueueEntry( requestString, EntryType.YoutubeVideo, channel ); //QueueEntry object created from the processed play request.
+		
+		guildSub.queue.push( request );
+		console.log( 'Pushing request to guild queue. ' );
+		
+		//Notify user that request was queued.
+		await interaction.editReply( `Adding "${(await request.info).videoDetails.title}" to the queue.` );
+	} catch(error) {
+		console.log( 'Error during request creation: ' );
+		console.log( error );
+		
+		await interaction.editReply( {
+			content: `Unable to add request to the queue. Please try a different request.`,
+			ephemeral: true,
+		} );
+	}//end try-catch
 	
+	console.log( 'Unlocking the queue.' );
+	guildSub.queueLock = false;
+		
 	//If not currently playing, begin playing.
 	if( guildSub.botStatus != 'playing' )
-		guildSub.updateStatus( 'playing' );
-	
-	//Notify user that request was queued.
-	await interaction.reply( 'Request has been added to the queue.' );
+		await guildSub.updateStatus( 'playing' );
+		
 }//end function play
 
 

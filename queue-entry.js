@@ -3,23 +3,27 @@ const ytdl = require('ytdl-core');
 
 module.exports.QueueEntry = class QueueEntry {
 
-	constructor( request, type ) {
-		this.requestInfo = request; //ytdl metainfo of the requested resource
+	constructor( request, type, channel ) {
+		console.log( 'Creating new request entry.' );
+		
+		this.info = getVideoInfo( request ); //ytdl metainfo of the requested resource
 		this.type = type; //The type of the requested resource.
-		this.title = ""; //The resolved title of the requested resource
+		this.channel = channel; //The channel this request is to be played in.
 	}//end constructor
 	
-	resolve() {
+	async resolve() {
+		console.log( 'Resolving request into usable stream.' );
 		
 		switch( this.type ) {
-			case 'youtube_url' :
+			
+			case module.exports.EntryType.YoutubeVideo :
 				return createAudioResource( 
-					ytdl( this.requestInfo, { 
+					ytdl.downloadFromInfo( await this.info, { 
 						filter: 'audioonly', 
 						quality: 'highestaudio',
 						dlChunkSize: 0,
 						highWatermark: 1 << 23,
-					} )
+					})
 				);
 				break;
 			default :
@@ -27,7 +31,18 @@ module.exports.QueueEntry = class QueueEntry {
 		}//end switch
 		
 	}//end method resolve
+	
 };
+
+function getVideoInfo( request ) {
+	
+	if( ytdl.validateURL(request) ) {
+		return ytdl.getInfo(request);
+	} else {
+		throw 'Unable to parse valid Youtube video ID';
+	}//end if-else
+		
+}//end function getVideoInfo
 
 module.exports.EntryType = class EntryType {
 	static YoutubeQuery = 		Symbol("YoutubeSearchQuery");
