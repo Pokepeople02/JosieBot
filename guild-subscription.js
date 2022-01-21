@@ -140,7 +140,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 				//Set up standby timer
 				this.standbyTimer = setTimeout( () => {
 					this.updateStatus( 'idle' );
-				}, 10000 );
+				}, 600000 );
 				
 				break;
 			case 'waiting' :
@@ -149,7 +149,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 				//Set up standby timer
 				this.standbyTimer = setTimeout( () => {
 					this.updateStatus( 'idle' );
-				}, 10000 );
+				}, 600000 );
 				
 				
 				break;
