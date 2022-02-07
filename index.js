@@ -6,6 +6,7 @@ const { Client, Intents } = 	require('discord.js');
 const { token } = 				require('./config.json');
 const { GuildSubscription } = 	require('./guild-subscription.js');
 const { play } = 				require('./commands/play.js');
+const { queue } =				require('./commands/queue.js');
 
 // Create the global client instance
 const client = new Client( {intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES]} );
@@ -51,8 +52,10 @@ client.on('interactionCreate', async interaction => {
 			case 'play' :
 				await play(interaction);
 				break;
+			case 'queue' : 
+				await queue(interaction);
+				break;
 			/*
-			case 'queue' : break;
 			case 'seek' : break;
 			case 'sethome' : break;
 			case 'settings' : break;
