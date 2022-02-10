@@ -1,12 +1,13 @@
 'use strict';
 
 // Require the necessary discord.js classes
-const fs = 						require('fs');
-const { Client, Intents } = 	require('discord.js');
-const { token } = 				require('./config.json');
-const { GuildSubscription } = 	require('./guild-subscription.js');
-const { play } = 				require('./commands/play.js');
-const { queue } =				require('./commands/queue.js');
+const fs = 						require( 'fs' );
+const { Client, Intents } = 	require( 'discord.js' );
+const { token } = 				require( './config.json' );
+const { GuildSubscription } = 	require( './guild-subscription.js' );
+const { play } = 				require( './commands/play.js' );
+const { queue } =				require( './commands/queue.js' );
+const { skip } =				require( './commands/skip.js' );
 
 // Create the global client instance
 const client = new Client( {intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES]} );
@@ -52,17 +53,19 @@ client.on('interactionCreate', async interaction => {
 			case 'move' : break;
 			*/
 			case 'play' :
-				await play(interaction);
+				await play( interaction );
 				break;
 			case 'queue' : 
-				await queue(interaction);
+				await queue( interaction) ;
 				break;
 			/*
 			case 'seek' : break;
 			case 'sethome' : break;
 			case 'settings' : break;
-			case 'skip' : break;
 			*/
+			case 'skip' : 
+				await skip( interaction );
+				break;
 			default :
 				interaction.editReply( {
 					content: `Unknown command '${interaction.commandName}'! Please enter a valid command.`,
