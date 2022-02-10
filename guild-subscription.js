@@ -32,14 +32,31 @@ module.exports.GuildSubscription = class GuildSubscription {
 			console.log( `Old state: ${oldState.status.toString()}` );
 			console.log( `New state: ${newState.status.toString()}` );
 			
-			//If transitioning to Idle state from non-Idle state, attempt to play the next resource.
+			//If transitioning to Idle state from non-Idle state, attempt to play the next resource and remove the currently playing one from the queue.
 			if( newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle ) {
 				console.log( 'Transition to Idle from non-Idle state.' );
 				
-				//On finish, play the next resource or transition to standby.
-				if( this.queue.length == 0 || this.queue[0].channel.members.size <= 1 ) {
-					this.updateStatus( 'standby' );
-				} else {
+				console.log( 'Shifting the last-played resource out of the queue.' );
+				this.queue.shift();
+				
+				//If the queue is empty, transition to waiting.
+				if( this.queue.length == 0 ) {
+					this.updateStatus( 'waiting' );
+					
+				//If the room for the next request is empty and the queue has more requests, skip until the next request that will be heard. 
+				//If none exist, the queue is not empty and transition to waiting.
+				} else if( this.queue[0].channel.members.size <= 1 ) {
+					
+					while( this.queue[0] && this.queue[0].channel.members.size <= 1 )
+						this.queue.shift();
+					
+					if( this.queue[0] ) { //Queue has valid entry.
+						this.updateStatus( 'playing' );
+					} else { //Went through the entire queue, and now it is empty
+						this.updateStatus( 'waiting' );
+					}//end if-else
+					
+				} else { //Else, play the next resource. 
 					this.updateStatus( 'playing' );
 				}//end if-else
 				
@@ -58,8 +75,8 @@ module.exports.GuildSubscription = class GuildSubscription {
 	 *		Upon idle, the queue is emptied, play ends, and the bot disconnects from the connected voice channel.
 	 *	'playing' :		The bot is currently in use, and begins playing. 
 	 *		The first resource in the queue is popped, and playback begins.
-	 *	'standby' :		The bot is alone in a voice channel and the previous playing request has ended. 
-	 *		Play will not continue past the current request, and idle will be entered after 10 minutes.
+	 *	'standby' :		The bot is alone in a voice channel. 
+	 *		Play will be paused, and idle will be entered after 10 minutes.
 	 *		If a user enters the bot's voice channel, or the bot is moved to a populated voice channel, play resumes with the next request.
 	 *	'waiting' : The bot has played the last queued request. The the queue is now empty.
 	 *		After a 10 minute standby timer, the bot will enter idle.
@@ -101,8 +118,8 @@ module.exports.GuildSubscription = class GuildSubscription {
 				console.log( 'Clearing the standby timer.' );
 				clearTimeout( this.standbyTimer ); //Clear standby timer
 				
-				console.log( 'Shifting the first entry off of the queue.' );
-				let nextEntry = this.queue.shift(); //Pop next resource
+				console.log( 'Grabbing the first entry from the queue.' );
+				let nextEntry = this.queue[0]; //Pop next resource
 				
 				//Play next resource, if one exists
 				if( nextEntry ) {
@@ -131,6 +148,11 @@ module.exports.GuildSubscription = class GuildSubscription {
 						this.updateStatus( 'playing' );
 					}//end if-else
 				}//end if
+				//If no next resource exists, the queue is empty. Stop playing and set status to waiting.
+				else {
+					console.log( 'Next resource does not exist.' );
+					this.updateStatus( 'waiting' );
+				}//end if-else
 			
 				break;
 			case 'standby' :
@@ -145,6 +167,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 				break;
 			case 'waiting' :
 				this.botStatus = 'waiting';
+				console.log( `Setting status for guild '${this.guild.name}' to waiting.` );
 				
 				//Set up standby timer
 				this.standbyTimer = setTimeout( () => {

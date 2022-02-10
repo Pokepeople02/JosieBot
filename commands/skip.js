@@ -11,7 +11,7 @@ module.exports.skip = async function skip( interaction ) {
 	console.log( 'Skipping the current request.' );
 	if( guildSub.queue.length > 0 ) {
 		interaction.editReply( 'Skipping the currently playing request.' );
-		guildSub.updateStatus( 'playing' );
+		guildSub.audioPlayer.stop(true); //Triggers bot's transition logic
 	} else {
 		interaction.editReply( 'Unable to skip: The queue is currently empty.' );
 	}//end if-else
