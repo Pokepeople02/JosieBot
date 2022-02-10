@@ -51,8 +51,6 @@ module.exports.play = async function play( interaction ) {
 	const guildSub = globalThis.subMap.get( interaction.guildId ); //GuildSubscription object for current guild.
 	const requestString = interaction.options.getString( 'request' ); //request string option from input command.
 	
-	await interaction.deferReply();
-	
 	//If queue is locked, request fails.
 	if( guildSub.queueLock ) {
 		console.log( 'Request failed: Queue locked.' );

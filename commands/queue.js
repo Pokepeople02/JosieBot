@@ -32,6 +32,6 @@ module.exports.queue = async function queue( interaction ) {
 		console.log( queueString + '\n' );
 	}//end if-else
 	
-	interaction.reply( queueString );
+	interaction.editReply( queueString );
 	return;
 }//end function queue

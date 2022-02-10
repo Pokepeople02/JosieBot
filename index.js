@@ -40,6 +40,8 @@ client.on('interactionCreate', async interaction => {
 		subMap.set( interaction.guildId, new GuildSubscription(interaction.guild) );
 	}//end if
 	
+	await interaction.deferReply();
+	
 	//Handle individual command as appropriate
 	try {
 		
@@ -62,7 +64,7 @@ client.on('interactionCreate', async interaction => {
 			case 'skip' : break;
 			*/
 			default :
-				interaction.reply( {
+				interaction.editReply( {
 					content: `Unknown command '${interaction.commandName}'! Please enter a valid command.`,
 					ephemeral: true,
 				} );
@@ -71,7 +73,7 @@ client.on('interactionCreate', async interaction => {
 	} catch (error) {
 		console.error(error);
 		
-		await interaction.reply({ 
+		await interaction.editReply({ 
 			content: 'There was an error while executing this command!', 
 			ephemeral: true,
 		});
