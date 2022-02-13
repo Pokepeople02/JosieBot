@@ -1,7 +1,11 @@
-const { SlashCommandBuilder } = require( '@discordjs/builders' );
-const { GuildSubscription } = require( '../guild-subscription.js' );
-const { QueueEntry, EntryType } = require( '../queue-entry.js' );
+'use strict';
 
+const { SlashCommandBuilder } 	= require( '@discordjs/builders' );
+
+const { Status } 				= require( '../bot-status.js' );
+const { QueueEntry } 			= require( '../queue-entry.js' );
+
+/* JSON data for /play subcommands, built with discord.js' SlashCommandBuilder. */
 module.exports.data = new SlashCommandBuilder()
 	.setName( 'play' )
 	.setDescription( 'Adds request to the queue and plays requests from queue in a voice channel.' )
@@ -12,7 +16,7 @@ module.exports.data = new SlashCommandBuilder()
 		.addStringOption( option => option
 			.setName( 'request' )
 			.setDescription( 'The URL of the requested video.' )
-			.setRequired(true)
+			.setRequired( true )
 		)
 	)
 	*/
@@ -20,14 +24,14 @@ module.exports.data = new SlashCommandBuilder()
 		.setName( 'in' )
 		.setDescription( 'Adds request to the queue to be played in the requested channel.' )
 		.addChannelOption(option => option
-			.setName('channel')
-			.setDescription('The channel to join.')
-			.setRequired(true)
+			.setName( 'channel' )
+			.setDescription( 'The channel to join.' )
+			.setRequired( true )
 		) 
 		.addStringOption( option => option
 			.setName( 'request' )
 			.setDescription( 'The URL of the video requested.' )
-			.setRequired(true)
+			.setRequired( true )
 		) 
 	)
 	/*
@@ -47,96 +51,106 @@ module.exports.data = new SlashCommandBuilder()
 	);
 	*/
 	
-module.exports.play = async function play( interaction ) {
-	const guildSub = globalThis.subMap.get( interaction.guildId ); //GuildSubscription object for current guild.
-	const requestString = interaction.options.getString( 'request' ); //request string option from input command.
-	
-	//If queue is locked, request fails.
-	if( guildSub.queueLock ) {
-		console.log( 'Request failed: Queue locked.' );
-		await interaction.editReply( `Unable to process request: The queue is currently locked.` );
+/* Determines a request from the supplied interaction and adds it to the queue of the supplied guild subscription. */
+module.exports.play = async function play( interaction, guildSub ) {
+	if( guildSub.isQueueLocked() ) {
+		//If queue is locked, request fails.
+		
+		console.log( 'Command failed: Queue locked.' );
+		await interaction.editReply( 'Unable to process request: The queue is currently being modified. Please try again in a moment.' );
+		
 		return;
 	}//end if
 	
-	console.log( 'Locking queue.' );
-	guildSub.queueLock = true; //Lock queue
-	
-	//Determine appropriate channel to join, depending on subcommand
+	const subcommand = interaction.options.getSubcommand(); //String representation of subcommand requested.
 	let channel; //Channel object for the requested voice channel to join.
-	const subcom = interaction.options.getSubcommand(); //String representation of subcommand requested.
-	switch( subcom ) {
-		/*
-		case 'a' : //'play a request' subcommand
-			await interaction.editReply( { 
-				content: 'Unfinished or unimplemented command!',
-				ephemeral: true,
-			} );
-			console.log( 'Requested failed: Unimplemented command.' );
-			
+	
+	switch( subcommand ) {
+		//Get appropriate channel for request
+		
+		case 'a' : //'play a {request}' subcommand
+			//TODO: Unimplemented
 			break;
-		*/
-		case 'in' : //'play in channel' subcommand
-			channel = interaction.options.getChannel('channel', true);
+		case 'in' : //'play in {channel} {request}' subcommand
+			channel = getChannelPlayIn( interaction );
 			break;
-		/*
-		case 'at' : //'play at user' subcommand
-			await interaction.editReply( 'Unfinished or unimplemented command!' );
-			console.log( 'Requested failed: Unimplemented command.' );
-			
+		case 'at' : //'play at {user} {request}' subcommand
+			//TODO: Unimplemented
 			break;
-		*/
 		default:			
-			console.log( `Request failed: Unknown subcommand: ${subcom}` );
-			await interaction.editReply( `Unable to process request: Unknown subcommand '${subcom}'` );
-			
-			console.log( 'Unlocking the queue.' );
-			guildSub.queueLock = false;
+			console.log( `Subcommand parsing failed: Unknown subcommand '${subcommand}'` );
+			await interaction.editReply( `Unable to process request: Unknown subcommand '${subcommand}'` );
 			
 			return;
 	}//end switch
 	
-	//Validate voice channel
 	if( !channel || !channel.isVoice() || !interaction.guild.channels.resolve(channel) ) {
-		//Disregard command if requested non-voice channel
-		console.log( 'Play command failed: Request for invalid or non-voice channel.' );
+		//Disregard if requested nonexistant or non-voice channel
 		
-		await interaction.editReply( {
-			content: `Unable to process request: '${channel?.name}' is not a voice channel in this guild.`,
-			ephemeral: true,
-		} );
-		
-		console.log( 'Unlocking the queue.' );
-		guildSub.queueLock = false;
+		if( !channel) {
+			console.log( 'Channel parsing failed: Channel is null or undefined.' );
+			await interaction.editReply( {
+				content: 'Unable to process request: The channel requested does not exist.',
+				ephemeral: true,
+			} );
+		} else {
+			console.log( 'Channel parsing failed: Channel requested is foreign or non-voice.' );
+			await interaction.editReply( {
+				content: `Unable to process request: '${channel?.name}' is not a voice channel in this guild.`,
+				ephemeral: true,
+			} );
+		}//end if-else
 		
 		return;
 	}//end if
 	
-	//Add new resource to the queue
+	//Parse request string
+	let requestString; //String representation of user request.
 	try {
-		const request = new QueueEntry( requestString, EntryType.YoutubeVideo, channel ); //QueueEntry object created from the processed play request.
-		
-		guildSub.queue.push( request );
-		console.log( 'Pushing request to guild queue. ' );
-		
-		//Notify user that request was queued.
-		await interaction.editReply( `Adding "${(await request.info).videoDetails.title}" to the queue.` );
-	} catch(error) {
-		console.log( 'Error during request creation: ' );
-		console.log( error );
-		
+		requestString = interaction.options.getString( 'request', true );
+	} catch {
+		console.log( 'Request parsing failed: No request given.' );
 		await interaction.editReply( {
-			content: `Unable to add request to the queue. Please try a different request.`,
+			content: `Unable to process request: Please supply a request.`,
 			ephemeral: true,
 		} );
+		
+		return;
 	}//end try-catch
 	
-	console.log( 'Unlocking the queue.' );
-	guildSub.queueLock = false;
+	let request; //QueueEntry object created from user request
+	try {
+		request = new QueueEntry( requestString, channel );
+	} catch( error ) {
 		
-	//If not currently playing, begin playing.
-	if( guildSub.botStatus != 'playing' )
-		await guildSub.updateStatus( 'playing' );
+		console.log( 'Request creation failed: ' + error );
+		await interaction.editReply( {
+			content: `Unable to process request. Please try a different request.`,
+			ephemeral: true,
+		} );
 		
+		return;
+	}//end try-catch
+	
+	guildSub.pushToQueue( request );
+	await interaction.editReply( `Added "${await request.getTitle()}" to the queue for channel '${channel.name}'.` );
+	
+	if( guildSub.getStatus() !== Status.Playing ) {
+		//If not already playing, begin playing.
+		
+		guildSub.play();
+	}//end if
+	
+	return;
 }//end function play
 
-
+/* Takes 'play in' command interaction, returns channel requested or null if no channel was supplied. */
+function getChannelPlayIn( interaction ) {
+	
+	try {
+		return interaction.options.getChannel('channel', true);
+	} catch {
+		return null;
+	}//end try-catch
+	
+}//end function getChannelPlayIn

@@ -1,3 +1,5 @@
+'use strict';
+
 const { 
 	AudioPlayerStatus,
 	VoiceConnectionDisconnectReason,
@@ -7,225 +9,197 @@ const {
 	entersState,
 	getVoiceConnection,  
 	joinVoiceChannel,
-} = require ('@discordjs/voice');
-const { promisify } = require( 'node:util' );
-const wait = promisify(setTimeout);
+} = require ( '@discordjs/voice' );
 
+const { QueueEntry } 	= require( './queue-entry.js' );
+const { Status } 		= require( './bot-status.js' );
+
+/*	Keeps track of guild-specific information for an instance of the bot, including a queue and the bot's current state.	*/
 module.exports.GuildSubscription = class GuildSubscription {
-		
+	
+	#guild;						//Guild object to which this subscription belongs.
+	#botStatus = Status.Idle; 	//The current status of the bot for the subscription's guild.
+	#audioPlayer; 				//Audio player attached to the voice connection of the subscription's guild.
+	#queue = [];				//Queue of Resource objects corresponding to requests made in the subscription's guild.
+	#queueLock = false;			//Flag to indicate whether the queue is locked for modification.
+	#standbyTimerID = -1;		//ID of the current standby or waiting timer for the bot.
+	#homeChannelID = null;		//Snowflake ID of the home channel in which the bot announces newly playing tracks.
+	
 	/* Creates a new GuildSubscription with a given guild and creates the attached audio player. */
 	constructor( guild ) {
-		console.log( `\nCreating new subscription for guild '${guild.name}'.\n` );
+		console.log( `Creating new subscription for guild '${guild.name}'.` );
 		
-		this.guild = guild; //Guild object to which this subscription belongs.
-		this.audioPlayer = createAudioPlayer(); //Audio player attached to the voice connection of the subscription's guild.
-		this.queue = []; //Queue of Resource objects corresponding to requests made in the subscription's guild.
-		this.queueLock = false; //Flag to indicate whether the queue is locked for modification.
-		this.botStatus = 'idle'; //The current status of the bot for the subscription's guild.
-		this.standbyTimerID = -1; //ID of the Standby Timer for the bot.
-		this.botBehaviorDefFlag = false; //Flag to indicate whether bot voice connection behavior has been defined yet.
-		this.homeChannelId = null; //Snowflake ID of the home channel in which the bot announces newly playing tracks.
+		this.#guild = guild; 
+		this.#audioPlayer = createAudioPlayer(); 
 		
-		//Set audio player behavior
-		this.audioPlayer.on( 'stateChange', (oldState, newState) => {
-			console.log( `\nAudio Player state change detected in guild '${this.guild.name}'. ` );
-			console.log( `Old state: ${oldState.status.toString()}` );
-			console.log( `New state: ${newState.status.toString()}` );
-			
-			//If transitioning to Idle state from non-Idle state, attempt to play the next resource and remove the currently playing one from the queue.
+		//Transition to next request when the current request ends
+		this.#audioPlayer.on( 'stateChange', (oldState, newState) => {
 			if( newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle ) {
-				console.log( 'Transition to Idle from non-Idle state.' );
+				//If audio player becomes idle, the last played track has ended.
+				console.log( 'Audio player transition to Idle from non-Idle state.' );
 				
-				console.log( 'Shifting the last-played resource out of the queue.' );
-				this.queue.shift();
-				
-				//If the queue is empty, transition to waiting.
-				if( this.queue.length == 0 ) {
-					this.updateStatus( 'waiting' );
-					
-				//If the room for the next request is empty and the queue has more requests, skip until the next request that will be heard. 
-				//If none exist, the queue is not empty and transition to waiting.
-				} else if( this.queue[0].channel.members.size <= 1 ) {
-					
-					while( this.queue[0] && this.queue[0].channel.members.size <= 1 )
-						this.queue.shift();
-					
-					if( this.queue[0] ) { //Queue has valid entry.
-						this.updateStatus( 'playing' );
-					} else { //Went through the entire queue, and now it is empty
-						this.updateStatus( 'waiting' );
-					}//end if-else
-					
-				} else { //Else, play the next resource. 
-					this.updateStatus( 'playing' );
-				}//end if-else
-				
+				if( this.#queue.length !== 0 )
+					this.transition();
 			}//end if
 		} );
-		//On error
-		this.audioPlayer.on( 'error', error => {
+		
+		//On audio player error, log the error.
+		this.#audioPlayer.on( 'error', (error) => {
 			console.log( 'Encountered error with current resource: ' + error.message );
 		} );
 		
 	}//end constructor method
+	
+	/*	Remove the currently playing request from the queue. Attempt to play the next, if one exists.	*/
+	async transition() {
+		console.log( 'Transitioning to next request.' );
 		
-	/* Sets the status of a guild's bot.
-	 * Potential values for status are:
-	 *	'idle' :		Bot is not in use. 
-	 *		Upon idle, the queue is emptied, play ends, and the bot disconnects from the connected voice channel.
-	 *	'playing' :		The bot is currently in use, and begins playing. 
-	 *		The first resource in the queue is popped, and playback begins.
-	 *	'standby' :		The bot is alone in a voice channel. 
-	 *		Play will be paused, and idle will be entered after 10 minutes.
-	 *		If a user enters the bot's voice channel, or the bot is moved to a populated voice channel, play resumes with the next request.
-	 *	'waiting' : The bot has played the last queued request. The the queue is now empty.
-	 *		After a 10 minute standby timer, the bot will enter idle.
-	 */
-	async updateStatus(newStatus) {
+		await this.skipToNextValid();
 		
-		//If not defined yet and if voice connection is active, define bot voice connection behaviors
-		if( !this.botBehaviorDefFlag && getVoiceConnection(this.guild.id) )
-			this.defineBotBehavior();
-		
-		switch(newStatus) {
-			case 'idle' :
-				this.botStatus = 'idle';
-				console.log( `\nSetting status for guild '${this.guild.name}' to idle.` );
-				
-				console.log( 'Locking the queue.' );
-				this.queueLock = true;
-				
-				console.log( 'Force-stopping the audio player.' );
-				this.audioPlayer.stop(true); //Force-stop the audio player
-				
-				console.log( 'Clearing the queue.' );
-				this.queue = []; //Clear queue
-				
-				console.log( 'Clearing the standby timer.' );
-				clearTimeout( this.standbyTimer ); //Clear standby timer
-
-				console.log( 'Destroying the audio connection.' );
-				getVoiceConnection( this.guild.id )?.destroy(); //Disconnect from audio connection
-				
-				console.log( 'Unlocking the queue.' );
-				this.queueLock = false;
-				
-				break;
-			case 'playing' :
-				this.botStatus = 'playing';
-				console.log( `Setting status for guild '${this.guild.name}' to playing.` );
-				
-				console.log( 'Clearing the standby timer.' );
-				clearTimeout( this.standbyTimer ); //Clear standby timer
-				
-				console.log( 'Grabbing the first entry from the queue.' );
-				let nextEntry = this.queue[0]; //Pop next resource
-				
-				//Play next resource, if one exists
-				if( nextEntry ) {
-					//Resolve resource
-					let audioResource = await nextEntry.resolve(); 
-					
-					//Play resource
-					if( audioResource ) {
-						
-						//Join appropriate channel
-						if( this.guild.me.voice?.channelId !== nextEntry.channel.id ) {
-							console.log( `Joining voice channel '${nextEntry.channel.name}'.` );
-							joinVoiceChannel( {
-								channelId: nextEntry.channel.id,
-								guildId: this.guild.id,
-								adapterCreator: this.guild.voiceAdapterCreator,
-							} );
-						}//end if
-						
-						console.log( 'Subscribing voice connection to audio player.' );
-						getVoiceConnection(this.guild.id).subscribe( this.audioPlayer );
-						
-						this.audioPlayer.play( audioResource );
-					} else {
-						console.log( 'Unable to resolve audio resource. Attempting to play next resource.' );
-						this.updateStatus( 'playing' );
-					}//end if-else
-				}//end if
-				//If no next resource exists, the queue is empty. Stop playing and set status to waiting.
-				else {
-					console.log( 'Next resource does not exist.' );
-					this.updateStatus( 'waiting' );
-				}//end if-else
+		if( this.#queue.length === 0 ) {
+			//If the queue is now empty, stop and transition to waiting.
+			this.#audioPlayer.stop( true );
+			this.wait();
 			
-				break;
-			case 'standby' :
-				this.botStatus = 'standby';
-				console.log( `Setting status for guild '${this.guild.name}' to standby.` );
-				
-				//Set up standby timer
-				this.standbyTimer = setTimeout( () => {
-					this.updateStatus( 'idle' );
-				}, 600000 );
-				
-				break;
-			case 'waiting' :
-				this.botStatus = 'waiting';
-				console.log( `Setting status for guild '${this.guild.name}' to waiting.` );
-				
-				//Set up standby timer
-				this.standbyTimer = setTimeout( () => {
-					this.updateStatus( 'idle' );
-				}, 600000 );
-				
-				
-				break;
-			default :
-				throw ( 'Error: Invalid status update: ' + newStatus );
-		}//end switch
+			return;
+		}//end if
 		
-	}; //end method setStatus
+		this.play();
 		
-	/* Defines reconnection logic for the bot, tied to the active voice connection. */
-	defineBotBehavior() {
-		const voiceCon = getVoiceConnection(this.guild.id);
-		console.log( 'Setting bot voice behaviors and reconnection logic.' );
+		return;
+	}//end method transition
+	
+	/*	Clears the queue and standby timers, forces the audio player to stop and the bot to disconnect, and sets the bot status to Idle.	*/
+	idle() {
+		this.lockQueue( true );
 		
-		//Voice connection state transition behavior
-		voiceCon.on( 'stateChange', async ( _, newState ) => {
-			
-			console.log( `\nVoice connection state change in guild '${this.guild.name}'.` );
-			
-			if( newState.status === VoiceConnectionStatus.Disconnected ) {
-				console.log( 'Entered disconnected state' );
-				
-				if( newState.reason === VoiceConnectionDisconnectReason.WebSocketClose && newState.closeCode === 4014 ) {
-					console.log( 'WebSocket closed with close code 4014' );
-					
-					try { await entersState( voiceCon, VoiceConnectionStatus.Connecting, 5000 ); }
-					catch { voiceCon.destroy(); }
-					
-				} else if( voiceCon.rejoinAttempts < 5 ) {
-					console.log( 'Attempting rejoin.' );
-					
-					await wait( (voiceCon.rejoinAttempts + 1) * 5000 );
-					voiceCon.rejoin();
-					
-				} else {
-					console.log( 'Rejoin attempts exceeded 5, transitioning to idle. ' );
-					this.updateStatus( 'idle' );
-				}//end if-else
-				
-			} else if( newState.status === VoiceConnectionStatus.Connecting || newState.status === VoiceConnectionStatus.Signalling ) {
-				console.log( 'Entered connecting or signally state' );
-				
-				try { await entersState( voiceCon, VoiceConnectionStatus.Ready, 20000 ); }
-				catch(error) {
-					console.log( 'Did not enter ready state within 20 seconds.' );
-					if( voiceCon.state.status !== VoiceConnectionStatus.Destroyed ) this.updateStatus( 'idle' );
-				}//end try-catch
-				
-			}//end if-else
-			
+		this.#queue = [];
+		clearTimeout( this.#standbyTimerID );
+		this.#audioPlayer.stop( true );
+		getVoiceConnection( this.#guild.id )?.destroy();
+		
+		this.lockQueue( false );
+		
+		this.#botStatus = Status.Idle;
+		console.log( `Setting status for guild '${this.guild.name}' to idle.` );
+		return;
+	}//end method idle
+	
+	/*	Currently waits 10 minutes for a user to play something before transitioning to idle status.	*/
+	standby() {
+		this.#standbyTimerID = setTimeout( () => {
+			this.idle();
+		}, 600000 );
+		
+		this.#botStatus = Status.Standby;
+		console.log( `Setting status for guild '${this.#guild.name}' to standby.` );
+		return;
+	}//end method standby
+	
+	/*	Currently waits 10 minutes for a user to play something before transitioning to idle status.	*/
+	wait() {
+		this.#standbyTimerID = setTimeout( () => {
+			this.idle();
+		}, 600000 );
+		
+		this.#botStatus = Status.Waiting;
+		console.log( `Setting status for guild '${this.#guild.name}' to waiting.` );
+	}//end method wait
+	
+	/* 	Begins playing the first request in the queue and set the bot status to Playing. 
+		If queue is empty, does nothing.
+	*/
+	async play() {
+		if( this.#queue.length === 0 ) {
+			return;
+		}//end if
+		
+		const request = this.#queue[0]; //The next QueueEntry object in the queue
+		const requestStream = await request.getStream(); //The readable stream created from the next request
+		
+		clearTimeout( this.#standbyTimerID );
+		
+		console.log( `Joining voice channel '${request.getChannel().name}'.` );
+		joinVoiceChannel( {
+			channelId: request.getChannel().id,
+			guildId: this.#guild.id,
+			adapterCreator: this.#guild.voiceAdapterCreator,
 		} );
-
-		this.botBehaviorDefFlag = true;
-	}//end method defineVoiceConnBehavior
+		
+		getVoiceConnection( this.#guild.id ).subscribe( this.#audioPlayer );
+		
+		this.#audioPlayer.play( requestStream );
+		
+		console.log( `Setting status for guild '${this.#guild.name}' to playing.` );
+		this.#botStatus = Status.Playing;
+		
+		return;
+	}//end method play
+	
+	/* 	Sets the next request to be played in a populated voice channel as the first request in the queue.
+		If this is not the next immediate request, all requests between that playing now and that being skipped to are discarded.
+		If no such request exists, the queue is instead emptied.
+	*/
+	async skipToNextValid() {
+		this.lockQueue( true );
+		
+		if( this.#queue[0] ) {
+			//If a request exists in the queue to be played, shift it out.
+			
+			console.log(  `Shifting immediate request '${ await this.#queue[0].getTitle() }' out of the queue.` );
+			this.#queue.shift();
+		}//end if
+		
+		while( this.#queue[0] && (this.#queue[0].getChannel().id !== this.#guild.me.voice?.channelId) && (this.#queue[0].getChannel().members.size < 1) ) {
+			//While a request still exists for a different channel, skip it if the channel it is to be played in is unpopulated.
+			
+			console.log(  `Shifting unheardable request '${ await this.#queue[0].getTitle() }' out of the queue.` );
+			this.#queue.shift();
+		}//end while
+		
+		this.lockQueue( false );
+		return;
+	}//end method skipToNextValid
+	
+	/*	Returns a copy of the current queue.	*/
+	getQueue() {
+		return Array.from( this.#queue );
+	}//end method getQueue
+	
+	/* 	Validates and adds a new request to the end of the queue. Intended to be used only when the queue is already locked by the caller.
+		Throws an error if request is not of type QueueEntry.
+	*/
+	async pushToQueue( request ) {
+		if( !(request instanceof QueueEntry) ) {
+			throw new TypeError( 'Attempting to push non-QueueEntry object to the queue' );
+		}//end if
+		
+		this.lockQueue( true );
+		
+		console.log( `Pushing '${ await request.getTitle() }' to queue.` );
+		this.#queue.push( request );
+		
+		this.lockQueue( false );
+		
+		return;
+	}//end method pushToQueue
+	
+	/*	Converts the value supplied to a boolean, and uses that to set the queue lock status to either true or false.	*/
+	lockQueue( queueStatus ) {
+		this.#queueLock = ( queueStatus ? true : false );
+		console.log( 'Setting queue lock to ' + this.#queueLock );
+		
+		return;
+	}//end method lockQueue
+	
+	/*	Determines if the queue is locked or not.	*/
+	isQueueLocked() {
+		return this.#queueLock
+	}//end method isQueueLocked
+	
+	/*	Gets the bot's current status.	*/
+	getStatus() {
+		return this.#botStatus;
+	}//end method getStatus
 	
 };//end class GuildSubscription

@@ -1,54 +1,58 @@
+'use strict';
+
 const { createAudioResource } = require( '@discordjs/voice' );
 const ytdl = require('ytdl-core');
 
+/* 	Represents a single request made to be stored in a guild subscription's queue.	*/
 module.exports.QueueEntry = class QueueEntry {
 
-	constructor( request, type, channel ) {
+	#requestStr; 	//String used to construct the request
+	#ytdlInfo;		//YTDL metadata about a YouTube request
+	#channel;		//The channel the request is to be played in
+	
+	/*	Creates a new request from the specified request string to be played in the supplied channel.
+		Throws an error if the request string cannot be resolved to a valid request.
+	*/
+	constructor( requestStr, channel ) {
 		console.log( 'Creating new request entry.' );
 		
-		this.info = getVideoInfo( request ); //ytdl metainfo of the requested resource
-		this.type = type; //The type of the requested resource.
-		this.channel = channel; //The channel this request is to be played in.
+		this.#requestStr = requestStr;
+		this.#channel = channel;
+		
+		console.log( 'Setting YTDL details for request.' );
+		if( ytdl.validateURL( this.#requestStr ) ) {
+			//If a valid YouTube video URL, set info. 
+			this.#ytdlInfo = ytdl.getInfo( this.#requestStr );
+		} else {
+			//Otherwise, throw an error if unable to parse a valid URL from request.
+			throw new Error ( 'Unable to parse valid Youtube video ID' );
+		}//end if-else
 	}//end constructor
 	
-	async resolve() {
-		console.log( 'Resolving request into usable stream.' );
+	/*	Creates and returns a readable stream for this request.	*/
+	async getStream() {
+		let rStream; //The constructed readable stream object.
 		
-		switch( this.type ) {
-			
-			case module.exports.EntryType.YoutubeVideo :
-				return createAudioResource( 
-					ytdl.downloadFromInfo( await this.info, { 
-						filter: 'audioonly', 
-						quality: 'highestaudio',
-						dlChunkSize: 0,
-						highWatermark: 1 << 23,
-					})
-				);
-				break;
-			default :
-				throw 'Unknown resource type';
-		}//end switch
+		console.log( `Resolving request '${await this.getTitle()}' into a readable stream.` );
 		
+		rStream = createAudioResource( ytdl.downloadFromInfo( await this.#ytdlInfo, { 
+			filter: 'audioonly', 
+			quality: 'highestaudio',
+			dlChunkSize: 0,
+			highWatermark: 1024 * 1024 * 10,
+		} ) );
+		
+		return rStream;
 	}//end method resolve
 	
-};
-
-function getVideoInfo( request ) {
+	/*	Returns the title associated with this request.	*/
+	async getTitle() {
+		return (await this.#ytdlInfo).videoDetails.title;
+	}//end method getTitle
 	
-	if( ytdl.validateURL(request) ) {
-		return ytdl.getInfo(request);
-	} else {
-		throw 'Unable to parse valid Youtube video ID';
-	}//end if-else
-		
-}//end function getVideoInfo
-
-module.exports.EntryType = class EntryType {
-	static YoutubeQuery = 		Symbol("YoutubeSearchQuery");
-	static YoutubeVideo = 		Symbol("YoutubeURL");
-	static YoutubePlaylist = 	Symbol("YoutubePlaylist");
-	static TwitchVOD =			Symbol("TwitchVOD");
-	static SoundcloudTrack =	Symbol("SoundcloudTrack");
-	static RawAudio =			Symbol("RawAudio");
-};
+	/*	Returns the channel object stored by this request.	*/
+	getChannel() {
+		return this.#channel;
+	}//end method getChannel
+	
+}//end class QueueEntry
