@@ -78,7 +78,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 		this.lockQueue( false );
 		
 		this.#botStatus = Status.Idle;
-		console.log( `Setting status for guild '${this.guild.name}' to idle.` );
+		console.log( `Setting status for guild '${this.#guild.name}' to idle.` );
 		return;
 	}//end method idle
 	
