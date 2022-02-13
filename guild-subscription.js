@@ -2,11 +2,8 @@
 
 const { 
 	AudioPlayerStatus,
-	VoiceConnectionDisconnectReason,
 	VoiceConnectionStatus,
 	createAudioPlayer,
-	createAudioResource,
-	entersState,
 	getVoiceConnection,  
 	joinVoiceChannel,
 } = require ( '@discordjs/voice' );
