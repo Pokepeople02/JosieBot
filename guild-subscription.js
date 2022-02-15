@@ -82,25 +82,30 @@ module.exports.GuildSubscription = class GuildSubscription {
 		return;
 	}//end method idle
 	
-	/*	Currently waits 10 minutes for a user to play something before transitioning to idle status.	*/
+	/*	Pauses and waits 2 minutes for the currently occupied voice channel to become populated. Once voice channel is joined by a user, unpauses and continues playing.
+		If channel does not become occupied, skips to the next valid request and plays if one exists.
+		If no valid next request exists, transitions to idle. */
 	standby() {
 		this.#standbyTimerID = setTimeout( () => {
-			this.idle();
-		}, 600000 );
+			if( this.#botStatus != Status.Playing )
+				this.idle();
+		}, 120000 );
 		
 		this.#botStatus = Status.Standby;
 		console.log( `Setting status for guild '${this.#guild.name}' to standby.` );
 		return;
 	}//end method standby
 	
-	/*	Currently waits 10 minutes for a user to play something before transitioning to idle status.	*/
+	/*	Waits 10 minutes for a user to add something to the queue. If bot does not play before then, transitions to idle state.	*/
 	wait() {
 		this.#standbyTimerID = setTimeout( () => {
-			this.idle();
+			if( this.#botStatus != Status.Playing )
+				this.idle();
 		}, 600000 );
 		
 		this.#botStatus = Status.Waiting;
 		console.log( `Setting status for guild '${this.#guild.name}' to waiting.` );
+		return;
 	}//end method wait
 	
 	/* 	Begins playing the first request in the queue and set the bot status to Playing. 
