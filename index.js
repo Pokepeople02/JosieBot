@@ -64,6 +64,7 @@ client.on( 'interactionCreate', async interaction => {
 		console.error( error );
 		
 		try{
+			//If error due to unknown interaction on defer, edit will throw. If that happens, don't do anything.
 			await interaction.editReply( { 
 				content: 'There was an error while executing this command!', 
 				ephemeral: true,
