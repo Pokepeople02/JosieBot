@@ -86,7 +86,13 @@ module.exports.GuildSubscription = class GuildSubscription {
 		If channel does not become occupied, skips to the next valid request and plays if one exists.
 		If no valid next request exists, transitions to idle. */
 	standby() {
-		this.#standbyTimerID = setTimeout( () => {
+		this.#audioPlayer.pause();
+		
+		this.#standbyTimerID = setTimeout( async () => {
+			await this.skipToNextValid();
+			
+			await this.play();
+			
 			if( this.#botStatus != Status.Playing )
 				this.idle();
 		}, 120000 );
@@ -152,9 +158,12 @@ module.exports.GuildSubscription = class GuildSubscription {
 			this.#queue.shift();
 		}//end if
 		
-		while( this.#queue[0] && (this.#queue[0].getChannel().id !== this.#guild.me.voice?.channelId) && (this.#queue[0].getChannel().members.size < 1) ) {
-			//While a request still exists for a different channel, skip it if the channel it is to be played in is unpopulated.
-			
+		const botChannelId = this.#guild.me.voice?.channelId; //Snowflake ID of the voice channel occupied by the bot, or undefined if the bot is not in a vc.
+		while( this.#queue[0] && (	
+			( botChannelId === this.#queue[0].getChannel().id && this.#queue[0].getChannel().members.size < 2 ) ||
+			( botChannelId !== this.#queue[0].getChannel().id && this.#queue[0].getChannel().members.size < 1 )
+		) ) {
+			//While there exists something else in the queue and it's for a channel not occupied by someone other than the bot, skip it if the channel it is to be played in is unpopulated
 			console.log(  `Shifting unheardable request '${ await this.#queue[0].getTitle() }' out of the queue.` );
 			this.#queue.shift();
 		}//end while
