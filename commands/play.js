@@ -135,8 +135,8 @@ module.exports.play = async function play( interaction, guildSub ) {
 	guildSub.pushToQueue( request );
 	await interaction.editReply( `Added "${await request.getTitle()}" to the queue for channel '${channel.name}'.` );
 	
-	if( guildSub.getStatus() !== Status.Playing ) {
-		//If not already playing, begin playing.
+	if( !(guildSub.getStatus() === Status.Playing || guildSub.getStatus() === Status.Standby) ) {
+		//If not already playing or on standby, begin playing.
 		
 		guildSub.play();
 	}//end if
