@@ -38,9 +38,14 @@ client.on( 'interactionCreate', async interaction => {
 		subMap.set( interaction.guildId, new GuildSubscription(interaction.guild) );
 	}//end if
 	
+	try { await interaction.deferReply(); } 
+	catch( error1 ) {
+		//Discord.js can sometimes randomly error upon defer. Nothing can be done but let it fail.
+		console.log( 'Immediate deferral bug detected. Command failure.' );
+		return;
+	}//end try-catch
+	
 	try {
-		await interaction.deferReply();
-		
 		const guildSub = subMap.get( interaction.guildId );
 		
 		switch( interaction.commandName ) {
@@ -63,13 +68,10 @@ client.on( 'interactionCreate', async interaction => {
 	} catch( error ) {
 		console.error( error );
 		
-		try{
-			//If error due to unknown interaction on defer, edit will throw. If that happens, don't do anything.
-			await interaction.editReply( { 
-				content: 'There was an error while executing this command!', 
-				ephemeral: true,
-			} );
-		} catch { };
+		await interaction.editReply( { 
+			content: 'There was an error while executing this command!', 
+			ephemeral: true,
+		} );
 		
     }//end try-catch
 	
