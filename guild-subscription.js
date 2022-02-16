@@ -21,6 +21,8 @@ module.exports.GuildSubscription = class GuildSubscription {
 	#queueLock = false;			//Flag to indicate whether the queue is locked for modification.
 	#standbyTimerID = -1;		//ID of the current standby or waiting timer for the bot.
 	#homeChannelID = null;		//Snowflake ID of the home channel in which the bot announces newly playing tracks.
+	#standbyActivateListener; 	//Event listener for determining when to initiate transition to standby state.
+	#standbyDeactivateListener;	//Event listener for determining when to abort standby and continue playing. 
 	
 	/* Creates a new GuildSubscription with a given guild and creates the attached audio player. */
 	constructor( guild ) {
@@ -45,6 +47,58 @@ module.exports.GuildSubscription = class GuildSubscription {
 			console.log( 'Encountered error with current resource: ' + error.message );
 		} );
 		
+		//	Unable to define as its own method due to private access strangeness beyond my understanding
+		/*	Listens for voice state changes within this guild in which a change occurs to the channel the bot is occupying, leaving the bot alone in a vc.
+			Upon such, transition to standby is initiated.
+		*/
+		this.#standbyActivateListener = ( oldState, newState ) => {
+			//Disregard voice state changes not pertinent to this subscription.
+			if( newState.guild.id !== this.#guild.id ) return;
+			
+			//Disregard if bot isn't in a vc
+			if( !getVoiceConnection(this.#guild.id) ) return;
+			
+			//Disregard if bot isn't currently playing
+			if( this.#botStatus !== Status.Playing ) return;
+			
+			if( (oldState.channelId === this.#guild.me.voice.channelId || newState.channelId === this.#guild.me.voice.channelId) && this.#guild.me.voice.channel.members.size < 2 ) {
+				//There has been some change to the channel the bot is now in, and the bot is currently alone. Transition to standby.
+				
+				console.log( 'Standby activation listener: Detected change to bot voice channel that has rendered bot alone.' );
+				this.standby();
+			}//end if
+		};
+		
+		//	Unable to define as its own method due to private access strangeness beyond my understanding
+		/*	Listens for voice state changes within this guild in which a change occurs to the channel the bot is occupying, leaving the bot no longer alone in a vc.
+			Upon such, transition to standby is aborted and a playing state is resumed.
+		*/
+		this.#standbyDeactivateListener = ( oldState, newState ) => {
+			//Disregard voice state changes not pertinent to this subscription.
+			if( newState.guild.id !== this.#guild.id ) return;
+			
+			//Disregard if bot isn't in a vc
+			if( !getVoiceConnection(this.#guild.id) ) return;
+			
+			//Disregard if bot isn't currently on standby
+			if( this.#botStatus !== Status.Standby ) return;
+			
+			if( (oldState.channelId === this.#guild.me.voice.channelId || newState.channelId === this.#guild.me.voice.channelId) && this.#guild.me.voice.channel.members.size > 1 ) {
+				//There has been some change to the channel the bot is now in, and the bot is no longer alone.
+				
+				console.log( 'Standby deactivation listener: Detected change to bot voice channel that has made bot no longer alone.' );
+				
+				console.log( 'Reactivating standby activation listener' );
+				globalThis.client.off( 'voiceStateUpdate', this.#standbyDeactivateListener );
+				globalThis.client.on( 'voiceStateUpdate', this.#standbyActivateListener );
+				
+				clearTimeout( this.#standbyTimerID );
+				
+				console.log( `Unpausing audio player and setting status for guild '${this.#guild.name}' to playing.` );
+				this.#audioPlayer.unpause();
+				this.#botStatus = Status.Playing;
+			}//end if
+		};
 	}//end constructor method
 	
 	/*	Remove the currently playing request from the queue. Attempt to play the next, if one exists.	*/
@@ -71,7 +125,12 @@ module.exports.GuildSubscription = class GuildSubscription {
 		this.lockQueue( true );
 		
 		this.#queue = [];
+		
 		clearTimeout( this.#standbyTimerID );
+		
+		globalThis.client.off( 'voiceStateUpdate', this.#standbyActivateListener );
+		globalThis.client.off( 'voiceStateUpdate', this.#standbyDeactivateListener );
+		
 		this.#audioPlayer.stop( true );
 		getVoiceConnection( this.#guild.id )?.destroy();
 		
@@ -86,7 +145,10 @@ module.exports.GuildSubscription = class GuildSubscription {
 		If channel does not become occupied, skips to the next valid request and plays if one exists.
 		If no valid next request exists, transitions to idle. */
 	standby() {
+		console.log( 'Pausing audio player.' );
 		this.#audioPlayer.pause();
+		
+		clearTimeout( this.#standbyTimerID );
 		
 		this.#standbyTimerID = setTimeout( async () => {
 			await this.skipToNextValid();
@@ -97,6 +159,9 @@ module.exports.GuildSubscription = class GuildSubscription {
 				this.idle();
 		}, 120000 );
 		
+		console.log( 'Activating standby deactivation listener' );
+		globalThis.client.on( 'voiceStateUpdate', this.#standbyDeactivateListener );
+		
 		this.#botStatus = Status.Standby;
 		console.log( `Setting status for guild '${this.#guild.name}' to standby.` );
 		return;
@@ -104,10 +169,15 @@ module.exports.GuildSubscription = class GuildSubscription {
 	
 	/*	Waits 10 minutes for a user to add something to the queue. If bot does not play before then, transitions to idle state.	*/
 	wait() {
+		clearTimeout( this.#standbyTimerID );
+		
 		this.#standbyTimerID = setTimeout( () => {
 			if( this.#botStatus != Status.Playing )
 				this.idle();
 		}, 600000 );
+		
+		globalThis.client.off( 'voiceStateUpdate', this.#standbyActivateListener );
+		globalThis.client.off( 'voiceStateUpdate', this.#standbyDeactivateListener );
 		
 		this.#botStatus = Status.Waiting;
 		console.log( `Setting status for guild '${this.#guild.name}' to waiting.` );
@@ -138,9 +208,11 @@ module.exports.GuildSubscription = class GuildSubscription {
 		
 		this.#audioPlayer.play( requestStream );
 		
+		console.log( 'Activating standby activation listener' );
+		globalThis.client.on( 'voiceStateUpdate', this.#standbyActivateListener );
+		
 		console.log( `Setting status for guild '${this.#guild.name}' to playing.` );
 		this.#botStatus = Status.Playing;
-		
 		return;
 	}//end method play
 	
