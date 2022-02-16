@@ -39,7 +39,7 @@ module.exports.QueueEntry = class QueueEntry {
 			filter: 'audioonly', 
 			quality: 'highestaudio',
 			dlChunkSize: 0,
-			highWatermark: 1024 * 1024 * 10,
+			highWatermark: 1<<25,
 		} ) );
 		
 		return rStream;
