@@ -30,7 +30,9 @@ module.exports.QueueEntry = class QueueEntry {
 		console.log( 'Initializing request.' );
 		
 		//Set type
-		this.#type = await play.validate( this.#str );
+		try {
+			this.#type = await play.validate( this.#str );
+		} catch { this.#type = false; };
 		console.log( 'Request type: ' + this.#type );
 		
 		//Set info

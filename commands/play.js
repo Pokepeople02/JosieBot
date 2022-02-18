@@ -118,6 +118,11 @@ module.exports.play = async function play( interaction, guildSub ) {
 		return;
 	}//end try-catch
 	
+	if( requestString.includes( 'youtube.com') && requestString.includes('&') ) {
+		//Special case: If request string is a youtube url with a playlist modifier, strip the playlist modifier
+		requestString = requestString.substring( 0, requestString.indexOf('&') );
+	}//end if
+	
 	let request = new QueueEntry( requestString, channel ); //QueueEntry object created from user request
 	await request.init();
 	
