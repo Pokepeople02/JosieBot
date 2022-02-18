@@ -259,7 +259,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 		
 		this.lockQueue( true );
 		
-		console.log( `Pushing '${ await request.getTitle() }' to queue.` );
+		console.log( `Pushing '${request.getTitle()}' to queue.` );
 		this.#queue.push( request );
 		
 		this.lockQueue( false );

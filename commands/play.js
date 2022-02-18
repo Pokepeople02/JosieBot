@@ -118,22 +118,22 @@ module.exports.play = async function play( interaction, guildSub ) {
 		return;
 	}//end try-catch
 	
-	let request; //QueueEntry object created from user request
-	try {
-		request = new QueueEntry( requestString, channel );
-	} catch( error ) {
+	let request = new QueueEntry( requestString, channel ); //QueueEntry object created from user request
+	await request.init();
+	
+	if( !request.isValid() ) {
 		
-		console.log( 'Request creation failed: ' + error );
+		console.log( 'Request creation failed: request is invalid or unavailable.' );
 		await interaction.editReply( {
-			content: `Unable to process request. Please try a different request.`,
+			content: `Unable to process this request. Please try a different request.`,
 			ephemeral: true,
 		} );
 		
 		return;
-	}//end try-catch
+	}//end if
 	
 	guildSub.pushToQueue( request );
-	await interaction.editReply( `Added "${await request.getTitle()}" to the queue for channel '${channel.name}'.` );
+	await interaction.editReply( `Added "${request.getTitle()}" to the queue for channel '${channel.name}'.` );
 	
 	if( !(guildSub.getStatus() === Status.Playing || guildSub.getStatus() === Status.Standby) ) {
 		//If not already playing or on standby, begin playing.
