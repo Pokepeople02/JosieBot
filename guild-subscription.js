@@ -89,7 +89,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 				console.log( 'Standby deactivation listener: Detected change to bot voice channel that has made bot no longer alone.' );
 				
 				console.log( 'Reactivating standby activation listener' );
-				globalThis.client.off( 'voiceStateUpdate', this.#standbyDeactivateListener );
+				globalThis.client.removeAllListeners( 'voiceStateUpdate' );
 				globalThis.client.on( 'voiceStateUpdate', this.#standbyActivateListener );
 				
 				clearTimeout( this.#standbyTimerID );
@@ -128,8 +128,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 		
 		clearTimeout( this.#standbyTimerID );
 		
-		globalThis.client.off( 'voiceStateUpdate', this.#standbyActivateListener );
-		globalThis.client.off( 'voiceStateUpdate', this.#standbyDeactivateListener );
+		globalThis.client.removeAllListeners( 'voiceStateUpdate' );
 		
 		this.#audioPlayer.stop( true );
 		getVoiceConnection( this.#guild.id )?.destroy();
@@ -160,6 +159,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 		}, 120000 );
 		
 		console.log( 'Activating standby deactivation listener' );
+		globalThis.client.removeAllListeners( 'voiceStateUpdate' );
 		globalThis.client.on( 'voiceStateUpdate', this.#standbyDeactivateListener );
 		
 		this.#botStatus = Status.Standby;
@@ -176,8 +176,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 				this.idle();
 		}, 600000 );
 		
-		globalThis.client.off( 'voiceStateUpdate', this.#standbyActivateListener );
-		globalThis.client.off( 'voiceStateUpdate', this.#standbyDeactivateListener );
+		globalThis.client.removeAllListeners( 'voiceStateUpdate' );
 		
 		this.#botStatus = Status.Waiting;
 		console.log( `Setting status for guild '${this.#guild.name}' to waiting.` );
@@ -209,6 +208,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 		this.#audioPlayer.play( requestStream );
 		
 		console.log( 'Activating standby activation listener' );
+		globalThis.client.removeAllListeners( 'voiceStateUpdate' );
 		globalThis.client.on( 'voiceStateUpdate', this.#standbyActivateListener );
 		
 		console.log( `Setting status for guild '${this.#guild.name}' to playing.` );
