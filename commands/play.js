@@ -130,7 +130,7 @@ module.exports.play = async function play( interaction, guildSub ) {
 		
 		console.log( 'Request creation failed: request is invalid or unavailable.' );
 		await interaction.editReply( {
-			content: `Unable to process this request. Please try a different request.`,
+			content: `Unable to process this request. Please try a different request, or try again later.`,
 			ephemeral: true,
 		} );
 		

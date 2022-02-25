@@ -40,7 +40,14 @@ module.exports.QueueEntry = class QueueEntry {
 			case 'search' :
 				let results = await play.search( this.#str, {
 						limit: 1,
+						source: { youtube:'video' }
 				} );
+				
+				if( results.length === 0 ) {
+					//Returned no or invalid results
+					this.#type = false;
+					break;
+				}//end if
 				
 				this.#info = await play.video_info( results[0].url );
 				
