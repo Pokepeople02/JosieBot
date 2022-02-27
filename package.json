@@ -22,7 +22,7 @@
     "libsodium-wrappers": "^0.7.9",
     "node": "^17.4.0",
     "npm": "^8.5.1",
-    "play-dl": "^1.8.8",
+    "play-dl": "^1.8.9",
     "ytdl-core": "^4.10.1"
   },
   "compilerOptions": {
