@@ -8,7 +8,7 @@ const {
 	joinVoiceChannel,
 } = require ( '@discordjs/voice' );
 
-const { QueueEntry } 	= require( './queue-entry.js' );
+const { Request } 	= require( './request.js' );
 const { Status } 		= require( './bot-status.js' );
 
 /*	Keeps track of guild-specific information for an instance of the bot, including a queue and the bot's current state.	*/
@@ -191,7 +191,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 			return;
 		}//end if
 		
-		const request = this.#queue[0]; //The next QueueEntry object in the queue
+		const request = this.#queue[0]; //The next Request object in the queue
 		const requestStream = await request.getStream(); //The readable stream created from the next request
 		
 		clearTimeout( this.#standbyTimerID );
@@ -250,10 +250,10 @@ module.exports.GuildSubscription = class GuildSubscription {
 	}//end method getQueue
 	
 	/* 	Validates and adds a new request to the end of the queue. Intended to be used only when the queue is already locked by the caller.
-		Throws an error if request is not of type QueueEntry.
+		Throws an error if request is not of type Request.
 	*/
 	async pushToQueue( request ) {
-		if( !(request instanceof QueueEntry) ) {
+		if( !(request instanceof Request) ) {
 			throw new TypeError( 'Attempting to push non-QueueEntry object to the queue' );
 		}//end if
 		

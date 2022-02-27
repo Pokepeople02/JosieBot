@@ -3,7 +3,7 @@
 const { SlashCommandBuilder } 	= require( '@discordjs/builders' );
 
 const { Status } 				= require( '../bot-status.js' );
-const { QueueEntry } 			= require( '../queue-entry.js' );
+const { Request } 			= require( '../request.js' );
 
 /* JSON data for /play subcommands, built with discord.js' SlashCommandBuilder. */
 module.exports.data = new SlashCommandBuilder()
@@ -123,7 +123,7 @@ module.exports.play = async function play( interaction, guildSub ) {
 		requestString = requestString.substring( 0, requestString.indexOf('&') );
 	}//end if
 	
-	let request = new QueueEntry( requestString, channel ); //QueueEntry object created from user request
+	let request = new Request( requestString, channel ); //Request object created from user request
 	await request.init();
 	
 	if( !request.isValid() ) {
