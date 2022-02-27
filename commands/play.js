@@ -34,7 +34,6 @@ module.exports.data = new SlashCommandBuilder()
 			.setRequired( true )
 		) 
 	)
-	/*
 	.addSubcommand( subcommand => subcommand
 		.setName( 'at' )
 		.setDescription( 'Adds request to the queue to be played in the requested user\'s channel.' )
@@ -49,7 +48,6 @@ module.exports.data = new SlashCommandBuilder()
 			.setRequired(true)
 		) 
 	);
-	*/
 	
 /* Determines a request from the supplied interaction and adds it to the queue of the supplied guild subscription. */
 module.exports.play = async function play( interaction, guildSub ) {
@@ -73,9 +71,29 @@ module.exports.play = async function play( interaction, guildSub ) {
 			break;
 		case 'in' : //'play in {channel} {request}' subcommand
 			channel = getChannelPlayIn( interaction );
+			
+			if( !channel.isVoice() ) {
+				console.log( 'Channel parsing failed: Channel requested is non-voice.' );
+				await interaction.editReply( {
+					content: `Unable to process request: '${channel?.name}' is not a voice channel in this guild.`,
+					ephemeral: true,
+				} );
+				
+				return;
+			}//end if
+			
 			break;
 		case 'at' : //'play at {user} {request}' subcommand
-			//TODO: Unimplemented
+			channel = getChannelPlayAt( interaction );
+			
+			if( !channel || !channel.isVoice() ) {
+				await interaction.editReply( {
+					content: `Unable to add request: ${interaction.options.getUser('user', true)} is not currently in a voice channel.`,
+					ephemeral: true,
+				} );
+				return;
+			}//end if
+			
 			break;
 		default:			
 			console.log( `Subcommand parsing failed: Unknown subcommand '${subcommand}'` );
@@ -83,26 +101,6 @@ module.exports.play = async function play( interaction, guildSub ) {
 			
 			return;
 	}//end switch
-	
-	if( !channel || !channel.isVoice() || !interaction.guild.channels.resolve(channel) ) {
-		//Disregard if requested nonexistant or non-voice channel
-		
-		if( !channel) {
-			console.log( 'Channel parsing failed: Channel is null or undefined.' );
-			await interaction.editReply( {
-				content: 'Unable to process request: The channel requested does not exist.',
-				ephemeral: true,
-			} );
-		} else {
-			console.log( 'Channel parsing failed: Channel requested is foreign or non-voice.' );
-			await interaction.editReply( {
-				content: `Unable to process request: '${channel?.name}' is not a voice channel in this guild.`,
-				ephemeral: true,
-			} );
-		}//end if-else
-		
-		return;
-	}//end if
 	
 	//Parse request string
 	let requestString; //String representation of user request.
@@ -149,13 +147,18 @@ module.exports.play = async function play( interaction, guildSub ) {
 	return;
 }//end function play
 
-/* Takes 'play in' command interaction, returns channel requested or null if no channel was supplied. */
+/* Takes 'play in' command interaction, returns channel requested. */
 function getChannelPlayIn( interaction ) {
-	
-	try {
-		return interaction.options.getChannel('channel', true);
-	} catch {
-		return null;
-	}//end try-catch
-	
+	return interaction.options.getChannel('channel', true);
 }//end function getChannelPlayIn
+
+/* Takes 'play at' command interaction, returns channel requested or undefined if requested user is not in a voice channel. */
+function getChannelPlayAt( interaction ) {
+	const user = interaction.options.getUser( 'user', true ); //The supplied user
+	const guildMember = interaction.guild.members.resolve(user); //The supplied user as a member of this guild
+	
+	//Not a user in this guild
+	if( !guildMember ) return undefined;
+	
+	return guildMember.voice.channel;
+}//end function getChannelPlayAt
