@@ -1,15 +1,15 @@
 'use strict';
 
+const { BaseGuildTextChannel }		= require( 'discord.js' );
 const { 
 	AudioPlayerStatus,
 	VoiceConnectionStatus,
 	createAudioPlayer,
 	getVoiceConnection,  
 	joinVoiceChannel,
-} = require ( '@discordjs/voice' );
-
-const { Request } 	= require( './request.js' );
-const { Status } 		= require( './bot-status.js' );
+} 									= require ( '@discordjs/voice' );
+const { Request } 					= require( './request.js' );
+const { Status } 					= require( './bot-status.js' );
 
 /*	Keeps track of guild-specific information for an instance of the bot, including a queue and the bot's current state.	*/
 module.exports.GuildSubscription = class GuildSubscription {
@@ -284,5 +284,15 @@ module.exports.GuildSubscription = class GuildSubscription {
 	getStatus() {
 		return this.#botStatus;
 	}//end method getStatus
+	
+	/* Sets the home channel ID from the id of the supplied guild text channel, or sets to a false-y value if supplied instead. */
+	setHomeChannel( homeChannel ) {
+		if( homeChannel && !(homeChannel instanceof BaseGuildTextChannel) ) {
+			throw new TypeError( 'Attempting to set non-text channel as home channel' );
+		}//end if
+		
+		this.#homeChannelID = homeChannel?.id;
+		return;
+	}//end method setHomeChannelID
 	
 };//end class GuildSubscription

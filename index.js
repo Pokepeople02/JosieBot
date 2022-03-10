@@ -7,6 +7,7 @@ const { GuildSubscription } = 	require( './guild-subscription.js' );
 const { play } = 				require( './commands/play.js' );
 const { queue } =				require( './commands/queue.js' );
 const { skip } =				require( './commands/skip.js' );
+const { home_channel } =		require( './commands/home-channel.js' );
 
 globalThis.client = new Client( {
 	intents: [
@@ -57,6 +58,9 @@ client.on( 'interactionCreate', async interaction => {
 				break;
 			case 'skip' : 
 				await skip( interaction, guildSub );
+				break;
+			case 'home-channel' :
+				await home_channel( interaction, guildSub );
 				break;
 			default :
 				interaction.editReply( {
