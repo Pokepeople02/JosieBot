@@ -9,7 +9,6 @@ const { Request } 			= require( '../request.js' );
 module.exports.data = new SlashCommandBuilder()
 	.setName( 'play' )
 	.setDescription( 'Adds request to the queue and plays requests from queue in a voice channel.' )
-	/*
 	.addSubcommand( subcommand => subcommand
 		.setName( 'a' )
 		.setDescription( 'Adds request to the queue. If the bot is idle, begins playing in the requesting user\'s channel.' )
@@ -19,7 +18,6 @@ module.exports.data = new SlashCommandBuilder()
 			.setRequired( true )
 		)
 	)
-	*/
 	.addSubcommand( subcommand => subcommand
 		.setName( 'in' )
 		.setDescription( 'Adds request to the queue to be played in the requested channel.' )
@@ -67,7 +65,18 @@ module.exports.play = async function play( interaction, guildSub ) {
 		//Get appropriate channel for request
 		
 		case 'a' : //'play a {request}' subcommand
-			//TODO: Unimplemented
+			channel = getChannelPlayA( interaction );
+			
+			if( !channel ) {
+				console.log( 'Channel parsing failed: Requesting user is not in a voice channel.' );
+				await interaction.editReply( {
+					content: 'Unable to process request: You are not in a voice channel.',
+					ephemeral: true,
+				} );
+				
+				return;
+			}//end if
+			
 			break;
 		case 'in' : //'play in {channel} {request}' subcommand
 			channel = getChannelPlayIn( interaction );
@@ -86,7 +95,8 @@ module.exports.play = async function play( interaction, guildSub ) {
 		case 'at' : //'play at {user} {request}' subcommand
 			channel = getChannelPlayAt( interaction );
 			
-			if( !channel || !channel.isVoice() ) {
+			if( !channel ) {
+				console.log( 'Channel parsing failed: User not in voice channel.' );
 				await interaction.editReply( {
 					content: `Unable to add request: ${interaction.options.getUser('user', true)} is not currently in a voice channel.`,
 					ephemeral: true,
@@ -162,3 +172,9 @@ function getChannelPlayAt( interaction ) {
 	
 	return guildMember.voice.channel;
 }//end function getChannelPlayAt
+
+/* Takes 'play in' command interaction, returns channel of the requesting user or undefined if requesting user is not in a voice channel. */
+function getChannelPlayA( interaction ) {
+	if( interaction.member.voice.channel ) return interaction.member.voice.channel;
+	else return undefined;
+}//end function getChannelPlayA
