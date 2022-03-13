@@ -10,6 +10,7 @@ const {
 } 									= require ( '@discordjs/voice' );
 const { Request } 					= require( './request.js' );
 const { Status } 					= require( './bot-status.js' );
+const { nowPlayingMessage } 		= require( './messages.js' );
 
 /*	Keeps track of guild-specific information for an instance of the bot, including a queue and the bot's current state.	*/
 module.exports.GuildSubscription = class GuildSubscription {
@@ -207,6 +208,10 @@ module.exports.GuildSubscription = class GuildSubscription {
 		
 		this.#audioPlayer.play( requestStream );
 		
+		if( this.#homeChannelID && this.#guild.channels.resolve(this.#homeChannelID) ) {
+			await this.#guild.channels.resolve( this.#homeChannelID ).send( await nowPlayingMessage(this.#queue[0]) );
+		}//end if
+		
 		console.log( 'Activating standby activation listener' );
 		globalThis.client.removeAllListeners( 'voiceStateUpdate' );
 		globalThis.client.on( 'voiceStateUpdate', this.#standbyActivateListener );
@@ -236,7 +241,7 @@ module.exports.GuildSubscription = class GuildSubscription {
 			( botChannelId !== this.#queue[0].getChannel().id && this.#queue[0].getChannel().members.size < 1 )
 		) ) {
 			//While there exists something else in the queue and it's for a channel not occupied by someone other than the bot, skip it if the channel it is to be played in is unpopulated
-			console.log(  `Shifting unheardable request '${ await this.#queue[0].getTitle() }' out of the queue.` );
+			console.log(  `Shifting unhearable request '${ await this.#queue[0].getTitle() }' out of the queue.` );
 			this.#queue.shift();
 		}//end while
 		

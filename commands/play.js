@@ -3,7 +3,17 @@
 const { SlashCommandBuilder } 	= require( '@discordjs/builders' );
 
 const { Status } 				= require( '../bot-status.js' );
-const { Request } 			= require( '../request.js' );
+const { Request } 				= require( '../request.js' );
+const {
+	queueLockedReply,
+	requesterNotInVoiceReply,
+	playInNonVoiceReply,
+	userNotInVoiceReply,
+	unknownCommandErrorReply,
+	requestInvalidReply,
+	noResultsReply,
+	playSuccessReply,
+} 								= require( '../messages.js' );
 
 /* JSON data for /play subcommands, built with discord.js' SlashCommandBuilder. */
 module.exports.data = new SlashCommandBuilder()
@@ -53,78 +63,57 @@ module.exports.play = async function play( interaction, guildSub ) {
 		//If queue is locked, request fails.
 		
 		console.log( 'Command failed: Queue locked.' );
-		await interaction.editReply( 'Unable to process request: The queue is currently being modified. Please try again in a moment.' );
-		
+		await interaction.editReply( queueLockedReply() );
 		return;
 	}//end if
 	
 	const subcommand = interaction.options.getSubcommand(); //String representation of subcommand requested.
 	let channel; //Channel object for the requested voice channel to join.
 	
-	switch( subcommand ) {
-		//Get appropriate channel for request
-		
+	switch( subcommand ) { //Get appropriate channel for request
 		case 'a' : //'play a {request}' subcommand
-			channel = getChannelPlayA( interaction );
+			if( interaction.member.voice.channel ) channel = interaction.member.voice.channel;
+			else channel = undefined;
 			
 			if( !channel ) {
-				console.log( 'Channel parsing failed: Requesting user is not in a voice channel.' );
-				await interaction.editReply( {
-					content: 'Unable to process request: You are not in a voice channel.',
-					ephemeral: true,
-				} );
-				
+				console.log( 'Channel parsing failed: Requesting user not in voice channel.' );
+				await interaction.editReply( requesterNotInVoiceReply() );
 				return;
 			}//end if
 			
 			break;
 		case 'in' : //'play in {channel} {request}' subcommand
-			channel = getChannelPlayIn( interaction );
+			channel = interaction.options.getChannel('channel', true);
 			
 			if( !channel.isVoice() ) {
-				console.log( 'Channel parsing failed: Channel requested is non-voice.' );
-				await interaction.editReply( {
-					content: `Unable to process request: '${channel?.name}' is not a voice channel in this guild.`,
-					ephemeral: true,
-				} );
-				
+				console.log( 'Channel parsing failed: Channel requested is non-voice channel.' );
+				await interaction.editReply( playInNonVoiceReply(channel) );
 				return;
 			}//end if
 			
 			break;
 		case 'at' : //'play at {user} {request}' subcommand
-			channel = getChannelPlayAt( interaction );
+			const guildMember = interaction.guild.members.resolve( interaction.options.getUser('user', true) ); //The supplied user as a member of this guild
+	
+			if( !guildMember ) channel = undefined;
+			else channel = guildMember.voice.channel;
 			
 			if( !channel ) {
-				console.log( 'Channel parsing failed: User not in voice channel.' );
-				await interaction.editReply( {
-					content: `Unable to add request: ${interaction.options.getUser('user', true)} is not currently in a voice channel.`,
-					ephemeral: true,
-				} );
+				console.log( 'Channel parsing failed: Requested user not in voice channel.' );
+				await interaction.editReply( userNotInVoiceReply(interaction.options.getUser('user', true)) );
 				return;
 			}//end if
 			
 			break;
 		default:			
 			console.log( `Subcommand parsing failed: Unknown subcommand '${subcommand}'` );
-			await interaction.editReply( `Unable to process request: Unknown subcommand '${subcommand}'` );
+			await interaction.editReply( unknownCommandErrorReply('play ' + subcommand) );
 			
 			return;
 	}//end switch
 	
 	//Parse request string
-	let requestString; //String representation of user request.
-	try {
-		requestString = interaction.options.getString( 'request', true );
-	} catch {
-		console.log( 'Request parsing failed: No request given.' );
-		await interaction.editReply( {
-			content: `Unable to process request: Please supply a request.`,
-			ephemeral: true,
-		} );
-		
-		return;
-	}//end try-catch
+	let requestString = interaction.options.getString( 'request', true ); //String representation of user request.
 	
 	if( requestString.includes( 'youtube.com') && requestString.includes('&') ) {
 		//Special case: If request string is a youtube url with a playlist modifier, strip the playlist modifier
@@ -136,45 +125,26 @@ module.exports.play = async function play( interaction, guildSub ) {
 	
 	if( !request.isValid() ) {
 		
-		console.log( 'Request creation failed: request is invalid or unavailable.' );
-		await interaction.editReply( {
-			content: `Unable to process this request. Please try a different request, or try again later.`,
-			ephemeral: true,
-		} );
+		if( request.getResultCount() === 0 ) {
+			console.log( 'Request creation failed: no results found for request.' );
+			await interaction.editReply( noResultsReply() );
+		}//end if
+		else {
+			//Generic request invalid error
+			console.log( 'Request creation failed: request is invalid.' );
+			await interaction.editReply( requestInvalidReply() );
+		}//end if-else
 		
 		return;
 	}//end if
 	
 	guildSub.pushToQueue( request );
-	await interaction.editReply( `Added "${request.getTitle()}" to the queue for channel '${channel.name}'.` );
+	await interaction.editReply( await playSuccessReply(request) );
 	
 	if( !(guildSub.getStatus() === Status.Playing || guildSub.getStatus() === Status.Standby) ) {
 		//If not already playing or on standby, begin playing.
-		
 		guildSub.play();
 	}//end if
 	
 	return;
 }//end function play
-
-/* Takes 'play in' command interaction, returns channel requested. */
-function getChannelPlayIn( interaction ) {
-	return interaction.options.getChannel('channel', true);
-}//end function getChannelPlayIn
-
-/* Takes 'play at' command interaction, returns channel requested or undefined if requested user is not in a voice channel. */
-function getChannelPlayAt( interaction ) {
-	const user = interaction.options.getUser( 'user', true ); //The supplied user
-	const guildMember = interaction.guild.members.resolve(user); //The supplied user as a member of this guild
-	
-	//Not a user in this guild
-	if( !guildMember ) return undefined;
-	
-	return guildMember.voice.channel;
-}//end function getChannelPlayAt
-
-/* Takes 'play in' command interaction, returns channel of the requesting user or undefined if requesting user is not in a voice channel. */
-function getChannelPlayA( interaction ) {
-	if( interaction.member.voice.channel ) return interaction.member.voice.channel;
-	else return undefined;
-}//end function getChannelPlayA

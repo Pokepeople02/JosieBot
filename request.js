@@ -6,10 +6,11 @@ const play = require( 'play-dl' );
 /* 	Represents a single request made to be stored in a guild subscription's queue.	*/
 module.exports.Request = class Request {
 
-	#str; 		//String used to construct the request
-	#type;		//String denoting the type of request
-	#info;		//Play-dl info about a request
-	#channel;	//The guild voice channel the request is to be played in
+	#str; 			//String used to construct the request
+	#type;			//String denoting the type of request
+	#info;			//Play-dl info about a request
+	#channel;		//The guild voice channel the request is to be played in
+	#numResults;	//The number of results returned for search requests. Otherwise, set to 1.
 	
 	/*	Creates a new request from the specified request string to be played in the supplied channel.
 		Throws an error if the request string cannot be resolved to a valid request.
@@ -21,6 +22,7 @@ module.exports.Request = class Request {
 		this.#channel = channel;
 		this.#type = undefined;
 		this.#info = undefined;
+		this.#numResults = undefined;
 		
 		return;
 	}//end constructor
@@ -41,6 +43,7 @@ module.exports.Request = class Request {
 				let results = await play.search( this.#str, {
 						limit: 1,
 				} );
+				this.#numResults = results.length;
 
 				if( results.length === 0 ) {
 					//Returned no or invalid results
@@ -54,6 +57,7 @@ module.exports.Request = class Request {
 				break;
 			case 'yt_video':
 				this.#info = await play.video_info( this.#str );
+				this.#numResults = 1;
 				
 				break;
 			default :
@@ -106,5 +110,15 @@ module.exports.Request = class Request {
 	getChannel() {
 		return this.#channel;
 	}//end method getChannel
+	
+	/* 	Returns the URL of this request.	*/
+	getURL() {
+		return this.#info.video_details.url;
+	}//end method getURL
+	
+	/*	Returns the number of results returned for a search request. Should be 0 only if no results returned.	*/
+	getResultCount() {
+		return this.#numResults;
+	}//end method getResultCount
 	
 }//end class QueueEntry

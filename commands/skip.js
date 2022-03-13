@@ -1,6 +1,12 @@
 'use strict';
 
-const { SlashCommandBuilder } = require( '@discordjs/builders' );
+const { SlashCommandBuilder } 	= require( '@discordjs/builders' );
+
+const {
+	queueLockedReply,
+	noRequestsSkipReply,
+	successfulSkipReply,
+}								= require( '../messages.js' );
 
 /* JSON data for the /skip command, built with discord.js' SlashCommandBuilder. */
 module.exports.data = new SlashCommandBuilder()
@@ -14,7 +20,7 @@ module.exports.skip = async function skip( interaction, guildSub ) {
 		//If queue is locked, skip fails.
 		
 		console.log( 'Command failed: Queue locked.' );
-		await interaction.editReply( 'Unable to skip: The queue is currently being modified. Please try again in a moment.' );
+		await interaction.editReply( queueLockedReply() );
 		
 		return;
 	}//end if
@@ -22,12 +28,12 @@ module.exports.skip = async function skip( interaction, guildSub ) {
 	if( guildSub.getQueue().length === 0 ) {
 		//If queue is empty, skip fails.
 		
-		interaction.editReply( 'Unable to skip: The queue is currently empty.' );
+		interaction.editReply( noRequestsSkipReply() );
 		return;
 	}//end if
 	
 	await guildSub.transition(); //Transition handles queue locking
-	await interaction.editReply( 'Skipped to the next valid request.' );
+	await interaction.editReply( successfulSkipReply() );
 	
 	return;
 }//end function skip

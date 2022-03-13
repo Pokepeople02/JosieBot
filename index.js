@@ -1,13 +1,17 @@
 'use strict';
 
 const { Client, Intents } = 	require( 'discord.js' );
-
+		
 const { token } = 				require( './config.json' );
 const { GuildSubscription } = 	require( './guild-subscription.js' );
 const { play } = 				require( './commands/play.js' );
 const { queue } =				require( './commands/queue.js' );
 const { skip } =				require( './commands/skip.js' );
 const { home_channel } =		require( './commands/home-channel.js' );
+const { 
+	unknownCommandErrorReply,
+	execErrorReply,
+} = 							require( './messages.js' );
 
 globalThis.client = new Client( {
 	intents: [
@@ -42,7 +46,7 @@ client.on( 'interactionCreate', async interaction => {
 	try { await interaction.deferReply(); } 
 	catch( error1 ) {
 		//Discord.js can sometimes randomly error upon defer. Nothing can be done but let it fail.
-		console.log( 'Immediate deferral bug detected. Command failure.' );
+		console.error( 'Immediate deferral bug detected. Command failure.' );
 		return;
 	}//end try-catch
 	
@@ -63,19 +67,13 @@ client.on( 'interactionCreate', async interaction => {
 				await home_channel( interaction, guildSub );
 				break;
 			default :
-				interaction.editReply( {
-					content: 	`Unknown command '${interaction.commandName}'! Please enter a valid command.`,
-					ephemeral: 	true,
-				} );
+				console.error( 'Commmand failed: Unknown command ' + interaction.commandName );
+				await interaction.editReply( unknownCommandErrorReply(interaction.commandName) );
 		}//end switch
 		
 	} catch( error ) {
 		console.error( error );
-		
-		await interaction.editReply( { 
-			content: 'There was an error while executing this command!', 
-			ephemeral: true,
-		} );
+		await interaction.editReply( execErrorReply() );
 		
     }//end try-catch
 	

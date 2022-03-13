@@ -1,7 +1,13 @@
 'use strict';
 
-const { BaseGuildTextChannel }	= require( 'discord.js' );
 const { SlashCommandBuilder } 	= require( '@discordjs/builders' );
+
+const { 
+	unknownCommandErrorReply,
+	unsuitableHomeReply,
+	setHomeSuccessReply,
+	clearHomeSuccessReply
+} 								= require( '../messages.js' );
 
 /* JSON data for /home-channel subcommands, built with discord.js' SlashCommandBuilder. */
 module.exports.data = new SlashCommandBuilder()
@@ -27,30 +33,25 @@ module.exports.home_channel = async function home_channel( interaction, guildSub
 		case 'set' :
 			let channel = interaction.options.getChannel('channel', true);
 			
-			if( !(channel instanceof BaseGuildTextChannel) ) {
+			if( !channel.isText() ) {
 				//Disregard non-text channels
-				
 				console.log( 'Invalid requested voice channel.' );
-				await interaction.editReply( {
-					content: `This channel is not suitable for a home channel. Please choose a valid text-based channel.`,
-					ephemeral: true,
-				} );
-				
+				await interaction.editReply( unsuitableHomeReply(channel) );
 				return;
 			}//end if
 			
 			console.log( `Setting home channel to '${channel?.name}'` );
 			guildSub.setHomeChannel( channel );
-			await interaction.editReply( 'Successfully updated the home channel.' );
 			
+			await interaction.editReply( setHomeSuccessReply(channel) );
 			break;
 		case 'clear' :
 			guildSub.setHomeChannel( null );
-			await interaction.editReply( 'Cleared the home channel.' );
+			await interaction.editReply( clearHomeSuccessReply() );
 			break;
 		default :
 			console.log( `Subcommand parsing failed: Unknown subcommand '${subcommand}'` );
-			await interaction.editReply( `Unable to process request: Unknown subcommand '${subcommand}'` );
+			await interaction.editReply( unknownCommandErrorReply('home-channel ' + subcommand) );
 			return;
 	}//end switch
 	
