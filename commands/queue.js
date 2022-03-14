@@ -24,6 +24,6 @@ module.exports.queue = async function queue( interaction, guildSub ) {
 		return;
 	}//end if
 	
-	interaction.editReply( queuePrintReply(queue) );
+	await interaction.editReply( await queuePrintReply(queue) );
 	return;
 }//end function queue

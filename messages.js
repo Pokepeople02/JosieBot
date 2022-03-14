@@ -127,17 +127,14 @@ module.exports.queueEmptyReply = function queueEmptyReply() {
 
 /* Generates the reply message content for a 'print queue' message. */
 module.exports.queuePrintReply = async function queuePrintReply( guildQueue ) {
-	const msgEmbed = new MessageEmbed();
-	msgEmbed.setTitle( 'Queue' );
-	
-	/* Build queue string contents*/
-	queueContents += '```';
-	let i = 0;
+
+	let queueContents = '```'; //String representation of queue
+	let i = 1;
 	let title = '';
 	for( const entry of guildQueue ) {
 		title = await entry.getTitle();
 		
-		if( i !== 0 ) queueContents += '\n'; //Newline
+		if( i !== 1 ) queueContents += '\n'; //Newline
 		queueContents += `${i.toString().padStart(2, '0')}. `; //Index
 		queueContents += (`"${title.substring(0, title.length > 50 ? 47 : title.length - 3) + ( title.length > 50 ? '...' : title.substring(title.length - 3, title.length) )}"`).padEnd(52, ' ') + '\t'; //Request title
 		queueContents += `Channel: ${entry.getChannel().name}` //Request channel
@@ -151,12 +148,10 @@ module.exports.queuePrintReply = async function queuePrintReply( guildQueue ) {
 	}//end for
 	queueContents += '```';
 	
-	console.log( queueContents ); //Log here instead of in calling function for convenience
-	
-	msgEmbed.setDescription( queueContents );
+	console.log( queueContents.substring(3, queueContents.length - 3) ); //Log here instead of in calling function for convenience
 
 	return {
-		embeds: [msgEmbed],
+		content: '**Queue:**\n' + queueContents,
 		ephemeral: false,
 	};
 }//end function queuePrintReply
