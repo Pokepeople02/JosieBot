@@ -129,18 +129,47 @@ module.exports.queueEmptyReply = function queueEmptyReply() {
 module.exports.queuePrintReply = async function queuePrintReply( guildQueue ) {
 
 	let queueContents = '```'; //String representation of queue
+	
+	//Build queue string header
+	queueContents += 'in.'.padEnd( 3, ' ' );
+	queueContents += ' | ';
+	queueContents += 'Title'.padEnd( 50, ' ' );
+	queueContents += ' | ';
+	queueContents += 'Channel'.padEnd( 32, ' ' );
+	
 	let i = 1;
+	let index = '';
 	let title = '';
+	let channel = '';
 	for( const entry of guildQueue ) {
-		title = await entry.getTitle();
+		queueContents += '\n';
 		
-		if( i !== 1 ) queueContents += '\n'; //Newline
-		queueContents += `${i.toString().padStart(2, '0')}. `; //Index
-		queueContents += (`"${title.substring(0, title.length > 50 ? 47 : title.length - 3) + ( title.length > 50 ? '...' : title.substring(title.length - 3, title.length) )}"`).padEnd(52, ' ') + '\t'; //Request title
-		queueContents += `Channel: ${entry.getChannel().name}` //Request channel
+		//Index
+		index = i.toString().padStart(2, '0');
+		index += '.';
+		queueContents += index;
+		
+		queueContents += '  ';
+		
+		//Title
+		title = entry.getTitle();
+		if( title.length > 50 )
+			title = title.substring(0, 49) + '…';
+		title = title.padEnd( 50, ' ' );
+		queueContents += title;
+		
+		queueContents += '   ';
+		
+		//Channel
+		channel = entry.getChannel().name;
+		if( channel.length > 20 )
+			channel = channel.substring(0, 19) + '…';
+		channel = channel.padEnd( 20, ' ' );
+		
+		queueContents += channel;
 		
 		if( i == 5 && guildQueue.length - i > 0 )  {
-			queueContents += ('\n...and ' + (guildQueue.length - i) + ' more...');
+			queueContents += ('\n…and ' + (guildQueue.length - i) + ' more…');
 			break;
 		}//end if
 		
