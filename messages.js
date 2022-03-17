@@ -1,12 +1,10 @@
 'use strict';
 
-const { 
-	MessageEmbed,
-	MessageOptions,
-} = require( 'discord.js' );
+import { MessageEmbed } from 'discord.js';
+import stringWidth from 'string-width';
 
 /* Generates the reply message content for an 'unknown command input' error message. */
-module.exports.unknownCommandErrorReply = function unknownCommandErrorReply( commandStr ) {
+export function unknownCommandErrorReply( commandStr ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Command Failed' );
 	msgEmbed.setDescription( `"${commandStr}" is not a recognized command.` );
@@ -18,7 +16,7 @@ module.exports.unknownCommandErrorReply = function unknownCommandErrorReply( com
 }//end function unknownCommandErrorReply
 
 /* Generates the reply message content for an 'unknown error during execution' error message. */
-module.exports.execErrorReply = function execErrorReply() {
+export function execErrorReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Command Failed' );
 	msgEmbed.setDescription( 'There was an error while executing this command!' );
@@ -30,7 +28,7 @@ module.exports.execErrorReply = function execErrorReply() {
 }//end function execErrorReply
 
 /* Generates the reply message content for a 'queue locked for modification' error message. */
-module.exports.queueLockedReply = function queueLockedReply() {
+export function queueLockedReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
 	msgEmbed.setDescription( 'The queue is currently being modified. Please try again later.' );
@@ -42,7 +40,7 @@ module.exports.queueLockedReply = function queueLockedReply() {
 }//end function queueLockedReply
 
 /* Generates the reply message content for a 'requester is not in voice channel' error message. */
-module.exports.requesterNotInVoiceReply = function requesterNotInVoiceReply() {
+export function requesterNotInVoiceReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
 	msgEmbed.setDescription( 'You need to be in a voice channel to make requests with `/play a {request}`.' );
@@ -54,7 +52,7 @@ module.exports.requesterNotInVoiceReply = function requesterNotInVoiceReply() {
 }//end function requesterNotInVoiceReply
 
 /* Generates the reply message content for a 'requesting play in non-voice channel' error message. */
-module.exports.playInNonVoiceReply = function playInNonVoiceReply( nonVoiceChannel ) {
+export function playInNonVoiceReply( nonVoiceChannel ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
 	msgEmbed.setDescription( `Cannot play in non-voice channel ${nonVoiceChannel.toString()}.` );
@@ -66,7 +64,7 @@ module.exports.playInNonVoiceReply = function playInNonVoiceReply( nonVoiceChann
 }//end function playInNonVoiceReply
 
 /* Generates the reply message content for a 'requested user not in voice channel' error message. */
-module.exports.userNotInVoiceReply = function userNotInVoiceReply( userPlayAt ) {
+export function userNotInVoiceReply( userPlayAt ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
 	msgEmbed.setDescription( `${userPlayAt.toString()} is not currently in a voice channel.` );
@@ -78,7 +76,7 @@ module.exports.userNotInVoiceReply = function userNotInVoiceReply( userPlayAt ) 
 }//end function userNotInVoiceReply
 
 /* Generates the reply message content for an 'invalid request' error message. */
-module.exports.requestInvalidReply = function requestInvalidReply() {
+export function requestInvalidReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
 	msgEmbed.setDescription( 'This request is invalid, please try a different request.' );
@@ -90,7 +88,7 @@ module.exports.requestInvalidReply = function requestInvalidReply() {
 }//end function requestInvalidReply
 
 /* Generates the reply message content for a 'no results available' error message. */
-module.exports.noResultsReply = function noResultsReply() {
+export function noResultsReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
 	msgEmbed.setDescription( 'There are no available results for this search.' );
@@ -102,7 +100,7 @@ module.exports.noResultsReply = function noResultsReply() {
 }//end function noResultsReply
 
 /* Generates the reply message content for a 'successful play request' message. */
-module.exports.playSuccessReply = function playSuccessReply( newRequest ) {
+export function playSuccessReply( newRequest ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Play' );
 	msgEmbed.setDescription( `Successfully queued [${newRequest.getTitle()}](${newRequest.getURL()}) for ${newRequest.getChannel().toString()}` );
@@ -114,7 +112,7 @@ module.exports.playSuccessReply = function playSuccessReply( newRequest ) {
 }//end function playSuccessReply
 
 /* Generates the reply message content for a 'queue is empty' message. */
-module.exports.queueEmptyReply = function queueEmptyReply() {
+export function queueEmptyReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( 'Queue' );
 	msgEmbed.setDescription( 'The queue is currently empty! Please add a request.' );
@@ -126,7 +124,7 @@ module.exports.queueEmptyReply = function queueEmptyReply() {
 }//end function noResultsReply
 
 /* Generates the reply message content for a 'print queue' message. */
-module.exports.queuePrintReply = async function queuePrintReply( guildQueue ) {
+export async function queuePrintReply( guildQueue ) {
 
 	let queueContents = '```'; //String representation of queue
 	
@@ -153,9 +151,19 @@ module.exports.queuePrintReply = async function queuePrintReply( guildQueue ) {
 		
 		//Title
 		title = entry.getTitle();
-		if( title.length > 50 )
-			title = title.substring(0, 49) + '…';
-		title = title.padEnd( 50, ' ' );
+		if( stringWidth(title) > 50 ) {
+			
+			//Find cutoff point for string width <= 50 halfwidth characters
+			let firstExcl; //First index to exclude
+			for( firstExcl = 1; firstExcl < title.length; ++firstExcl ) {
+				if( stringWidth(title.substring(0, firstExcl)) >= 50 )
+					break;
+			}//end for
+			
+			title = title.substring(0, firstExcl - 1) + '…';
+		}//end if
+		while( stringWidth(title) < 50 )
+				title += ' ';
 		queueContents += title;
 		
 		queueContents += '   ';
@@ -168,7 +176,7 @@ module.exports.queuePrintReply = async function queuePrintReply( guildQueue ) {
 		
 		queueContents += channel;
 		
-		if( i == 5 && guildQueue.length - i > 0 )  {
+		if( i == 25 && guildQueue.length - i > 0 )  {
 			queueContents += ('\n…and ' + (guildQueue.length - i) + ' more…');
 			break;
 		}//end if
@@ -186,7 +194,7 @@ module.exports.queuePrintReply = async function queuePrintReply( guildQueue ) {
 }//end function queuePrintReply
 
 /* Generates the reply message content for a 'no requests to skip' message. */
-module.exports.noRequestsSkipReply = function noRequestsSkipReply() {
+export function noRequestsSkipReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( 'Skip' );
 	msgEmbed.setDescription( 'The queue is already empty.' );
@@ -198,7 +206,7 @@ module.exports.noRequestsSkipReply = function noRequestsSkipReply() {
 }//end function noRequestsSkipReply
 
 /* Generates the reply message content for a 'successful skip' message. */
-module.exports.successfulSkipReply = function successfulSkipReply() {
+export function successfulSkipReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Skip' );
 	msgEmbed.setDescription( `Successfully skipped to the next valid request, if one exists.` );
@@ -210,7 +218,7 @@ module.exports.successfulSkipReply = function successfulSkipReply() {
 }//end function noRequestsSkipReply
 
 /* Generates the reply message content for an 'unsuitable home channel' error message. */
-module.exports.unsuitableHomeReply = function unsuitableHomeReply( badHome ) {
+export function unsuitableHomeReply( badHome ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Set Home Channel' );
 	msgEmbed.setDescription( `${badHome.toString()} is not a suitable home channel. Please choose a valid text-based channel.` );
@@ -222,7 +230,7 @@ module.exports.unsuitableHomeReply = function unsuitableHomeReply( badHome ) {
 }//end function unsuitableHomeReply
 
 /* Generates the reply message content for an 'updated home channel' message. */
-module.exports.setHomeSuccessReply = function setHomeSuccessReply( newHome ) {
+export function setHomeSuccessReply( newHome ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Home Channel' );
 	msgEmbed.setDescription( `Successfully updated the home channel. New home channel: ${newHome.toString()}` );
@@ -234,7 +242,7 @@ module.exports.setHomeSuccessReply = function setHomeSuccessReply( newHome ) {
 }//end function setHomeSuccessReply
 
 /* Generates the reply message content for a 'cleared home channel' message. */
-module.exports.clearHomeSuccessReply = function clearHomeSuccessReply() {
+export function clearHomeSuccessReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Home Channel' );
 	msgEmbed.setDescription( 'Successfully cleared the home channel.' );
@@ -246,7 +254,7 @@ module.exports.clearHomeSuccessReply = function clearHomeSuccessReply() {
 }//end function setHomeSuccessReply
 
 /* Generates the home channel message content for a 'now playing' message. */
-module.exports.nowPlayingMessage = async function nowPlayingMessage( request ) {
+export async function nowPlayingMessage( request ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setDescription( `Now playing [${request.getTitle()}](${request.getURL()}) in ${request.getChannel().toString()}` );
 
