@@ -1,7 +1,7 @@
 'use strict';
 
 /*	Enum-like class to enumerate possible bot statuses. */
-module.exports.Status = class Status {
+export class Status {
 	
 	static Playing =	Symbol( "Playing" );	//Bot is currently playing in an audio channel.
 	static Idle = 		Symbol( "Idle" ); 		//Bot is not in use and is disconnected. 

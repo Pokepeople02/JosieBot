@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "A Discord music bot to serve as a replacement for Groovy Bot. Made for private use.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,6 +25,7 @@
     "node": "^17.4.0",
     "npm": "^8.5.1",
     "play-dl": "^1.8.9",
+    "string-width": "^5.1.2",
     "ytdl-core": "^4.10.1"
   },
   "compilerOptions": {

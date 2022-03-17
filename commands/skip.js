@@ -1,20 +1,20 @@
 'use strict';
 
-const { SlashCommandBuilder } 	= require( '@discordjs/builders' );
+import { SlashCommandBuilder } from '@discordjs/builders';
 
-const {
+import {
 	queueLockedReply,
 	noRequestsSkipReply,
 	successfulSkipReply,
-}								= require( '../messages.js' );
+}								from '../messages.js';
 
 /* JSON data for the /skip command, built with discord.js' SlashCommandBuilder. */
-module.exports.data = new SlashCommandBuilder()
+export const data = new SlashCommandBuilder()
 	.setName( 'skip ' )
 	.setDescription( 'Stops the currently playing request and skips to the next one to be played in a populated channel.' );
 
 /* Skips to the next valid request in the queue of the supplied guild subscription. */
-module.exports.skip = async function skip( interaction, guildSub ) {
+export async function skip( interaction, guildSub ) {
 	
 	if( guildSub.isQueueLocked() ) {
 		//If queue is locked, skip fails.

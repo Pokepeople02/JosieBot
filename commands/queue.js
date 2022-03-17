@@ -1,19 +1,19 @@
 'use strict';
 
-const { SlashCommandBuilder } 	= require( '@discordjs/builders' );
+import { SlashCommandBuilder } 	from '@discordjs/builders';
 
-const {
+import {
 	queueEmptyReply,
 	queuePrintReply,
-} 								= require( '../messages.js' );
+} 								from '../messages.js';
 
 /* JSON data for the /queue command, built with discord.js' SlashCommandBuilder. */
-module.exports.data = new SlashCommandBuilder()
+export const data = new SlashCommandBuilder()
 	.setName( 'queue' )
 	.setDescription( 'Replies with a message displaying the upcoming requests in the queue.' );
 
 /* Prints the current queue of the supplied guild subscription. */
-module.exports.queue = async function queue( interaction, guildSub ) {
+export async function queue( interaction, guildSub ) {
 	const queue = guildSub.getQueue(); //Queue of the supplied guild
 	
 	console.log( 'Printing the queue' );

@@ -1,19 +1,19 @@
 'use strict';
 
-const { BaseGuildTextChannel }		= require( 'discord.js' );
-const { 
+import { BaseGuildTextChannel }		from 'discord.js';
+import { 
 	AudioPlayerStatus,
 	VoiceConnectionStatus,
 	createAudioPlayer,
 	getVoiceConnection,  
 	joinVoiceChannel,
-} 									= require ( '@discordjs/voice' );
-const { Request } 					= require( './request.js' );
-const { Status } 					= require( './bot-status.js' );
-const { nowPlayingMessage } 		= require( './messages.js' );
+} 									from '@discordjs/voice';
+import { Request } 					from './request.js';
+import { Status } 					from './bot-status.js';
+import { nowPlayingMessage } 		from './messages.js';
 
 /*	Keeps track of guild-specific information for an instance of the bot, including a queue and the bot's current state.	*/
-module.exports.GuildSubscription = class GuildSubscription {
+export class GuildSubscription {
 	
 	#guild;						//Guild object to which this subscription belongs.
 	#botStatus = Status.Idle; 	//The current status of the bot for the subscription's guild.

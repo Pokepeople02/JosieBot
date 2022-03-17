@@ -1,10 +1,10 @@
 'use strict';
 
-const { SlashCommandBuilder } 	= require( '@discordjs/builders' );
+import { SlashCommandBuilder } 	from '@discordjs/builders';
 
-const { Status } 				= require( '../bot-status.js' );
-const { Request } 				= require( '../request.js' );
-const {
+import { Status } 				from '../bot-status.js';
+import { Request } 				from '../request.js';
+import {
 	queueLockedReply,
 	requesterNotInVoiceReply,
 	playInNonVoiceReply,
@@ -13,10 +13,10 @@ const {
 	requestInvalidReply,
 	noResultsReply,
 	playSuccessReply,
-} 								= require( '../messages.js' );
+} 								from '../messages.js';
 
 /* JSON data for /play subcommands, built with discord.js' SlashCommandBuilder. */
-module.exports.data = new SlashCommandBuilder()
+export const data = new SlashCommandBuilder()
 	.setName( 'play' )
 	.setDescription( 'Adds request to the queue and plays requests from queue in a voice channel.' )
 	.addSubcommand( subcommand => subcommand
@@ -58,7 +58,7 @@ module.exports.data = new SlashCommandBuilder()
 	);
 	
 /* Determines a request from the supplied interaction and adds it to the queue of the supplied guild subscription. */
-module.exports.play = async function play( interaction, guildSub ) {
+export async function play( interaction, guildSub ) {
 	if( guildSub.isQueueLocked() ) {
 		//If queue is locked, request fails.
 		

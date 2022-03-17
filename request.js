@@ -1,10 +1,10 @@
 'use strict';
 
-const { createAudioResource } = require( '@discordjs/voice' );
-const play = require( 'play-dl' );
+import { createAudioResource } from '@discordjs/voice';
+import play from 'play-dl';
 
 /* 	Represents a single request made to be stored in a guild subscription's queue.	*/
-module.exports.Request = class Request {
+export class Request {
 
 	#str; 			//String used to construct the request
 	#type;			//String denoting the type of request

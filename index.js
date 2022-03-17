@@ -1,17 +1,18 @@
 'use strict';
 
-const { Client, Intents } = 	require( 'discord.js' );
+import { Client, Intents } 		from 'discord.js';
 		
-const { token } = 				require( './config.json' );
-const { GuildSubscription } = 	require( './guild-subscription.js' );
-const { play } = 				require( './commands/play.js' );
-const { queue } =				require( './commands/queue.js' );
-const { skip } =				require( './commands/skip.js' );
-const { home_channel } =		require( './commands/home-channel.js' );
-const { 
+import { token } 				from './config.js';
+
+import { GuildSubscription } 	from './guild-subscription.js';
+import { play } 				from './commands/play.js';
+import { queue } 				from './commands/queue.js';
+import { skip } 				from './commands/skip.js';
+import { home_channel } 		from './commands/home-channel.js';
+import { 
 	unknownCommandErrorReply,
 	execErrorReply,
-} = 							require( './messages.js' );
+} 								from './messages.js';
 
 globalThis.client = new Client( {
 	intents: [

@@ -1,16 +1,16 @@
 'use strict';
 
-const { SlashCommandBuilder } 	= require( '@discordjs/builders' );
+import { SlashCommandBuilder } 	from '@discordjs/builders';
 
-const { 
+import { 
 	unknownCommandErrorReply,
 	unsuitableHomeReply,
 	setHomeSuccessReply,
 	clearHomeSuccessReply
-} 								= require( '../messages.js' );
+} 								from '../messages.js';
 
 /* JSON data for /home-channel subcommands, built with discord.js' SlashCommandBuilder. */
-module.exports.data = new SlashCommandBuilder()
+export const data = new SlashCommandBuilder()
 	.setName( 'home-channel' )
 	.setDescription( 'Manages which channel the bot periodically sends messages to while playing.' )
 	.addSubcommand( subcommand => subcommand
@@ -28,7 +28,7 @@ module.exports.data = new SlashCommandBuilder()
 	);
 
 /* Sets or unsets the home channel of the supplied guild subscription. */
-module.exports.home_channel = async function home_channel( interaction, guildSub ) {
+export async function home_channel( interaction, guildSub ) {
 	switch( interaction.options.getSubcommand() ) {
 		case 'set' :
 			let channel = interaction.options.getChannel('channel', true);
