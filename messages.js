@@ -133,49 +133,24 @@ export async function queuePrintReply( guildQueue ) {
 	queueContents += ' | ';
 	queueContents += 'Title'.padEnd( 50, ' ' );
 	queueContents += ' | ';
-	queueContents += 'Channel'.padEnd( 32, ' ' );
+	queueContents += 'Channel'.padEnd( 20, ' ' );
 	
 	let i = 1;
-	let index = '';
-	let title = '';
-	let channel = '';
 	for( const entry of guildQueue ) {
 		queueContents += '\n';
 		
 		//Index
-		index = i.toString().padStart(2, '0');
-		index += '.';
-		queueContents += index;
-		
-		queueContents += '  ';
+		queueContents += i.toString().padStart(2, '0') + '.';
 		
 		//Title
-		title = entry.getTitle();
-		if( stringWidth(title) > 50 ) {
-			
-			//Find cutoff point for string width <= 50 halfwidth characters
-			let firstExcl; //First index to exclude
-			for( firstExcl = 1; firstExcl < title.length; ++firstExcl ) {
-				if( stringWidth(title.substring(0, firstExcl)) >= 50 )
-					break;
-			}//end for
-			
-			title = title.substring(0, firstExcl - 1) + '…';
-		}//end if
-		while( stringWidth(title) < 50 )
-				title += ' ';
-		queueContents += title;
-		
-		queueContents += '   ';
+		queueContents += '  ';
+		queueContents += truncAndPadString( entry.getTitle(), 50 );
 		
 		//Channel
-		channel = entry.getChannel().name;
-		if( channel.length > 20 )
-			channel = channel.substring(0, 19) + '…';
-		channel = channel.padEnd( 20, ' ' );
+		queueContents += '   ';
+		queueContents += truncAndPadString( entry.getChannel().name, 20 );
 		
-		queueContents += channel;
-		
+		//Truncate queue to 25 entries
 		if( i == 25 && guildQueue.length - i > 0 )  {
 			queueContents += ('\n…and ' + (guildQueue.length - i) + ' more…');
 			break;
@@ -263,3 +238,26 @@ export async function nowPlayingMessage( request ) {
 	};
 }//end function nowPlayingMessage
 
+/*	Truncates a string to a given maximum visual width, taking into account half/full-width characters and other non-standard characters.
+	Returns the final truncated string, padded to the maximum width with half-width spaces.
+*/
+function truncAndPadString( string, maxWidth ) {
+	
+	if( stringWidth(string) > maxWidth ) {
+			//Find cutoff point for string width <= maxWidth # of halfwidth characters
+			
+			let firstExcl; //First index to exclude
+			for( firstExcl = 1; firstExcl < string.length; ++firstExcl ) {
+				if( stringWidth(string.substring(0, firstExcl)) >= maxWidth )
+					break;
+			}//end for
+			
+			string = string.substring(0, firstExcl - 1) + '…';
+		}//end if
+		
+		//Pad with spaces
+		while( stringWidth(string) < maxWidth )
+				string += ' ';
+			
+		return string;
+}//end function truncString
