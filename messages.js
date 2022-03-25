@@ -242,7 +242,7 @@ export async function nowPlayingMessage( request ) {
 	Returns the final truncated string, padded to the maximum width with half-width spaces.
 */
 function truncAndPadString( string, maxWidth ) {
-	
+
 	if( stringWidth(string) > maxWidth ) {
 			//Find cutoff point for string width <= maxWidth # of halfwidth characters
 			
@@ -259,5 +259,10 @@ function truncAndPadString( string, maxWidth ) {
 		while( stringWidth(string) < maxWidth )
 				string += ' ';
 			
+		//Pad with arbitrary additional spaces to compensate for discord's strange formatting
+		let numFullwidth = stringWidth(string) - string.length;
+		for( let i = 0; i < Math.ceil((numFullwidth - 1) / 5); ++i )
+			string += ' ';
+		
 		return string;
 }//end function truncString
