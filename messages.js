@@ -83,7 +83,6 @@ export function requestInvalidReply() {
 
 	return {
 		embeds: [msgEmbed],
-		ephemeral: true,
 	};
 }//end function requestInvalidReply
 
@@ -95,7 +94,6 @@ export function noResultsReply() {
 
 	return {
 		embeds: [msgEmbed],
-		ephemeral: true,
 	};
 }//end function noResultsReply
 
@@ -103,23 +101,21 @@ export function noResultsReply() {
 export function playSuccessReply( newRequest ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Play' );
-	msgEmbed.setDescription( `Successfully queued [${newRequest.getTitle()}](${newRequest.getURL()}) for ${newRequest.getChannel().toString()}` );
+	msgEmbed.setDescription( `Successfully queued [${newRequest.getTitle()}](${newRequest.getURL()}) for ${newRequest.getChannel().toString()}\n` );
+	msgEmbed.setThumbnail( newRequest.getThumbnailURL() );
+	msgEmbed.addField( 'Length', newRequest.getLength(), true );
+	msgEmbed.addField( 'Uploaded By', newRequest.getCreatorName(), true );
 	
 	return {
 		embeds: [msgEmbed],
-		ephemeral: false,
 	};
 }//end function playSuccessReply
 
 /* Generates the reply message content for a 'queue is empty' message. */
 export function queueEmptyReply() {
-	const msgEmbed = new MessageEmbed();
-	msgEmbed.setTitle( 'Queue' );
-	msgEmbed.setDescription( 'The queue is currently empty! Please add a request.' );
-
+	
 	return {
-		embeds: [msgEmbed],
-		ephemeral: true,
+		content: '**Queue:**\n```\nThe queue is currently empty! Please add a request.\n```', 
 	};
 }//end function noResultsReply
 
@@ -133,6 +129,8 @@ export async function queuePrintReply( guildQueue ) {
 	queueContents += ' │ ';
 	queueContents += 'Title'.padEnd( 40, ' ' );
 	queueContents += ' │ ';
+	queueContents += 'Length'.padEnd( 7, ' ' );
+	queueContents += ' │ ';
 	queueContents += 'Channel'.padEnd( 15, ' ' );
 	queueContents += ' │ ';
 	queueContents += 'Queued by'.padEnd( 20, ' ' );
@@ -141,6 +139,8 @@ export async function queuePrintReply( guildQueue ) {
 	queueContents = queueContents.padEnd( queueContents.length + 3, '─' );
 	queueContents += '─┼─';
 	queueContents = queueContents.padEnd( queueContents.length + 40, '─' );
+	queueContents += '─┼─';
+	queueContents = queueContents.padEnd( queueContents.length + 7, '─' );
 	queueContents += '─┼─';
 	queueContents = queueContents.padEnd( queueContents.length + 15, '─' );
 	queueContents += '─┼─';
@@ -157,6 +157,10 @@ export async function queuePrintReply( guildQueue ) {
 		queueContents += ' │ ';
 		queueContents += truncAndPadString( entry.getTitle(), 40 );
 		
+		//Length
+		queueContents += ' │ ';
+		queueContents += truncAndPadString( entry.getLength(), 7 );
+		
 		//Channel
 		queueContents += ' │ ';
 		queueContents += truncAndPadString( entry.getChannel().name, 15 );
@@ -171,6 +175,8 @@ export async function queuePrintReply( guildQueue ) {
 			queueContents = queueContents.padEnd( queueContents.length + 3, '─' );
 			queueContents += '─┴─';
 			queueContents = queueContents.padEnd( queueContents.length + 40, '─' );
+			queueContents += '─┴─';
+			queueContents = queueContents.padEnd( queueContents.length + 7, '─' );
 			queueContents += '─┴─';
 			queueContents = queueContents.padEnd( queueContents.length + 15, '─' );
 			queueContents += '─┴─';
@@ -188,7 +194,6 @@ export async function queuePrintReply( guildQueue ) {
 
 	return {
 		content: '**Queue:**\n' + queueContents,
-		ephemeral: false,
 	};
 }//end function queuePrintReply
 
@@ -200,7 +205,6 @@ export function noRequestsSkipReply() {
 	
 	return {
 		embeds: [msgEmbed],
-		ephemeral: false,
 	};
 }//end function noRequestsSkipReply
 
@@ -212,7 +216,6 @@ export function successfulSkipReply() {
 	
 	return {
 		embeds: [msgEmbed],
-		ephemeral: false,
 	};
 }//end function noRequestsSkipReply
 
@@ -224,7 +227,6 @@ export function unsuitableHomeReply( badHome ) {
 
 	return {
 		embeds: [msgEmbed],
-		ephemeral: true,
 	};
 }//end function unsuitableHomeReply
 
@@ -236,7 +238,6 @@ export function setHomeSuccessReply( newHome ) {
 
 	return {
 		embeds: [msgEmbed],
-		ephemeral: false,
 	};
 }//end function setHomeSuccessReply
 
@@ -248,7 +249,6 @@ export function clearHomeSuccessReply() {
 
 	return {
 		embeds: [msgEmbed],
-		ephemeral: false,
 	};
 }//end function setHomeSuccessReply
 

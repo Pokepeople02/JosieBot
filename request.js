@@ -128,4 +128,19 @@ export class Request {
 		return this.#user;
 	}//end method getUser
 	
+	/* 	Returns the URL for the first thumbnail of this request.	*/
+	getThumbnailURL() {
+		return this.#info.video_details.thumbnails[0]?.url;
+	}//end method getThumbnailURL
+	
+	/*	Returns the name of the user that uploaded this request	*/
+	getCreatorName() {
+		return this.#info.video_details.channel.name;
+	}//end method getCreatorName
+	
+	/*	Returns the duration of the request in hh:mm:ss format.	*/
+	getLength() {
+		return this.#info.video_details.durationRaw;
+	}//end method getLength
+	
 }//end class QueueEntry
