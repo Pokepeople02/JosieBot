@@ -134,6 +134,8 @@ export async function queuePrintReply( guildQueue ) {
 	queueContents += 'Title'.padEnd( 50, ' ' );
 	queueContents += ' | ';
 	queueContents += 'Channel'.padEnd( 20, ' ' );
+	queueContents += ' | ';
+	queueContents += 'Queued by'.padEnd( 20, ' ' );
 	
 	let i = 1;
 	for( const entry of guildQueue ) {
@@ -149,6 +151,10 @@ export async function queuePrintReply( guildQueue ) {
 		//Channel
 		queueContents += '   ';
 		queueContents += truncAndPadString( entry.getChannel().name, 20 );
+		
+		//User
+		queueContents += '   ';
+		queueContents += truncAndPadString( '@' + entry.getUser().displayName, 20 );
 		
 		//Truncate queue to 25 entries
 		if( i == 25 && guildQueue.length - i > 0 )  {
