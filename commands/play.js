@@ -120,7 +120,7 @@ export async function play( interaction, guildSub ) {
 		requestString = requestString.substring( 0, requestString.indexOf('&') );
 	}//end if
 	
-	let request = new Request( requestString, channel ); //Request object created from user request
+	let request = new Request( requestString, channel, interaction.member ); //Request object created from user request
 	await request.init();
 	
 	if( !request.isValid() ) {

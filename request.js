@@ -11,15 +11,17 @@ export class Request {
 	#info;			//Play-dl info about a request
 	#channel;		//The guild voice channel the request is to be played in
 	#numResults;	//The number of results returned for search requests. Otherwise, set to 1.
+	#user;			//The guild member who made this request
 	
 	/*	Creates a new request from the specified request string to be played in the supplied channel.
 		Throws an error if the request string cannot be resolved to a valid request.
 	*/
-	constructor( requestStr, channel ) {
+	constructor( requestStr, channel, user ) {
 		console.log( 'Creating new request entry.' );
 		
 		this.#str = requestStr;
 		this.#channel = channel;
+		this.#user = user;
 		this.#type = undefined;
 		this.#info = undefined;
 		this.#numResults = undefined;
@@ -120,5 +122,10 @@ export class Request {
 	getResultCount() {
 		return this.#numResults;
 	}//end method getResultCount
+	
+	/* 	Returns the guild member object who made this request.	*/
+	getUser() {
+		return this.#user;
+	}//end method getUser
 	
 }//end class QueueEntry
