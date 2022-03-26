@@ -130,12 +130,21 @@ export async function queuePrintReply( guildQueue ) {
 	
 	//Build queue string header
 	queueContents += 'in.'.padEnd( 3, ' ' );
-	queueContents += ' | ';
-	queueContents += 'Title'.padEnd( 50, ' ' );
-	queueContents += ' | ';
-	queueContents += 'Channel'.padEnd( 20, ' ' );
-	queueContents += ' | ';
+	queueContents += ' │ ';
+	queueContents += 'Title'.padEnd( 40, ' ' );
+	queueContents += ' │ ';
+	queueContents += 'Channel'.padEnd( 15, ' ' );
+	queueContents += ' │ ';
 	queueContents += 'Queued by'.padEnd( 20, ' ' );
+	
+	queueContents += '\n';
+	queueContents = queueContents.padEnd( queueContents.length + 3, '─' );
+	queueContents += '─┼─';
+	queueContents = queueContents.padEnd( queueContents.length + 40, '─' );
+	queueContents += '─┼─';
+	queueContents = queueContents.padEnd( queueContents.length + 15, '─' );
+	queueContents += '─┼─';
+	queueContents = queueContents.padEnd( queueContents.length + 20, '─' );
 	
 	let i = 1;
 	for( const entry of guildQueue ) {
@@ -145,19 +154,28 @@ export async function queuePrintReply( guildQueue ) {
 		queueContents += i.toString().padStart(2, '0') + '.';
 		
 		//Title
-		queueContents += '  ';
-		queueContents += truncAndPadString( entry.getTitle(), 50 );
+		queueContents += ' │ ';
+		queueContents += truncAndPadString( entry.getTitle(), 40 );
 		
 		//Channel
-		queueContents += '   ';
-		queueContents += truncAndPadString( entry.getChannel().name, 20 );
+		queueContents += ' │ ';
+		queueContents += truncAndPadString( entry.getChannel().name, 15 );
 		
 		//User
-		queueContents += '   ';
+		queueContents += ' │ ';
 		queueContents += truncAndPadString( '@' + entry.getUser().displayName, 20 );
 		
 		//Truncate queue to 25 entries
 		if( i == 25 && guildQueue.length - i > 0 )  {
+			queueContents += '\n';
+			queueContents = queueContents.padEnd( queueContents.length + 3, '─' );
+			queueContents += '─┴─';
+			queueContents = queueContents.padEnd( queueContents.length + 40, '─' );
+			queueContents += '─┴─';
+			queueContents = queueContents.padEnd( queueContents.length + 15, '─' );
+			queueContents += '─┴─';
+			queueContents = queueContents.padEnd( queueContents.length + 20, '─' );
+	
 			queueContents += ('\n…and ' + (guildQueue.length - i) + ' more…');
 			break;
 		}//end if
