@@ -255,7 +255,7 @@ export function clearHomeSuccessReply() {
 /* Generates the home channel message content for a 'now playing' message. */
 export async function nowPlayingMessage( request ) {
 	const msgEmbed = new MessageEmbed();
-	msgEmbed.setDescription( `Now playing [${request.getTitle()}](${request.getURL()}) in ${request.getChannel().toString()}` );
+	msgEmbed.setDescription( `Now playing [${request.getTitle()}](${request.getURL()}) in ${request.getChannel().toString()}\n<${request.getUser()}>` );
 
 	return {
 		embeds: [msgEmbed],
