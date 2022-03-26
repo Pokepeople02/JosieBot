@@ -166,7 +166,7 @@ export async function queuePrintReply( guildQueue ) {
 		queueContents += truncAndPadString( '@' + entry.getUser().displayName, 20 );
 		
 		//Truncate queue to 25 entries
-		if( i == 25 && guildQueue.length - i > 0 )  {
+		if( i == 15 && guildQueue.length - i > 0 )  {
 			queueContents += '\n';
 			queueContents = queueContents.padEnd( queueContents.length + 3, '─' );
 			queueContents += '─┴─';
