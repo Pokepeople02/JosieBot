@@ -246,11 +246,55 @@ export function clearHomeSuccessReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Home Channel' );
 	msgEmbed.setDescription( 'Successfully cleared the home channel.' );
-
+	
 	return {
 		embeds: [msgEmbed],
 	};
 }//end function setHomeSuccessReply
+
+/*	Generates the reply message contents for failure to pause due to not currently playing anything.	*/
+export function pauseNotPlayingReply() {
+	const msgEmbed = new MessageEmbed();
+	msgEmbed.setTitle( '❌  Cannot Pause' );
+	msgEmbed.setDescription( 'Nothing is currently playing.' );
+	
+	return {
+		embeds: [msgEmbed],
+	};
+}//end function pauseNotPlayingReply
+
+/*	Generates the reply message contents for successfully pausing a request.	*/
+export function pauseSuccessfulReply( pausedRequest ) {
+	const msgEmbed = new MessageEmbed();
+	msgEmbed.setTitle( '✅  Paused' );
+	msgEmbed.setDescription( `[${pausedRequest.getTitle()}](${pausedRequest.getURL()}) has been paused.` );
+	
+	return {
+		embeds: [msgEmbed],
+	};
+}//end function pauseSuccessfulReply
+
+/*	Generates the reply message contents for failure to unpause due to not being paused.	*/
+export function unpauseNotPausedReply() {
+	const msgEmbed = new MessageEmbed();
+	msgEmbed.setTitle( '❌  Cannot Unpause' );
+	msgEmbed.setDescription( 'Nothing is currently paused.' );
+	
+	return {
+		embeds: [msgEmbed],
+	};
+}//end function unpauseNotPausedReply
+
+/*	Generates the reply message contents for successfully unpausing a paused request.	*/
+export function unpauseSuccessfulReply( unpausedRequest ) {
+	const msgEmbed = new MessageEmbed();
+	msgEmbed.setTitle( '✅  Unpaused' );
+	msgEmbed.setDescription( `[${unpausedRequest.getTitle()}](${unpausedRequest.getURL()}) has been unpaused.` );
+	
+	return {
+		embeds: [msgEmbed],
+	};
+}//end function unpauseSuccessfulReply
 
 /* Generates the home channel message content for a 'now playing' message. */
 export async function nowPlayingMessage( request ) {

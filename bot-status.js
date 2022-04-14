@@ -7,5 +7,6 @@ export class Status {
 	static Idle = 		Symbol( "Idle" ); 		//Bot is not in use and is disconnected. 
 	static Waiting = 	Symbol( "Waiting" );	//Bot was in use and is still connected, but has now exhausted the queue.
 	static Standby =	Symbol( "Standby" );	//Bot was in use and still playing, but all other users have left the voice channel.
+	static Paused =		Symbol( "Paused" );		//Bot was in use and still playing, but has been paused with /pause. 
 	
 }//end class Status

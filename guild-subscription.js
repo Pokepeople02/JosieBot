@@ -59,8 +59,8 @@ export class GuildSubscription {
 			//Disregard if bot isn't in a vc
 			if( !getVoiceConnection(this.#guild.id) ) return;
 			
-			//Disregard if bot isn't currently playing
-			if( this.#botStatus !== Status.Playing ) return;
+			//Disregard if bot isn't currently playing or paused
+			if( !(this.#botStatus === Status.Playing || this.#botStatus === Status.Paused) ) return;
 			
 			if( (oldState.channelId === this.#guild.me.voice.channelId || newState.channelId === this.#guild.me.voice.channelId) && this.#guild.me.voice.channel.members.size < 2 ) {
 				//There has been some change to the channel the bot is now in, and the bot is currently alone. Transition to standby.
@@ -95,8 +95,7 @@ export class GuildSubscription {
 				
 				clearTimeout( this.#standbyTimerID );
 				
-				console.log( `Unpausing audio player and setting status for guild '${this.#guild.name}' to playing.` );
-				this.#audioPlayer.unpause();
+				this.resume();
 				this.#botStatus = Status.Playing;
 			}//end if
 		};
@@ -144,9 +143,8 @@ export class GuildSubscription {
 	/*	Pauses and waits 2 minutes for the currently occupied voice channel to become populated. Once voice channel is joined by a user, unpauses and continues playing.
 		If channel does not become occupied, skips to the next valid request and plays if one exists.
 		If no valid next request exists, transitions to idle. */
-	standby() {
-		console.log( 'Pausing audio player.' );
-		this.#audioPlayer.pause();
+	async standby() {
+		await this.pausePlay();
 		
 		clearTimeout( this.#standbyTimerID );
 		
@@ -208,9 +206,7 @@ export class GuildSubscription {
 		
 		this.#audioPlayer.play( requestStream );
 		
-		if( this.#homeChannelID && this.#guild.channels.resolve(this.#homeChannelID) ) {
-			await this.#guild.channels.resolve( this.#homeChannelID ).send( await nowPlayingMessage(this.#queue[0]) );
-		}//end if
+		this.#sendNowPlaying();
 		
 		console.log( 'Activating standby activation listener' );
 		globalThis.client.removeAllListeners( 'voiceStateUpdate' );
@@ -220,6 +216,76 @@ export class GuildSubscription {
 		this.#botStatus = Status.Playing;
 		return;
 	}//end method play
+	
+	/*	Pauses the currently playing request, if exists.
+		If no requests exist, does nothing.
+	*/
+	async pausePlay() {
+		if( this.#queue.length === 0 )
+			return;
+		
+		console.log( 'Pausing play.' );
+		
+		this.#audioPlayer.pause();
+		this.#queue[0].pauseResource();
+		
+		return;
+	}//end method pause
+	
+	/*	Pauses the currently playing request and transitions to paused state.
+		If no requests exist or the bot is not currently playing, does nothing.
+	*/
+	async pause() {
+		if( this.#queue.length === 0 || this.#botStatus !== Status.Playing )
+			return;
+		
+		clearTimeout( this.#standbyTimerID );
+		
+		await this.pausePlay();
+		
+		console.log( 'Activating standby activation listener' );
+		globalThis.client.removeAllListeners( 'voiceStateUpdate' );
+		globalThis.client.on( 'voiceStateUpdate', this.#standbyActivateListener );
+		
+		console.log( `Setting status for guild '${this.#guild.name}' to paused.` );
+		this.#botStatus = Status.Paused;
+		
+		return;
+	}//end method pause
+	
+	/*	Resumes the currently paused request, if exists, and sets the bot's status to playing.
+		If no requests exist or the bot is not currently paused or on standby, does nothing.
+	*/
+	async resume() {
+		if( this.#queue.length === 0 
+			|| !(this.#botStatus === Status.Paused || this.#botStatus === Status.Standby) 
+		) return;
+		
+		console.log( 'Resuming play.' );
+		
+		if( !this.#queue[0].isLiveStream() ) {
+			console.log( 'Resuming standard request and unpausing.' );
+			
+			this.#queue[0].resumeResource();
+			this.#audioPlayer.unpause();
+			
+			console.log( 'Activating standby activation listener' );
+			globalThis.client.removeAllListeners( 'voiceStateUpdate' );
+			globalThis.client.on( 'voiceStateUpdate', this.#standbyActivateListener );
+			
+			console.log( `Setting status for guild '${this.#guild.name}' to playing.` );
+			this.#botStatus = Status.Playing;
+			
+			await this.#sendNowPlaying();
+		}//end if
+		else {
+			//Need to re-resolve livestreams to catch up
+			console.log( 'Re-resolving livestream request.' );
+			await this.play();
+		}//end if-else
+		
+		return;
+	}//end method pause
 	
 	/* 	Sets the next request to be played in a populated voice channel as the first request in the queue.
 		If this is not the next immediate request, all requests between that playing now and that being skipped to are discarded.
@@ -299,5 +365,18 @@ export class GuildSubscription {
 		this.#homeChannelID = homeChannel?.id;
 		return;
 	}//end method setHomeChannelID
+	
+	/*	Sends the 'Now playing {Current request title}' message if the home channel is set and resolveable, and if the bot is currently playing.	*/
+	async #sendNowPlaying() {
+		
+		if( this.#homeChannelID 
+			&& this.#guild.channels.resolve(this.#homeChannelID) 
+			&& this.#botStatus === Status.Playing 
+		) {
+			await this.#guild.channels.resolve( this.#homeChannelID ).send( await nowPlayingMessage(this.#queue[0]) );
+		}//end if
+		
+		return;
+	}//end method sendNowPlaying
 	
 };//end class GuildSubscription

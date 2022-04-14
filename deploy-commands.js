@@ -1,6 +1,6 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { token, clientId, guildId } from './config.json';
+import { token, clientId, guildId } from './config.js';
 import fs from 'fs';
 
 const commands = [];
@@ -10,8 +10,7 @@ const rest = new REST({ version: '9' }).setToken(token);
 for (const file of commandFiles) {
 	console.log(file);
 
-	const command = require(`./commands/${file}`);
-	commands.push(command.data.toJSON());
+	import(`./commands/${file}`).then( (command) => { commands.push(command.data.toJSON()); } );
 }
 
 (async () => {

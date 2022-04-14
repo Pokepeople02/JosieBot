@@ -9,6 +9,8 @@ import { play } 				from './commands/play.js';
 import { queue } 				from './commands/queue.js';
 import { skip } 				from './commands/skip.js';
 import { home_channel } 		from './commands/home-channel.js';
+import { pause }				from './commands/pause.js';
+import { unpause }				from './commands/unpause.js';
 import { 
 	unknownCommandErrorReply,
 	execErrorReply,
@@ -67,6 +69,12 @@ client.on( 'interactionCreate', async interaction => {
 			case 'home-channel' :
 				await home_channel( interaction, guildSub );
 				break;
+			case 'pause' :
+				await pause( interaction, guildSub );
+				break;
+			case 'unpause' :
+				await unpause( interaction, guildSub );
+				break;
 			default :
 				console.error( 'Commmand failed: Unknown command ' + interaction.commandName );
 				await interaction.editReply( unknownCommandErrorReply(interaction.commandName) );
@@ -75,7 +83,6 @@ client.on( 'interactionCreate', async interaction => {
 	} catch( error ) {
 		console.error( error );
 		await interaction.editReply( execErrorReply() );
-		
     }//end try-catch
 	
 	return;

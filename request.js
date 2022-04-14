@@ -12,6 +12,7 @@ export class Request {
 	#channel;		//The guild voice channel the request is to be played in
 	#numResults;	//The number of results returned for search requests. Otherwise, set to 1.
 	#user;			//The guild member who made this request
+	#rawStream;		//The raw Play-dl stream resource of the resolved request.
 	
 	/*	Creates a new request from the specified request string to be played in the supplied channel.
 		Throws an error if the request string cannot be resolved to a valid request.
@@ -25,6 +26,7 @@ export class Request {
 		this.#type = undefined;
 		this.#info = undefined;
 		this.#numResults = undefined;
+		this.#rawStream = undefined;
 		
 		return;
 	}//end constructor
@@ -89,8 +91,28 @@ export class Request {
 			inputType: streamResource.type
 		} );
 		
+		this.#rawStream = streamResource;
+		
 		return audioResource;
 	}//end method getStream
+	
+	/*	Pauses the currently playing raw audio stream to save resources, if possible.	*/
+	pauseResource() {
+		if( !this.#rawStream || this.isLiveStream() )
+			return;
+		
+		this.#rawStream.pause();
+		return;
+	}//end method pauseResource
+	
+	/*	Resumes the currently playing raw audio stream, if possible.	*/
+	resumeResource() {
+		if( !this.#rawStream || this.isLiveStream() )
+			return;
+		
+		this.#rawStream.resume();
+		return;
+	}//end method resumeResource
 	
 	/*	Returns the title associated with this request.	*/
 	getTitle() {
@@ -107,6 +129,11 @@ export class Request {
 		if( this.#type && (this.#type === 'search' || this.#type === 'yt_video') ) return true;
 		return false;
 	}//end method isValid
+	
+	/*	Returns true if this request is a currently broadcasting livestream. If not, returns false.	*/
+	isLiveStream() {
+		return this.#info.video_details.live;
+	}//end method isLiveStream
 	
 	/*	Returns the channel object stored by this request.	*/
 	getChannel() {
