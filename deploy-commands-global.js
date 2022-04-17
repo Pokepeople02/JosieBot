@@ -1,6 +1,6 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { token, clientId, guildId } from './config.js';
+import { token, clientId } from './config.js';
 import fs from 'fs';
 
 const commands = [];
@@ -15,19 +15,14 @@ for (const file of commandFiles) {
 
 (async () => {
 	try {
-		console.log('Started refreshing application (/) commands.');
-
-		await rest.put(
-			Routes.applicationGuildCommands(clientId, guildId),
-			{ body: commands },
-		);
+		console.log('Started refreshing application (/) commands for all guilds.');
 		
 		await rest.put(
 			Routes.applicationCommands(clientId),
 			{ body: commands },
 		);
 
-		console.log('Successfully reloaded application (/) commands.');
+		console.log('Successfully reloaded application (/) commands for all guilds.');
 	} catch (error) {
 		console.error(error);
 	}
