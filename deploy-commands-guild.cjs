@@ -1,22 +1,24 @@
-import { REST } from '@discordjs/rest';
-import { Routes } from 'discord-api-types/v9';
-import { token, clientId, guildId } from './config.js';
-import fs from 'fs';
+const { REST } = require( '@discordjs/rest' );
+const { Routes } = require( 'discord-api-types/v9' );
+const fs = require( 'fs' );
 
 const commands = [];
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const rest = new REST({ version: '9' }).setToken(token);
-
-for (const file of commandFiles) {
-	console.log(file);
-
-	import(`./commands/${file}`).then( (command) => { commands.push(command.data.toJSON()); } );
-}
 
 (async () => {
+	for (const file of commandFiles) {
+		console.log(file);
+	
+		const command = await import(`./commands/${file}`);
+		commands.push(command.data.toJSON());	
+	}//end for
+
+	const { token, clientId, guildId } = await import( './config.js' );
+	const rest = new REST({ version: '9' }).setToken(token);
+	
 	try {
 		console.log('Started refreshing application (/) commands for specified guild.');
-
+		
 		await rest.put(
 			Routes.applicationGuildCommands(clientId, guildId),
 			{ body: commands },
