@@ -159,7 +159,7 @@ export async function queuePrintReply( guildQueue ) {
 		
 		//Length
 		queueContents += ' │ ';
-		queueContents += truncAndPadString( entry.getLength(), 7 );
+		queueContents += truncAndPadString( entry.getLength(), 8 );
 		
 		//Channel
 		queueContents += ' │ ';
