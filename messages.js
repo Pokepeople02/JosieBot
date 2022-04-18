@@ -235,7 +235,7 @@ export function successfulSkipReply() {
 export function unsuitableHomeReply( badHome ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Set Home Channel' );
-	msgEmbed.setDescription( `${badHome.toString()} is not a suitable home channel. Please choose a valid text-based channel.` );
+	msgEmbed.setDescription( `${badHome.toString()} is not a suitable home channel. Please choose a non-thread text channel.` );
 
 	return {
 		embeds: [msgEmbed],
