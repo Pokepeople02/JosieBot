@@ -24,6 +24,6 @@ export async function queue( interaction, guildSub ) {
 		return;
 	}//end if
 	
-	await interaction.editReply( await queuePrintReply(queue) );
+	await interaction.editReply( await queuePrintReply(guildSub) );
 	return;
 }//end function queue

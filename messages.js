@@ -3,6 +3,8 @@
 import { MessageEmbed } from 'discord.js';
 import stringWidth from 'string-width';
 
+import { Status } from './bot-status.js';
+
 /* Generates the reply message content for an 'unknown command input' error message. */
 export function unknownCommandErrorReply( commandStr ) {
 	const msgEmbed = new MessageEmbed();
@@ -100,10 +102,15 @@ export function noResultsReply() {
 /* Generates the reply message content for a 'successful play request' message. */
 export function playSuccessReply( newRequest ) {
 	const msgEmbed = new MessageEmbed();
+	let lengthString = ''; //Length field string
+	
+	if( newRequest.isLiveStream() ) lengthString = "🔴 LIVE";
+	else lengthString = newRequest.getLength();
+		
 	msgEmbed.setTitle( '✅  Play' );
 	msgEmbed.setDescription( `Successfully queued [${newRequest.getTitle()}](${newRequest.getURL()}) for ${newRequest.getChannel().toString()}\n` );
 	msgEmbed.setThumbnail( newRequest.getThumbnailURL() );
-	msgEmbed.addField( 'Length', newRequest.getLength(), true );
+	msgEmbed.addField( 'Length', lengthString, true );
 	msgEmbed.addField( 'Uploaded By', newRequest.getCreatorName(), true );
 	
 	return {
@@ -120,16 +127,18 @@ export function queueEmptyReply() {
 }//end function noResultsReply
 
 /* Generates the reply message content for a 'print queue' message. */
-export async function queuePrintReply( guildQueue ) {
+export async function queuePrintReply( guildSub ) {
 
+	const guildQueue = guildSub.getQueue();
 	let queueContents = '```'; //String representation of queue
+	let lengthString = ''; //String length field for entry i
 	
 	//Build queue string header
 	queueContents += 'in.'.padEnd( 3, ' ' );
 	queueContents += ' │ ';
 	queueContents += 'Title'.padEnd( 40, ' ' );
 	queueContents += ' │ ';
-	queueContents += 'Length'.padEnd( 7, ' ' );
+	queueContents += 'Length'.padEnd( 8, ' ' );
 	queueContents += ' │ ';
 	queueContents += 'Channel'.padEnd( 15, ' ' );
 	queueContents += ' │ ';
@@ -140,7 +149,7 @@ export async function queuePrintReply( guildQueue ) {
 	queueContents += '─┼─';
 	queueContents = queueContents.padEnd( queueContents.length + 40, '─' );
 	queueContents += '─┼─';
-	queueContents = queueContents.padEnd( queueContents.length + 7, '─' );
+	queueContents = queueContents.padEnd( queueContents.length + 8, '─' );
 	queueContents += '─┼─';
 	queueContents = queueContents.padEnd( queueContents.length + 15, '─' );
 	queueContents += '─┼─';
@@ -159,7 +168,10 @@ export async function queuePrintReply( guildQueue ) {
 		
 		//Length
 		queueContents += ' │ ';
-		queueContents += truncAndPadString( entry.getLength(), 8 );
+		if( i === 1 && guildSub.getStatus() === Status.Paused ) lengthString = "PAUSED";
+		else if( entry.isLiveStream() ) lengthString = "🔴 LIVE";
+		else lengthString = entry.getLength();
+		queueContents += truncAndPadString( lengthString, 8 );
 		
 		//Channel
 		queueContents += ' │ ';
