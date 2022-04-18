@@ -33,7 +33,7 @@ export async function home_channel( interaction, guildSub ) {
 		case 'set' :
 			let channel = interaction.options.getChannel('channel', true);
 			
-			if( !channel.isText() ) {
+			if( !channel.isText() || channel.isThread() ) {
 				//Disregard non-text channels
 				console.log( 'Invalid requested voice channel.' );
 				await interaction.editReply( unsuitableHomeReply(channel) );
