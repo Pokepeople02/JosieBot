@@ -324,25 +324,25 @@ export async function nowPlayingMessage( request ) {
 function truncAndPadString( string, maxWidth ) {
 
 	if( stringWidth(string) > maxWidth ) {
-			//Find cutoff point for string width <= maxWidth # of halfwidth characters
-			
-			let firstExcl; //First index to exclude
-			for( firstExcl = 1; firstExcl < string.length; ++firstExcl ) {
-				if( stringWidth(string.substring(0, firstExcl)) >= maxWidth )
-					break;
-			}//end for
-			
-			string = string.substring(0, firstExcl - 1) + '…';
-		}//end if
+		//Find cutoff point for string width <= maxWidth # of halfwidth characters
 		
-		//Pad with spaces
-		while( stringWidth(string) < maxWidth )
-				string += ' ';
-			
-		//Pad with arbitrary additional spaces to compensate for discord's strange formatting
-		let numFullwidth = stringWidth(string) - string.length;
-		for( let i = 0; i < Math.ceil((numFullwidth - 1) / 5); ++i )
-			string += ' ';
+		let firstExcl; //First index to exclude
+		for( firstExcl = 1; firstExcl < string.length; ++firstExcl ) {
+			if( stringWidth(string.substring(0, firstExcl)) >= maxWidth )
+				break;
+		}//end for
 		
-		return string;
+		string = string.substring(0, firstExcl - 1) + '…';
+	}//end if
+	
+	//Pad with spaces
+	while( stringWidth(string) < maxWidth )
+		string += ' ';
+	
+	//Pad with arbitrary additional spaces to compensate for discord's strange formatting
+	let numFullwidth = stringWidth(string) - string.length;
+	for( let i = 0; i < Math.ceil((numFullwidth - 1) / 5); ++i )
+	string += ' ';
+
+	return string;
 }//end function truncString
