@@ -356,13 +356,19 @@ export class GuildSubscription {
 		return this.#botStatus;
 	}//end method getStatus
 	
-	/* Sets the home channel ID from the id of the supplied guild text channel, or sets to a false-y value if supplied instead. */
+	/* Sets the home channel ID from the id of the supplied guild text channel, or sets to a false-y value if supplied instead.
+	   Sends the 'Now playing' message upon setting the home channel, if already playing.
+	*/
 	setHomeChannel( homeChannel ) {
 		if( homeChannel && !(homeChannel instanceof BaseGuildTextChannel) ) {
 			throw new TypeError( 'Attempting to set non-text channel as home channel' );
 		}//end if
 		
 		this.#homeChannelID = homeChannel?.id;
+
+		if ( this.#botStatus === Status.Playing )
+			this.#sendNowPlaying();
+		
 		return;
 	}//end method setHomeChannelID
 	
