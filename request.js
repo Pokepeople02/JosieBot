@@ -124,9 +124,11 @@ export class Request {
 		return this.#type;
 	}//end method getType
 	
-	/*	Returns true if this request is both valid and of a supported type. Otherwise, returns false.	*/
+	/*	Returns true if this request is both valid and of a supported type. Otherwise, returns false.
+	 *	Also returns false in the case that the request is an upcoming video that is not yet live.
+	 */
 	isValid() {
-		if( this.#type && (this.#type === 'search' || this.#type === 'yt_video') ) return true;
+		if ( this.#type && ( this.#type === 'search' || this.#type === 'yt_video' ) && !this.#info.video_details.upcoming ) return true;
 		return false;
 	}//end method isValid
 	
