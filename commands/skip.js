@@ -8,12 +8,12 @@ import {
 	successfulSkipReply,
 }								from '../messages.js';
 
-/* JSON data for the /skip command, built with discord.js' SlashCommandBuilder. */
+/** JSON data for the /skip command, built with discord.js' SlashCommandBuilder. */
 export const data = new SlashCommandBuilder()
 	.setName( 'skip ' )
 	.setDescription( 'Stops the currently playing request and skips to the next one to be played in a populated channel.' );
 
-/* Skips to the next valid request in the queue of the supplied guild subscription. */
+/** Skips to the next valid request in the queue of the supplied guild subscription. */
 export async function skip( interaction, guildSub ) {
 	
 	if( guildSub.isQueueLocked() ) {

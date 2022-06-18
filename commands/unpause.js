@@ -8,12 +8,12 @@ import {
 } 								from '../messages.js';
 import { Status } 				from '../bot-status.js';
 
-/* JSON data for /pause command, built with discord.js' SlashCommandBuilder. */
+/** JSON data for /pause command, built with discord.js' SlashCommandBuilder. */
 export const data = new SlashCommandBuilder()
 	.setName( 'unpause' )
 	.setDescription( 'Unpauses the currently playing request, if paused.' );
 	
-/*	Attempts to unpause the current request for the specified guild.	*/
+/** Attempts to unpause the current request for the specified guild. */
 export async function unpause( interaction, guildSub ) {
 	
 	//If not paused, print message and stop

@@ -15,7 +15,7 @@ import {
 	playSuccessReply,
 } 								from '../messages.js';
 
-/* JSON data for /play subcommands, built with discord.js' SlashCommandBuilder. */
+/** JSON data for /play subcommands, built with discord.js' SlashCommandBuilder. */
 export const data = new SlashCommandBuilder()
 	.setName( 'play' )
 	.setDescription( 'Adds request to the queue and plays requests from queue in a voice channel.' )
@@ -57,7 +57,7 @@ export const data = new SlashCommandBuilder()
 		) 
 	);
 	
-/* Determines a request from the supplied interaction and adds it to the queue of the supplied guild subscription. */
+/** Determines a request from the supplied interaction and adds it to the queue of the supplied guild subscription. */
 export async function play( interaction, guildSub ) {
 	if( guildSub.isQueueLocked() ) {
 		//If queue is locked, request fails.
@@ -69,7 +69,7 @@ export async function play( interaction, guildSub ) {
 	
 	const subcommand = interaction.options.getSubcommand(); //String representation of subcommand requested.
 	let channel; //Channel object for the requested voice channel to join.
-	
+
 	switch( subcommand ) { //Get appropriate channel for request
 		case 'a' : //'play a {request}' subcommand
 			if( interaction.member.voice.channel ) channel = interaction.member.voice.channel;

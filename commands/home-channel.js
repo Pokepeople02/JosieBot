@@ -9,7 +9,7 @@ import {
 	clearHomeSuccessReply
 } 								from '../messages.js';
 
-/* JSON data for /home-channel subcommands, built with discord.js' SlashCommandBuilder. */
+/** JSON data for /home-channel subcommands, built with discord.js' SlashCommandBuilder. */
 export const data = new SlashCommandBuilder()
 	.setName( 'home-channel' )
 	.setDescription( 'Manages which channel the bot periodically sends messages to while playing.' )
@@ -27,7 +27,7 @@ export const data = new SlashCommandBuilder()
 		.setDescription( 'Unsets the channel the bot sends messages to.' )
 	);
 
-/* Sets or unsets the home channel of the supplied guild subscription. */
+/** Sets or unsets the home channel of the supplied guild subscription. */
 export async function home_channel( interaction, guildSub ) {
 	switch( interaction.options.getSubcommand() ) {
 		case 'set' :

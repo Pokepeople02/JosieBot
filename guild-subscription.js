@@ -12,20 +12,29 @@ import { Request } 					from './request.js';
 import { Status } 					from './bot-status.js';
 import { nowPlayingMessage } 		from './messages.js';
 
-/*	Keeps track of guild-specific information for an instance of the bot, including a queue and the bot's current state.	*/
+/**	Keeps track of guild-specific information for an instance of the bot, including a queue and the bot's current state.	*/
 export class GuildSubscription {
+
+	/** Guild object to which this subscription belongs. */
+	#guild;
+	/** The current status of the bot for the subscription's guild. */
+	#botStatus = Status.Idle;
+	/** Audio player attached to the voice connection of the subscription's guild. */
+	#audioPlayer;
+	/** Queue of Request objects corresponding to requests made in the subscription's guild. */
+	#queue = [];
+	/** Flag to indicate whether the queue is locked for modification. Used for concurrency. */
+	#queueLock = false;
+	/** ID of the current standby or waiting timer for the bot. */
+	#standbyTimerID = -1;
+	/** Snowflake ID of the home channel in which the bot announces newly playing tracks. */
+	#homeChannelID = null;
+	/** Event listener for determining when to initiate transition to standby state. */
+	#standbyActivateListener;
+	/** Event listener for determining when to abort standby and continue playing. */
+	#standbyDeactivateListener;	
 	
-	#guild;						//Guild object to which this subscription belongs.
-	#botStatus = Status.Idle; 	//The current status of the bot for the subscription's guild.
-	#audioPlayer; 				//Audio player attached to the voice connection of the subscription's guild.
-	#queue = [];				//Queue of Resource objects corresponding to requests made in the subscription's guild.
-	#queueLock = false;			//Flag to indicate whether the queue is locked for modification.
-	#standbyTimerID = -1;		//ID of the current standby or waiting timer for the bot.
-	#homeChannelID = null;		//Snowflake ID of the home channel in which the bot announces newly playing tracks.
-	#standbyActivateListener; 	//Event listener for determining when to initiate transition to standby state.
-	#standbyDeactivateListener;	//Event listener for determining when to abort standby and continue playing. 
-	
-	/* Creates a new GuildSubscription with a given guild and creates the attached audio player. */
+	/** Creates a new GuildSubscription with a given guild and creates the attached audio player. */
 	constructor( guild ) {
 		console.log( `Creating new subscription for guild '${guild.name}'.` );
 		
@@ -48,10 +57,8 @@ export class GuildSubscription {
 			console.log( 'Encountered error with current resource: ' + error.message );
 		} );
 		
-		//	Unable to define as its own method due to private access strangeness beyond my understanding
-		/*	Listens for voice state changes within this guild in which a change occurs to the channel the bot is occupying, leaving the bot alone in a vc.
-			Upon such, transition to standby is initiated.
-		*/
+		/**	Listens for voice state changes within this guild in which a change occurs to the channel the bot is occupying, leaving the bot alone in a vc.
+		 * Upon such, transition to standby is initiated. */
 		this.#standbyActivateListener = ( oldState, newState ) => {
 			//Disregard voice state changes not pertinent to this subscription.
 			if( newState.guild.id !== this.#guild.id ) return;
@@ -70,10 +77,8 @@ export class GuildSubscription {
 			}//end if
 		};
 		
-		//	Unable to define as its own method due to private access strangeness beyond my understanding
-		/*	Listens for voice state changes within this guild in which a change occurs to the channel the bot is occupying, leaving the bot no longer alone in a vc.
-			Upon such, transition to standby is aborted and a playing state is resumed.
-		*/
+		/**	Listens for voice state changes within this guild in which a change occurs to the channel the bot is occupying, leaving the bot no longer alone in a vc.
+		 * Upon such, transition to standby is aborted and a playing state is resumed. */
 		this.#standbyDeactivateListener = ( oldState, newState ) => {
 			//Disregard voice state changes not pertinent to this subscription.
 			if( newState.guild.id !== this.#guild.id ) return;
@@ -101,7 +106,8 @@ export class GuildSubscription {
 		};
 	}//end constructor method
 	
-	/*	Remove the currently playing request from the queue. Attempt to play the next, if one exists.	*/
+	/** Remove the currently playing request from the queue. Attempt to play the next, if one exists. 
+	 * If none exists, transitions to idle status. */
 	async transition() {
 		console.log( 'Transitioning to next request.' );
 		
@@ -120,7 +126,7 @@ export class GuildSubscription {
 		return;
 	}//end method transition
 	
-	/*	Clears the queue and standby timers, forces the audio player to stop and the bot to disconnect, and sets the bot status to Idle.	*/
+	/** Clears the queue and standby timers, forces the audio player to stop and the bot to disconnect, and sets the bot status to Idle. */
 	idle() {
 		this.lockQueue( true );
 		
@@ -140,9 +146,8 @@ export class GuildSubscription {
 		return;
 	}//end method idle
 	
-	/*	Pauses and waits 2 minutes for the currently occupied voice channel to become populated. Once voice channel is joined by a user, unpauses and continues playing.
-		If channel does not become occupied, skips to the next valid request and plays if one exists.
-		If no valid next request exists, transitions to idle. */
+	/**	Pauses and waits 2 minutes for the currently occupied voice channel to become populated. 
+	 * If voice channel is joined by a user, unpauses and continues playing. Otherwise, attempts to transition to the next request (if exists) for a populated channel. */
 	async standby() {
 		await this.pausePlay();
 		
@@ -166,7 +171,8 @@ export class GuildSubscription {
 		return;
 	}//end method standby
 	
-	/*	Waits 10 minutes for a user to add something to the queue. If bot does not play before then, transitions to idle state.	*/
+	/**	Waits 10 minutes for a user to add something to the queue. 
+	 * If bot does not play before then, transitions to idle state. */
 	wait() {
 		clearTimeout( this.#standbyTimerID );
 		
@@ -182,9 +188,8 @@ export class GuildSubscription {
 		return;
 	}//end method wait
 	
-	/* 	Begins playing the first request in the queue and set the bot status to Playing. 
-		If queue is empty, does nothing.
-	*/
+	/**	Begins playing the first request in the queue and set the bot status to Playing. 
+	 * If queue is empty, does nothing. */
 	async play() {
 		if( this.#queue.length === 0 ) {
 			return;
@@ -217,9 +222,8 @@ export class GuildSubscription {
 		return;
 	}//end method play
 	
-	/*	Pauses the currently playing request, if exists.
-		If no requests exist, does nothing.
-	*/
+	/** Pauses the currently playing request, if exists.
+	 * If no requests exist, does nothing. */
 	async pausePlay() {
 		if( this.#queue.length === 0 )
 			return;
@@ -232,9 +236,8 @@ export class GuildSubscription {
 		return;
 	}//end method pause
 	
-	/*	Pauses the currently playing request and transitions to paused state.
-		If no requests exist or the bot is not currently playing, does nothing.
-	*/
+	/** Pauses the currently playing request and transitions to paused state.
+	 * If no requests exist or the bot is not currently playing, does nothing. */
 	async pause() {
 		if( this.#queue.length === 0 || this.#botStatus !== Status.Playing )
 			return;
@@ -253,9 +256,8 @@ export class GuildSubscription {
 		return;
 	}//end method pause
 	
-	/*	Resumes the currently paused request, if exists, and sets the bot's status to playing.
-		If no requests exist or the bot is not currently paused or on standby, does nothing.
-	*/
+	/** Resumes the currently paused request, if exists, and sets the bot's status to playing.
+	 * If no requests exist or the bot is not currently paused or on standby, does nothing. */
 	async resume() {
 		if( this.#queue.length === 0 
 			|| !(this.#botStatus === Status.Paused || this.#botStatus === Status.Standby) 
@@ -287,10 +289,9 @@ export class GuildSubscription {
 		return;
 	}//end method pause
 	
-	/* 	Sets the next request to be played in a populated voice channel as the first request in the queue.
-		If this is not the next immediate request, all requests between that playing now and that being skipped to are discarded.
-		If no such request exists, the queue is instead emptied.
-	*/
+	/** Sets the next request to be played in a populated voice channel as the first request in the queue.
+	 * If this is not the next immediate request, all requests between that playing now and that being skipped to are discarded.
+	 * If no such request exists, the queue is instead emptied. */
 	async skipToNextValid() {
 		this.lockQueue( true );
 		
@@ -315,14 +316,13 @@ export class GuildSubscription {
 		return;
 	}//end method skipToNextValid
 	
-	/*	Returns a copy of the current queue.	*/
+	/** Returns a copy of the current queue.	*/
 	getQueue() {
 		return Array.from( this.#queue );
 	}//end method getQueue
 	
-	/* 	Validates and adds a new request to the end of the queue. Intended to be used only when the queue is already locked by the caller.
-		Throws an error if request is not of type Request.
-	*/
+	/** Validates and adds a new request to the end of the queue. Intended to be used only when the queue is already locked by the caller.
+	 * Throws an error if request is not of type Request. */
 	async pushToQueue( request ) {
 		if( !(request instanceof Request) ) {
 			throw new TypeError( 'Attempting to push non-QueueEntry object to the queue' );
@@ -338,7 +338,7 @@ export class GuildSubscription {
 		return;
 	}//end method pushToQueue
 	
-	/*	Converts the value supplied to a boolean, and uses that to set the queue lock status to either true or false.	*/
+	/** Converts the value supplied to a boolean, and uses that to set the queue lock status to either true or false. */
 	lockQueue( queueStatus ) {
 		this.#queueLock = ( queueStatus ? true : false );
 		console.log( 'Setting queue lock to ' + this.#queueLock );
@@ -346,19 +346,18 @@ export class GuildSubscription {
 		return;
 	}//end method lockQueue
 	
-	/*	Determines if the queue is locked or not.	*/
+	/** Determines if the queue is locked or not. */
 	isQueueLocked() {
 		return this.#queueLock
 	}//end method isQueueLocked
 	
-	/*	Gets the bot's current status.	*/
+	/** Gets the bot's current status. */
 	getStatus() {
 		return this.#botStatus;
 	}//end method getStatus
 	
-	/* Sets the home channel ID from the id of the supplied guild text channel, or sets to a false-y value if supplied instead.
-	   Sends the 'Now playing' message upon setting the home channel, if already playing.
-	*/
+	/** Sets the home channel ID from the id of the supplied guild text channel, or sets to a false-y value if supplied instead.
+	 * Sends the 'Now playing' message upon setting the home channel, if already playing. */
 	setHomeChannel( homeChannel ) {
 		if( homeChannel && !(homeChannel instanceof BaseGuildTextChannel) ) {
 			throw new TypeError( 'Attempting to set non-text channel as home channel' );
@@ -372,7 +371,7 @@ export class GuildSubscription {
 		return;
 	}//end method setHomeChannelID
 	
-	/*	Sends the 'Now playing {Current request title}' message if the home channel is set and resolveable, and if the bot is currently playing.	*/
+	/** Sends the 'Now playing {Current request title}' message if the home channel is set and resolveable, and if the bot is currently playing. */
 	async #sendNowPlaying() {
 		
 		if( this.#homeChannelID 

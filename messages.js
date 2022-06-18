@@ -5,7 +5,7 @@ import stringWidth from 'string-width';
 
 import { Status } from './bot-status.js';
 
-/* Generates the reply message content for an 'unknown command input' error message. */
+/** Generates the reply message content for an 'unknown command input' error message. */
 export function unknownCommandErrorReply( commandStr ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Command Failed' );
@@ -17,7 +17,7 @@ export function unknownCommandErrorReply( commandStr ) {
 	};
 }//end function unknownCommandErrorReply
 
-/* Generates the reply message content for an 'unknown error during execution' error message. */
+/** Generates the reply message content for an 'unknown error during execution' error message. */
 export function execErrorReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Command Failed' );
@@ -29,7 +29,7 @@ export function execErrorReply() {
 	};
 }//end function execErrorReply
 
-/* Generates the reply message content for a 'queue locked for modification' error message. */
+/** Generates the reply message content for a 'queue locked for modification' error message. */
 export function queueLockedReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
@@ -41,7 +41,7 @@ export function queueLockedReply() {
 	};
 }//end function queueLockedReply
 
-/* Generates the reply message content for a 'requester is not in voice channel' error message. */
+/** Generates the reply message content for a 'requester is not in voice channel' error message. */
 export function requesterNotInVoiceReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
@@ -53,7 +53,7 @@ export function requesterNotInVoiceReply() {
 	};
 }//end function requesterNotInVoiceReply
 
-/* Generates the reply message content for a 'requesting play in non-voice channel' error message. */
+/** Generates the reply message content for a 'requesting play in non-voice channel' error message. */
 export function playInNonVoiceReply( nonVoiceChannel ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
@@ -65,7 +65,7 @@ export function playInNonVoiceReply( nonVoiceChannel ) {
 	};
 }//end function playInNonVoiceReply
 
-/* Generates the reply message content for a 'requested user not in voice channel' error message. */
+/** Generates the reply message content for a 'requested user not in voice channel' error message. */
 export function userNotInVoiceReply( userPlayAt ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
@@ -77,7 +77,7 @@ export function userNotInVoiceReply( userPlayAt ) {
 	};
 }//end function userNotInVoiceReply
 
-/* Generates the reply message content for an 'invalid request' error message. */
+/** Generates the reply message content for an 'invalid request' error message. */
 export function requestInvalidReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
@@ -88,7 +88,7 @@ export function requestInvalidReply() {
 	};
 }//end function requestInvalidReply
 
-/* Generates the reply message content for a 'no results available' error message. */
+/** Generates the reply message content for a 'no results available' error message. */
 export function noResultsReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
@@ -99,7 +99,7 @@ export function noResultsReply() {
 	};
 }//end function noResultsReply
 
-/* Generates the reply message content for a 'successful play request' message. */
+/** Generates the reply message content for a 'successful play request' message. */
 export function playSuccessReply( newRequest ) {
 	const msgEmbed = new MessageEmbed();
 	let lengthString = ''; //Length field string
@@ -118,7 +118,7 @@ export function playSuccessReply( newRequest ) {
 	};
 }//end function playSuccessReply
 
-/* Generates the reply message content for a 'queue is empty' message. */
+/** Generates the reply message content for a 'queue is empty' message. */
 export function queueEmptyReply() {
 	
 	return {
@@ -126,7 +126,7 @@ export function queueEmptyReply() {
 	};
 }//end function noResultsReply
 
-/* Generates the reply message content for a 'print queue' message. */
+/** Generates the reply message content for a 'print queue' message. */
 export async function queuePrintReply( guildSub ) {
 
 	const guildQueue = guildSub.getQueue();
@@ -209,7 +209,7 @@ export async function queuePrintReply( guildSub ) {
 	};
 }//end function queuePrintReply
 
-/* Generates the reply message content for a 'no requests to skip' message. */
+/** Generates the reply message content for a 'no requests to skip' message. */
 export function noRequestsSkipReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( 'Skip' );
@@ -220,7 +220,7 @@ export function noRequestsSkipReply() {
 	};
 }//end function noRequestsSkipReply
 
-/* Generates the reply message content for a 'successful skip' message. */
+/** Generates the reply message content for a 'successful skip' message. */
 export function successfulSkipReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Skip' );
@@ -231,7 +231,7 @@ export function successfulSkipReply() {
 	};
 }//end function noRequestsSkipReply
 
-/* Generates the reply message content for an 'unsuitable home channel' error message. */
+/** Generates the reply message content for an 'unsuitable home channel' error message. */
 export function unsuitableHomeReply( badHome ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Set Home Channel' );
@@ -242,7 +242,7 @@ export function unsuitableHomeReply( badHome ) {
 	};
 }//end function unsuitableHomeReply
 
-/* Generates the reply message content for an 'updated home channel' message. */
+/** Generates the reply message content for an 'updated home channel' message. */
 export function setHomeSuccessReply( newHome ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Home Channel' );
@@ -253,7 +253,7 @@ export function setHomeSuccessReply( newHome ) {
 	};
 }//end function setHomeSuccessReply
 
-/* Generates the reply message content for a 'cleared home channel' message. */
+/** Generates the reply message content for a 'cleared home channel' message. */
 export function clearHomeSuccessReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Home Channel' );
@@ -264,7 +264,7 @@ export function clearHomeSuccessReply() {
 	};
 }//end function setHomeSuccessReply
 
-/*	Generates the reply message contents for failure to pause due to not currently playing anything.	*/
+/**	Generates the reply message contents for failure to pause due to not currently playing anything.	*/
 export function pauseNotPlayingReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Cannot Pause' );
@@ -275,7 +275,7 @@ export function pauseNotPlayingReply() {
 	};
 }//end function pauseNotPlayingReply
 
-/*	Generates the reply message contents for successfully pausing a request.	*/
+/**	Generates the reply message contents for successfully pausing a request.	*/
 export function pauseSuccessfulReply( pausedRequest ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Paused' );
@@ -286,7 +286,7 @@ export function pauseSuccessfulReply( pausedRequest ) {
 	};
 }//end function pauseSuccessfulReply
 
-/*	Generates the reply message contents for failure to unpause due to not being paused.	*/
+/** Generates the reply message contents for failure to unpause due to not being paused.	*/
 export function unpauseNotPausedReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Cannot Unpause' );
@@ -297,7 +297,7 @@ export function unpauseNotPausedReply() {
 	};
 }//end function unpauseNotPausedReply
 
-/*	Generates the reply message contents for successfully unpausing a paused request.	*/
+/** Generates the reply message contents for successfully unpausing a paused request.	*/
 export function unpauseSuccessfulReply( unpausedRequest ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '✅  Unpaused' );
@@ -308,7 +308,7 @@ export function unpauseSuccessfulReply( unpausedRequest ) {
 	};
 }//end function unpauseSuccessfulReply
 
-/* Generates the home channel message content for a 'now playing' message. */
+/** Generates the home channel message content for a 'now playing' message. */
 export async function nowPlayingMessage( request ) {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setDescription( `Now playing [${request.getTitle()}](${request.getURL()}) in ${request.getChannel().toString()}\n<${request.getUser()}>` );
@@ -318,9 +318,8 @@ export async function nowPlayingMessage( request ) {
 	};
 }//end function nowPlayingMessage
 
-/*	Truncates a string to a given maximum visual width, taking into account half/full-width characters and other non-standard characters.
-	Returns the final truncated string, padded to the maximum width with half-width spaces.
-*/
+/** Truncates a string to a given maximum visual width, taking into account half/full-width characters and other non-standard characters.
+ * Returns the final truncated string, padded to the maximum width with half-width spaces. */
 function truncAndPadString( string, maxWidth ) {
 
 	if( stringWidth(string) > maxWidth ) {

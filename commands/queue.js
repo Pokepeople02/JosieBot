@@ -7,12 +7,12 @@ import {
 	queuePrintReply,
 } 								from '../messages.js';
 
-/* JSON data for the /queue command, built with discord.js' SlashCommandBuilder. */
+/** JSON data for the /queue command, built with discord.js' SlashCommandBuilder. */
 export const data = new SlashCommandBuilder()
 	.setName( 'queue' )
 	.setDescription( 'Replies with a message displaying the upcoming requests in the queue.' );
 
-/* Prints the current queue of the supplied guild subscription. */
+/** Prints the current queue of the supplied guild subscription. */
 export async function queue( interaction, guildSub ) {
 	const queue = guildSub.getQueue(); //Queue of the supplied guild
 	
