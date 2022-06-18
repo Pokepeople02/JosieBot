@@ -1,31 +1,11 @@
 'use strict';
 
-import { SlashCommandBuilder } 	from '@discordjs/builders';
-
-import { 
+import {
 	unknownCommandErrorReply,
 	unsuitableHomeReply,
 	setHomeSuccessReply,
 	clearHomeSuccessReply
-} 								from '../messages.js';
-
-/** JSON data for /home-channel subcommands, built with discord.js' SlashCommandBuilder. */
-export const data = new SlashCommandBuilder()
-	.setName( 'home-channel' )
-	.setDescription( 'Manages which channel the bot periodically sends messages to while playing.' )
-	.addSubcommand( subcommand => subcommand
-		.setName( 'set' )
-		.setDescription( 'Sets which channel the bot will periodically send messages to while playing.' )
-		.addChannelOption(option => option
-			.setName( 'channel' )
-			.setDescription( 'The bot\'s new home channel.' )
-			.setRequired( true )
-		) 
-	)
-	.addSubcommand( subcommand => subcommand
-		.setName( 'clear' )
-		.setDescription( 'Unsets the channel the bot sends messages to.' )
-	);
+} from '../messages.js';
 
 /** Sets or unsets the home channel of the supplied guild subscription. */
 export async function home_channel( interaction, guildSub ) {

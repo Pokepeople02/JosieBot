@@ -1,17 +1,11 @@
 'use strict';
 
-import { SlashCommandBuilder } 	from '@discordjs/builders';
-
 import {
 	pauseNotPlayingReply,
 	pauseSuccessfulReply,
-} 								from '../messages.js';
-import { Status } 				from '../bot-status.js';
+} from '../messages.js';
+import { Status } from '../bot-status.js';
 
-/** JSON data for /pause command, built with discord.js' SlashCommandBuilder. */
-export const data = new SlashCommandBuilder()
-	.setName( 'pause' )
-	.setDescription( 'Pauses the currently playing request, if one exists.' );
 
 /** Attempts to pause the current request for the specified guild. */
 export async function pause( interaction, guildSub ) {

@@ -1,9 +1,7 @@
 'use strict';
 
-import { SlashCommandBuilder } 	from '@discordjs/builders';
-
-import { Status } 				from '../bot-status.js';
-import { Request } 				from '../request.js';
+import { Status } from '../bot-status.js';
+import { Request } from '../request.js';
 import {
 	queueLockedReply,
 	requesterNotInVoiceReply,
@@ -13,49 +11,7 @@ import {
 	requestInvalidReply,
 	noResultsReply,
 	playSuccessReply,
-} 								from '../messages.js';
-
-/** JSON data for /play subcommands, built with discord.js' SlashCommandBuilder. */
-export const data = new SlashCommandBuilder()
-	.setName( 'play' )
-	.setDescription( 'Adds request to the queue and plays requests from queue in a voice channel.' )
-	.addSubcommand( subcommand => subcommand
-		.setName( 'a' )
-		.setDescription( 'Adds request to the queue. If the bot is idle, begins playing in the requesting user\'s channel.' )
-		.addStringOption( option => option
-			.setName( 'request' )
-			.setDescription( 'The URL of the requested video.' )
-			.setRequired( true )
-		)
-	)
-	.addSubcommand( subcommand => subcommand
-		.setName( 'in' )
-		.setDescription( 'Adds request to the queue to be played in the requested channel.' )
-		.addChannelOption(option => option
-			.setName( 'channel' )
-			.setDescription( 'The channel to join.' )
-			.setRequired( true )
-		) 
-		.addStringOption( option => option
-			.setName( 'request' )
-			.setDescription( 'The URL of the video requested.' )
-			.setRequired( true )
-		) 
-	)
-	.addSubcommand( subcommand => subcommand
-		.setName( 'at' )
-		.setDescription( 'Adds request to the queue to be played in the requested user\'s channel.' )
-		.addUserOption( option => option
-			.setName('user')
-			.setDescription('The user whose voice channel to join.')
-			.setRequired(true)
-		)
-		.addStringOption( option => option
-			.setName( 'request' )
-			.setDescription( 'The URL of the video requested.' )
-			.setRequired(true)
-		) 
-	);
+} from '../messages.js';
 	
 /** Determines a request from the supplied interaction and adds it to the queue of the supplied guild subscription. */
 export async function play( interaction, guildSub ) {
@@ -67,11 +23,12 @@ export async function play( interaction, guildSub ) {
 		return;
 	}//end if
 	
-	const subcommand = interaction.options.getSubcommand(); //String representation of subcommand requested.
-	let channel; //Channel object for the requested voice channel to join.
+	const command = interaction.commandName; //The specific command requested.
+	let channel; //The requested voice channel to join.
 
-	switch( subcommand ) { //Get appropriate channel for request
-		case 'a' : //'play a {request}' subcommand
+	//Get channel for request
+	switch( command ) { 
+		case 'play' :
 			if( interaction.member.voice.channel ) channel = interaction.member.voice.channel;
 			else channel = undefined;
 			
@@ -82,7 +39,7 @@ export async function play( interaction, guildSub ) {
 			}//end if
 			
 			break;
-		case 'in' : //'play in {channel} {request}' subcommand
+		case 'play-channel' :
 			channel = interaction.options.getChannel('channel', true);
 			
 			if( !channel.isVoice() ) {
@@ -92,7 +49,7 @@ export async function play( interaction, guildSub ) {
 			}//end if
 			
 			break;
-		case 'at' : //'play at {user} {request}' subcommand
+		case 'play-user' :
 			const guildMember = interaction.guild.members.resolve( interaction.options.getUser('user', true) ); //The supplied user as a member of this guild
 	
 			if( !guildMember ) channel = undefined;
@@ -106,8 +63,8 @@ export async function play( interaction, guildSub ) {
 			
 			break;
 		default:			
-			console.log( `Subcommand parsing failed: Unknown subcommand '${subcommand}'` );
-			await interaction.editReply( unknownCommandErrorReply('play ' + subcommand) );
+			console.log( `Play command parsing failed: Unknown command '${command}'` );
+			await interaction.editReply( unknownCommandErrorReply(command) );
 			
 			return;
 	}//end switch

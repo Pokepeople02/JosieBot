@@ -57,10 +57,12 @@ client.on( 'interactionCreate', async interaction => {
 		const guildSub = subMap.get( interaction.guildId );
 		
 		switch( interaction.commandName ) {
-			case 'play' :
+			case 'play':
+			case 'play-channel':
+			case 'play-user':
 				await play( interaction, guildSub );
 				break;
-			case 'queue' : 
+			case 'queue':
 				await queue( interaction, guildSub ) ;
 				break;
 			case 'skip' : 

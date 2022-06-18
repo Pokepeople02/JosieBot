@@ -1,17 +1,10 @@
 'use strict';
 
-import { SlashCommandBuilder } 	from '@discordjs/builders';
-
 import {
 	unpauseNotPausedReply,
 	unpauseSuccessfulReply,
-} 								from '../messages.js';
-import { Status } 				from '../bot-status.js';
-
-/** JSON data for /pause command, built with discord.js' SlashCommandBuilder. */
-export const data = new SlashCommandBuilder()
-	.setName( 'unpause' )
-	.setDescription( 'Unpauses the currently playing request, if paused.' );
+} from '../messages.js';
+import { Status } from '../bot-status.js';
 	
 /** Attempts to unpause the current request for the specified guild. */
 export async function unpause( interaction, guildSub ) {

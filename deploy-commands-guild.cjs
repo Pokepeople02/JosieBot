@@ -3,13 +3,13 @@ const { Routes } = require( 'discord-api-types/v9' );
 const fs = require( 'fs' );
 
 const commands = [];
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync('./commands/data').filter(file => file.endsWith('.js'));
 
 (async () => {
 	for (const file of commandFiles) {
 		console.log(file);
 	
-		const command = await import(`./commands/${file}`);
+		const command = await import(`./commands/data/${file}`);
 		commands.push(command.data.toJSON());	
 	}//end for
 

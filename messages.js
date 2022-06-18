@@ -45,7 +45,7 @@ export function queueLockedReply() {
 export function requesterNotInVoiceReply() {
 	const msgEmbed = new MessageEmbed();
 	msgEmbed.setTitle( '❌  Unable to Process Request' );
-	msgEmbed.setDescription( 'You need to be in a voice channel to make requests with `/play a {request}`.' );
+	msgEmbed.setDescription( 'You need to be in a voice channel to use this command.' );
 	
 	return {
 		embeds: [msgEmbed],
