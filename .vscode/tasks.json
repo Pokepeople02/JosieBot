@@ -2,16 +2,30 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "tsc: build - tsconfig.json",
 			"type": "typescript",
 			"tsconfig": "tsconfig.json",
 			"problemMatcher": [
 				"$tsc"
+			]
+		},
+		{
+			"label": "cleanup",
+			"type": "shell",
+			"command": "if ( Test-Path out/ ) { Remove-Item -Path out/ -Recurse }"
+		},
+		{
+			"label": "Cleanup and Build",
+			"type": "shell",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"cleanup",
+				"tsc: build - tsconfig.json"
 			],
 			"group": {
 				"kind": "build",
 				"isDefault": true
-			},
-			"label": "tsc: build - tsconfig.json"
+			}
 		}
 	]
 }
