@@ -15,7 +15,7 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, contra
         interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Set Home Channel",
-                description: `${channel.toString()} is not a text-based channel. Please choose a different channel.\nCurrent home channel: ${contract.homeId ? contract.client.channels.resolve( contract.homeId )!.toString() : "none"}.`
+                description: `${channel.toString()} is not a text-based channel. Please choose a different channel.\nCurrent home channel: ${contract.homeId ? globalThis.client.channels.resolve( contract.homeId )!.toString() : "none"}.`
             }],
             ephemeral: true
         } );

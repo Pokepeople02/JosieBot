@@ -6,17 +6,13 @@ import { IsabelleClient } from "./isabelle-client";
  */
 export class GuildContract {
 
-    /**The client which fulfills this contract */
-    readonly client: IsabelleClient;
-
     /**The identifier of the guild associated with this contract. */
     readonly guildId: Snowflake;
 
     /**The identifier of the home channel within this contract's guild. Null when not set. */
     private _homeId: Snowflake | null;
 
-    constructor( client: IsabelleClient, guildId: Snowflake ) {
-        this.client = client;
+    constructor( guildId: Snowflake ) {
         this.guildId = guildId;
         this._homeId = null;
     }//end constructor
@@ -31,7 +27,7 @@ export class GuildContract {
         let channel;
 
         if ( homeId ) {
-            channel = this.client.channels.resolve( homeId );
+            channel = globalThis.client.channels.resolve( homeId );
 
             if ( !channel )
                 throw new TypeError( `"${homeId}" is not resolvable to a channel.` );

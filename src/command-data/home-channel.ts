@@ -38,7 +38,7 @@ let HomeChannel: Command = {
                 clearHomeChannel( interaction, contract );
                 break;
             default:
-                contract.client.log( `${interaction.user.tag} attempted unknown command "${interaction.commandName}"`, interaction.guildId!, interaction.channelId );
+                globalThis.client.log( `${interaction.user.tag} attempted unknown command "${interaction.commandName}"`, interaction.guildId!, interaction.channelId );
                 interaction.reply( { content: `"${subcommand}" is not a recognized subcommand of /home-channel.`, ephemeral: true } );
         }//end switch
 

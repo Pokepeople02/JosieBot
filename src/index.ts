@@ -6,8 +6,8 @@ import { Command } from "./command";
 import fs = require( "node:fs" );
 import path = require( "node:path" );;
 
-//Build client
-let client = new IsabelleClient( { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] } );
+//Build global client
+globalThis.client = new IsabelleClient( { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] } );
 
 //Gather commands
 const commands = new Collection<string, Command>();
@@ -19,22 +19,22 @@ for ( const fileName of commandFiles ) {
     commands.set( command.data.name, command );
 }//end for
 
-client.on( "ready", () => { client.log( `Ready! Logged in as ${client.user!.tag}` ); } );
+globalThis.client.on( "ready", () => { globalThis.client.log( `Ready! Logged in as ${client.user!.tag}` ); } );
 
-client.on( "interactionCreate", async ( interaction: Interaction ) => {
+globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) => {
     if ( !interaction.isChatInputCommand() || !interaction.inGuild() ) return;
 
-    client.log( `${interaction.user.tag} executed ${interaction.toString()}`, interaction.guildId, interaction.channelId, interaction.createdAt );
+    globalThis.client.log( `${interaction.user.tag} executed ${interaction.toString()}`, interaction.guildId, interaction.channelId, interaction.createdAt );
 
-    if ( !client.contracts.has( interaction.guildId ) )
-        client.contracts.set( interaction.guildId, new GuildContract( client, interaction.guildId ) );
+    if ( !globalThis.client.contracts.has( interaction.guildId ) )
+        globalThis.client.contracts.set( interaction.guildId, new GuildContract( interaction.guildId ) );
 
     const contract = client.contracts.get( interaction.guildId )!;
     const command = commands.get( interaction.commandName );
 
     try {
         if ( !command ) {
-            client.log( `${interaction.user.tag} attempted unknown command "${interaction.commandName}"`, interaction.guildId, interaction.channelId );
+            globalThis.client.log( `${interaction.user.tag} attempted unknown command "${interaction.commandName}"`, interaction.guildId, interaction.channelId );
             await interaction.reply( { content: `"/${interaction.commandName}" is not a recognized command.`, ephemeral: true } );
         }//end if
         else
@@ -42,11 +42,11 @@ client.on( "interactionCreate", async ( interaction: Interaction ) => {
 
     } catch ( error ) {
 
-        client.log( `Error ${error as string}`, interaction.guildId, interaction.channelId );
+        globalThis.client.log( `Error ${error as string}`, interaction.guildId, interaction.channelId );
         interaction.reply( { content: "There was an error while executing this command!", ephemeral: true } );
 
     };//end try-catch
 
 } );
 
-client.login( config.token );
+globalThis.client.login( config.token );
