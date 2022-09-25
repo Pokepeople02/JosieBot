@@ -3,8 +3,6 @@ import { ChatInputCommandInteraction, GuildBasedChannel } from "discord.js";;
 import { GuildContract } from "../guild-contract";;
 import { Command } from "../command"; import { setHomeChannel } from "../command-execution/home-channel-set";
 import { clearHomeChannel } from "../command-execution/home-channel-clear";
-;
-
 
 let HomeChannel: Command = {
 
