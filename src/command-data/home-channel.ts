@@ -22,7 +22,8 @@ let HomeChannel: Command = {
         .addSubcommand( subcommand => subcommand
             .setName( "clear" )
             .setDescription( "Unsets the home channel for the bot." )
-        ),
+        )
+        .toJSON(),
 
     /** Sets or unsets the home channel of the supplied guild subscription. */
     async execute( interaction: ChatInputCommandInteraction, contract: GuildContract ): Promise<void> {
