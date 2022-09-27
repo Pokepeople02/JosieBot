@@ -12,7 +12,7 @@ import { YouTubeVideoRequest } from "./yt-video";
  * @return A promise for a Request of a type appropriate for the given input.
  */
 export function createRequest( input: string, userId: Snowflake, channelId: Snowflake ): Promise<Request> {
-    const timeLimit = 3000; //A reasonable amount of time here, in milliseconds.
+    const timeLimit = 1000; //A reasonable amount of time here, in milliseconds.
     let cleanInput: string;
 
     //Clean up YouTube URL bloat that could cause false type

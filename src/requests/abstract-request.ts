@@ -22,7 +22,7 @@ export abstract class AbstractRequest implements Request {
     /**The discord.js AudioResource obtained for the request. */
     protected resource: AudioResource | undefined = undefined;
     /** A "reasonable amount of time", in milliseconds. Used for promise rejection timeouts.*/
-    protected readonly timeLimit: number = 3000;
+    protected readonly timeLimit: number = 1000;
 
     /**Creates a new request with the specified fields. Child classes are responsible for validating their own input during construction.
      * @param input The string this request was built from.
