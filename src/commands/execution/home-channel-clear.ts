@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { GuildContract } from "../guild-contract";
+import { GuildContract } from "../../guild-contract";
 
 
 export function clearHomeChannel( interaction: ChatInputCommandInteraction, contract: GuildContract ) {

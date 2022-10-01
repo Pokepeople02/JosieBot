@@ -2,7 +2,7 @@ import { Collection, GatewayIntentBits, Interaction } from "discord.js";
 import * as config from "../config.json";
 import { GuildContract } from "./guild-contract";
 import { IsabelleClient } from "./isabelle-client";
-import { Command } from "./command";
+import { Command } from "./commands/data/command";
 import fs = require( "node:fs" );
 import path = require( "node:path" );
 
