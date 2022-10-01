@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, CacheType, SlashCommandBuilder } from "discord.js";
-import { Command } from "../../command";
+import { Command } from "./command";
 import { GuildContract } from "../../guild-contract";
 
 let play: Command = {
