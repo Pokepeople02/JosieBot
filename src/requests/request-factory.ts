@@ -12,7 +12,6 @@ import { YouTubeVideoRequest } from "./yt-video";
  * @return A promise for a Request of a type appropriate for the given input.
  */
 export function createRequest( input: string, userId: Snowflake, channelId: Snowflake ): Promise<Request> {
-    const timeLimit = 1000; //A reasonable amount of time here, in milliseconds.
     let cleanInput: string;
 
     //Clean up YouTube URL bloat that could cause false type
@@ -22,7 +21,7 @@ export function createRequest( input: string, userId: Snowflake, channelId: Snow
         cleanInput = input;
 
     return new Promise<Request>( ( resolve, reject ) => {
-        setTimeout( () => { reject( "Unable to determine request type within time limit." ); }, timeLimit );
+        setTimeout( () => { reject( "Unable to determine request type within time limit." ); }, globalThis.timeLimit );
 
         validate( cleanInput )
             .then( ( result ) => {

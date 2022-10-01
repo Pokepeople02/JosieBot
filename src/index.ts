@@ -4,10 +4,11 @@ import { GuildContract } from "./guild-contract";
 import { IsabelleClient } from "./isabelle-client";
 import { Command } from "./command";
 import fs = require( "node:fs" );
-import path = require( "node:path" );;
+import path = require( "node:path" );
 
-//Build global client
+//Initialize globals
 globalThis.client = new IsabelleClient( { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] } );
+globalThis.timeLimit = 3000;
 
 //Gather commands
 const commands = new Collection<string, Command>();

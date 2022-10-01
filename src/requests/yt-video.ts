@@ -33,7 +33,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
             return;
 
         return new Promise<void>( ( resolve, reject ) => {
-            setTimeout( () => { reject( "Unable to initialize request within time limit" ); }, this.timeLimit );
+            setTimeout( () => { reject( "Unable to initialize request within time limit" ); }, globalThis.timeLimit );
 
             video_info( this.cleanInput )
                 .then( ( info ) => {
@@ -59,7 +59,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
             if ( !this.ready )
                 reject( "Request is not fully initialized" );
 
-            setTimeout( () => { reject( "Unable to obtain resource stream within time limit" ); }, this.timeLimit );
+            setTimeout( () => { reject( "Unable to obtain resource stream within time limit" ); }, globalThis.timeLimit );
 
             stream_from_info( this.info!, { discordPlayerCompatibility: true } )
                 .then( ( stream ) => {
