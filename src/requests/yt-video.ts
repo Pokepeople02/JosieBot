@@ -15,9 +15,11 @@ export class YouTubeVideoRequest extends AbstractRequest {
      * @param input A direct link to a YouTube video, or a raw YouTube video ID.
      * @param userId The ID of the user who made this request.
      * @param channelId The ID of the channel in which this request is to be played.
+     * @param start The duration into the video to begin playing, in seconds. Defaults to 0
+     * @param end The duration into the video to stop playing, in seconds. Defaults to the length of the video.
      */
-    constructor( input: string, userId: Snowflake, channelId: Snowflake ) {
-        super( input, userId, channelId );
+    constructor( input: string, userId: Snowflake, channelId: Snowflake, start?: number, end?: number ) {
+        super( input, userId, channelId, start ?? 0, end ?? Infinity );
 
         if ( input.toLowerCase().includes( "youtube.com" ) && input.includes( "&" ) )
             this.cleanInput = input.substring( 0, input.indexOf( "&" ) );
@@ -25,7 +27,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
             this.cleanInput = input;
 
         if ( !( this.cleanInput.includes( "youtube.com/" ) && yt_validate( this.cleanInput ) === "video" ) )
-            throw new Error( "The input provided does not resolve to a valid YouTube video." );
+            throw new Error( "Input provided does not resolve to a valid YouTube video" );
     }//end constructor
 
     public async init(): Promise<void> {
@@ -61,12 +63,20 @@ export class YouTubeVideoRequest extends AbstractRequest {
 
             setTimeout( () => { reject( "Unable to obtain resource stream within time limit" ); }, globalThis.timeLimit );
 
-            stream_from_info( this.info!, { discordPlayerCompatibility: true } )
+            stream_from_info( this.info!, {
+                discordPlayerCompatibility: true,
+                seek: this.start
+            } )
                 .then( ( stream ) => {
                     this.resource = createAudioResource( stream.stream, { inputType: stream.type } );
 
                     player.play( this.resource );
                     this.player = player;
+
+                    setTimeout( () => {
+                        if ( !this.resource!.ended )
+                            this.player?.stop( true );
+                    }, ( this.end - this.start ) * 1000 );
 
                     resolve();
                 } )

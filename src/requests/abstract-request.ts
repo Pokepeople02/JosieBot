@@ -26,16 +26,25 @@ export abstract class AbstractRequest implements Request {
      * @param input The string this request was built from.
      * @param userId The ID of the user who made this request.
      * @param channelId The ID of the channel in which this request is to be played.
+     * @param start The duration into the request to begin playing.
+     * @param end The duration into the request to stop playing.
      */
-    constructor( input: string, userId: Snowflake, channelId: Snowflake ) {
+    constructor( input: string, userId: Snowflake, channelId: Snowflake, start: number, end: number ) {
         this.channelId = channelId;
 
         if ( !globalThis.client.users.resolve( userId ) )
-            throw new Error( "User ID is unable to be resolved to a valid user." );
+            throw new Error( "User ID is unable to be resolved to a valid user" );
         else
             this._userId = userId;
 
         this.input = input;
+
+        if ( start > end )
+            throw new Error( `Requested start "${start}" contradicts requested end "${end}"` );
+        else {
+            this.start = start;
+            this.end = end;
+        }//end if-else
 
         this._ready = false;
     }//end constructor
@@ -48,9 +57,9 @@ export abstract class AbstractRequest implements Request {
         let resultChannel = globalThis.client.channels.resolve( newId );
 
         if ( !resultChannel )
-            throw new Error( "The target channel ID is unable to be resolved to a valid channel." );
+            throw new Error( "The target channel ID is unable to be resolved to a valid channel" );
         else if ( !resultChannel.isVoiceBased() )
-            throw new Error( "The target channel ID is not a voice-based channel." );
+            throw new Error( "The target channel ID is not a voice-based channel" );
 
         this._channelId = newId;
     }//end setter channelId
@@ -60,10 +69,7 @@ export abstract class AbstractRequest implements Request {
     }//end getter start
 
     public set start( newStart: number ) {
-        if ( typeof this._length === "undefined" )
-            throw new RangeError( "Unable to set start while length is unknown" );
-
-        if ( newStart < 0 || newStart > this._length || newStart > this._end )
+        if ( newStart < 0 || newStart > this._end || ( this._length && newStart > this._length ) )
             throw new RangeError( "The requested start is not in a valid range" );
 
         this._start = newStart;
@@ -74,10 +80,7 @@ export abstract class AbstractRequest implements Request {
     }//end getter end
 
     public set end( newEnd: number ) {
-        if ( typeof this._length === "undefined" )
-            throw new RangeError( "Unable to set end while length is unknown" );
-
-        if ( newEnd > this._length || newEnd < 0 || newEnd < this._start )
+        if ( newEnd < 0 || newEnd < this._start || ( this._length && newEnd > this._length ) )
             throw new RangeError( "The requested end is not in a valid range." );
 
         this._end = newEnd;
