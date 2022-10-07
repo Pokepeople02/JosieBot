@@ -21,7 +21,7 @@ export function createRequest( input: string, userId: Snowflake, channelId: Snow
         cleanInput = input;
 
     return new Promise<Request>( ( resolve, reject ) => {
-        setTimeout( () => { reject( "Unable to determine request type within time limit." ); }, globalThis.timeLimit );
+        setTimeout( () => { reject( "Unable to determine type of request in a reasonable amount of time" ); }, globalThis.timeLimit );
 
         validate( cleanInput )
             .then( ( result ) => {
@@ -33,16 +33,16 @@ export function createRequest( input: string, userId: Snowflake, channelId: Snow
                             resolve( new YouTubeVideoRequest( input, userId, channelId ) );
                             break;
                         case false:
-                            reject( "Unable to determine request type" );
+                            reject( "Unable to determine type of request" );
                             break;
                         default:
-                            reject( `Requests of type '${result}' are not supported yet.` );
+                            reject( `Requests of type '${result}' are not yet supported` );
                     }//end switch
                 } catch ( error ) {
-                    reject( `Failed to create request of type '${result}': ${error}` );
+                    reject( `Failed to create request of type '${result}'. ${error}` );
                 }//end try-catch
             } )
-            .catch( ( reason ) => { reject( `Unable to determine request type: ${reason}` ); } );
+            .catch( ( reason ) => { reject( `Unable to determine request type. ${reason}` ); } );
     } );
 
 }//end function createRequest

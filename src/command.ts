@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, RESTPostAPIApplicationCommandsJSONBody } from "discord.js";
-import { GuildContract } from "../../guild-contract";
+import { GuildContract } from "./guild-contract";
 
 /**Interface for Command objects dynamically built during on-start initialization. */
 export interface Command {

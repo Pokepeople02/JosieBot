@@ -35,7 +35,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
             return;
 
         return new Promise<void>( ( resolve, reject ) => {
-            setTimeout( () => { reject( "Unable to initialize request within time limit" ); }, globalThis.timeLimit );
+            setTimeout( () => { reject( "Unable to initialize request in a reasonable amount of time" ); }, globalThis.timeLimit );
 
             video_info( this.cleanInput )
                 .then( ( info ) => {
@@ -61,7 +61,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
             if ( !this.ready )
                 reject( "Request is not fully initialized" );
 
-            setTimeout( () => { reject( "Unable to obtain resource stream within time limit" ); }, globalThis.timeLimit );
+            setTimeout( () => { reject( "Unable to obtain resource stream in a reasonable amount of time" ); }, globalThis.timeLimit );
 
             stream_from_info( this.info!, {
                 discordPlayerCompatibility: true,
@@ -86,11 +86,11 @@ export class YouTubeVideoRequest extends AbstractRequest {
     }//end method play
 
     public pause(): Promise<void> {
-        throw new Error( "Method not implemented." );
+        throw new Error( "Method not implemented" );
     }//end method pause
 
     public resume(): Promise<void> {
-        throw new Error( "Method not implemented." );
+        throw new Error( "Method not implemented" );
     }//end method resume
 
 }//end class YouTubeVideoRequest

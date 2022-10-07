@@ -19,7 +19,6 @@ export class IsabelleClient extends Client {
      * @param loggedAt The date/time to print with the logged message. Defaults to the current time.
      */
     public log( message: string, guildId?: Snowflake, channelId?: Snowflake, loggedAt?: Date ): void;
-
     public log( message: string, interactOrGuildId: ChatInputCommandInteraction | Snowflake = "0", channelId: Snowflake = "0", loggedAt: Date = new Date() ) {
         let guildId: Snowflake;
         let prefix: string;
