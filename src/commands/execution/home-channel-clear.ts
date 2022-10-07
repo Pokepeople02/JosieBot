@@ -6,6 +6,7 @@ export function clearHomeChannel( interaction: ChatInputCommandInteraction, cont
     contract.homeId = null;
 
     globalThis.client.log( "Home channel cleared", interaction );
+
     interaction.reply( {
         embeds: [{
             title: "✅  Home Channel Cleared",

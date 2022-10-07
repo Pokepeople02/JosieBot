@@ -11,8 +11,8 @@ import { GuildContract } from "../../guild-contract";
 export function setHomeChannel( interaction: ChatInputCommandInteraction, contract: GuildContract, channel: GuildBasedChannel ): void {
 
     if ( !channel.isTextBased() ) {
-
         globalThis.client.log( `Failed to set home channel: channel "${channel.toString()}" is not text-based`, interaction );
+
         interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Set Home Channel",
@@ -26,6 +26,7 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, contra
     contract.homeId = channel.id;
 
     globalThis.client.log( `Home channel set to "${channel.toString()}"`, interaction );
+
     interaction.reply( {
         embeds: [{
             title: "✅  Home Channel Set",
