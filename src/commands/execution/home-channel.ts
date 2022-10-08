@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, GuildBasedChannel } from "discord.js";
+import { ChatInputCommandInteraction, GuildBasedChannel, GuildChannel, ThreadChannel } from "discord.js";
 import { GuildContract } from "../../guild-contract";
 
 
@@ -8,14 +8,21 @@ import { GuildContract } from "../../guild-contract";
  */
 export function setHomeChannel( interaction: ChatInputCommandInteraction, channel: GuildBasedChannel ): void {
     const contract = globalThis.client.contracts.get( interaction.guildId! )!;
+    let homeName; //Name of the current home channel, or none.
+
+    if ( contract.homeId )
+        homeName = ( globalThis.client.channels.resolve( contract.homeId )! as GuildChannel | ThreadChannel ).name;
+    else
+        homeName = "none";
+
 
     if ( !channel.isTextBased() ) {
-        globalThis.client.log( `Failed to set home channel: channel "${channel.toString()}" is not text-based`, interaction );
+        globalThis.client.log( `Failed to set home channel: channel "${channel.name}" not text-based`, interaction );
 
         interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Set Home Channel",
-                description: `${channel.toString()} is not a text-based channel. Please choose a different channel.\nCurrent home channel: ${contract.homeId ? globalThis.client.channels.resolve( contract.homeId )!.toString() : "none"}.`
+                description: `${channel.name} is not a text-based channel. Please choose a different channel.\nCurrent home channel: ${homeName}.`
             }]
         } );
 
@@ -23,13 +30,14 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, channe
     }//end if
 
     contract.homeId = channel.id;
+    homeName = channel.name;
 
-    globalThis.client.log( `Home channel set to "${channel.toString()}"`, interaction );
+    globalThis.client.log( `Home channel set to "${homeName}"`, interaction );
 
     interaction.reply( {
         embeds: [{
             title: "✅  Home Channel Set",
-            description: `Successfully updated the home channel to ${channel.toString()}.`
+            description: `Successfully updated the home channel to ${homeName}.`
         }],
     } );
 

@@ -32,7 +32,7 @@ export class GuildContract {
             if ( !channel )
                 throw new TypeError( `"${homeId}" is not resolvable to a channel.` );
             else if ( !channel.isTextBased() )
-                throw new TypeError( `"${channel.toString()}" is not a text-based channel.` );
+                throw new TypeError( `"${channel.name!}" is not a text-based channel.` );
 
         }//end if
 
