@@ -8,13 +8,7 @@ import { GuildContract } from "../../guild-contract";
  */
 export function setHomeChannel( interaction: ChatInputCommandInteraction, channel: GuildBasedChannel ): void {
     const contract = globalThis.client.contracts.get( interaction.guildId! )!;
-    let homeName; //Name of the current home channel, or none.
-
-    if ( contract.homeId )
-        homeName = ( globalThis.client.channels.resolve( contract.homeId )! as GuildChannel | ThreadChannel ).name;
-    else
-        homeName = "none";
-
+    const currHome = contract.homeId ? globalThis.client.channels.resolve( contract.homeId ) as GuildBasedChannel : null;
 
     if ( !channel.isTextBased() ) {
         globalThis.client.log( `Failed to set home channel: channel "${channel.name}" not text-based`, interaction );
@@ -22,7 +16,8 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, channe
         interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Set Home Channel",
-                description: `${channel.name} is not a text-based channel. Please choose a different channel.\nCurrent home channel: ${homeName}.`
+                description: `${channel} is not a text-based channel. Please choose a different channel.
+                Current home channel: ${currHome ?? "None"}.`
             }]
         } );
 
@@ -30,14 +25,13 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, channe
     }//end if
 
     contract.homeId = channel.id;
-    homeName = channel.name;
 
-    globalThis.client.log( `Home channel set to "${homeName}"`, interaction );
+    globalThis.client.log( `Home channel set to "${channel.name}"`, interaction );
 
     interaction.reply( {
         embeds: [{
             title: "✅  Home Channel Set",
-            description: `Successfully updated the home channel to ${homeName}.`
+            description: `Successfully updated the home channel to ${channel}.`
         }],
     } );
 
