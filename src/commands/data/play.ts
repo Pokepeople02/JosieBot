@@ -15,10 +15,10 @@ let Play: Command = {
         )
         .toJSON(),
 
-    async execute( interaction: ChatInputCommandInteraction, contract: GuildContract ): Promise<void> {
+    async execute( interaction: ChatInputCommandInteraction ): Promise<void> {
         //Check if user is in voice, handle channelId 0 differently
 
-        await processNewRequest( interaction, contract, ( interaction.member! as GuildMember ).voice.channelId! );
+        await processNewRequest( interaction, ( interaction.member! as GuildMember ).voice.channelId! );
         return;
     }//end method execute
 };

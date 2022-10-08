@@ -4,11 +4,11 @@ import { GuildContract } from "../../guild-contract";
 
 /**Sets the channel where bot status messages are sent for a guild.
  * @param interaction The prompting command interaction.
- * @param contract The contract to be updated that is associated with the given guild.
  * @param channel The guild channel to be set as the new home channel.
  * @returns 
  */
-export function setHomeChannel( interaction: ChatInputCommandInteraction, contract: GuildContract, channel: GuildBasedChannel ): void {
+export function setHomeChannel( interaction: ChatInputCommandInteraction, channel: GuildBasedChannel ): void {
+    const contract = globalThis.client.contracts.get( interaction.guildId! )!;
 
     if ( !channel.isTextBased() ) {
         globalThis.client.log( `Failed to set home channel: channel "${channel.toString()}" is not text-based`, interaction );
@@ -37,7 +37,10 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, contra
     return;
 }//end function setHomeChannel
 
-export function clearHomeChannel( interaction: ChatInputCommandInteraction, contract: GuildContract ) {
+
+export function clearHomeChannel( interaction: ChatInputCommandInteraction ) {
+    const contract = globalThis.client.contracts.get( interaction.guildId! )!;
+
     contract.homeId = null;
 
     globalThis.client.log( "Home channel cleared", interaction );

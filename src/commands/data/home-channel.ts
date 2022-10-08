@@ -26,15 +26,15 @@ let HomeChannel: Command = {
         .toJSON(),
 
     /** Sets or unsets the home channel of the supplied guild subscription. */
-    async execute( interaction: ChatInputCommandInteraction, contract: GuildContract ): Promise<void> {
+    async execute( interaction: ChatInputCommandInteraction ): Promise<void> {
         let subcommand: string = interaction.options.getSubcommand();
 
         switch ( subcommand ) {
             case "set":
-                setHomeChannel( interaction, contract, interaction.options.getChannel( "channel" )! as GuildBasedChannel );
+                setHomeChannel( interaction, interaction.options.getChannel( "channel", true )! as GuildBasedChannel );
                 break;
             case "clear":
-                clearHomeChannel( interaction, contract );
+                clearHomeChannel( interaction );
                 break;
             default:
                 globalThis.client.log( `${interaction.user.tag} attempted unknown command "${interaction.commandName}"`, interaction );

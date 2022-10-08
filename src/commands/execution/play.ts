@@ -3,7 +3,8 @@ import { GuildContract } from "../../guild-contract";
 import { Request } from "../../requests/request";
 import { createRequest } from "../../requests/request-factory";
 
-export async function processNewRequest( interaction: ChatInputCommandInteraction, contract: GuildContract, channelId: Snowflake ): Promise<void> {
+export async function processNewRequest( interaction: ChatInputCommandInteraction, channelId: Snowflake ): Promise<void> {
+    const contract = globalThis.client.contracts.get( interaction.guildId! )!;
     let request: Request;
 
     await interaction.deferReply();

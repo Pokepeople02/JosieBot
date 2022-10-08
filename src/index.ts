@@ -39,7 +39,7 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
             await interaction.reply( { content: `"/${interaction.commandName}" is not a recognized command.`, ephemeral: true } );
         }//end if
         else
-            await command.execute( interaction, contract );
+            await command.execute( interaction );
 
     } catch ( error ) {
         globalThis.client.log( `Error during command: "${error as string}"`, interaction );

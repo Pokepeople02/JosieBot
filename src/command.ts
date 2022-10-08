@@ -11,6 +11,6 @@ export interface Command {
      * @param interaction The prompting slash-command interaction.
      * @param contract The contract of the guild in which the interaction is taking place.
      */
-    execute( interaction: ChatInputCommandInteraction, contract: GuildContract ): Promise<void>;
+    execute( interaction: ChatInputCommandInteraction ): Promise<void>;
 
 }//end interface Command
