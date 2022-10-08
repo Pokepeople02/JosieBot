@@ -2,10 +2,9 @@ import { ChatInputCommandInteraction, GuildBasedChannel } from "discord.js";
 import { GuildContract } from "../../guild-contract";
 
 
-/**Sets the channel where bot status messages are sent for a guild.
+/**Sets the home channel, where bot status messages are sent, for a guild.
  * @param interaction The prompting command interaction.
  * @param channel The guild channel to be set as the new home channel.
- * @returns 
  */
 export function setHomeChannel( interaction: ChatInputCommandInteraction, channel: GuildBasedChannel ): void {
     const contract = globalThis.client.contracts.get( interaction.guildId! )!;
@@ -37,7 +36,9 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, channe
     return;
 }//end function setHomeChannel
 
-
+/**Resets the stored home channel, where bot status messages are sent, for a guild.
+* @param interaction The prompting command interaction.
+ */
 export function clearHomeChannel( interaction: ChatInputCommandInteraction ) {
     const contract = globalThis.client.contracts.get( interaction.guildId! )!;
 
