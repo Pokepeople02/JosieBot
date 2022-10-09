@@ -11,8 +11,10 @@ import { YouTubeVideoRequest } from "./YouTubeVideoRequest";
  * @param channelId The ID of the channel this request will play in.
  * @return A promise for a Request of a type appropriate for the given input.
  */
-export function createRequest( input: string, userId: Snowflake, channelId: Snowflake ): Promise<Request> {
+export async function createRequest( input: string, userId: Snowflake, channelId: Snowflake ): Promise<Request> {
     let cleanInput: string;
+    let type: Awaited<ReturnType<typeof validate>>;
+    let request: Request;
 
     //Clean up YouTube URL bloat that could cause false type
     if ( input.toLowerCase().includes( "youtube.com" ) && input.includes( "&" ) )
@@ -20,29 +22,29 @@ export function createRequest( input: string, userId: Snowflake, channelId: Snow
     else
         cleanInput = input;
 
-    return new Promise<Request>( ( resolve, reject ) => {
+    return new Promise<Request>( async ( resolve, reject ) => {
         setTimeout( () => { reject( "Unable to determine type of request in a reasonable amount of time" ); }, globalThis.timeLimit );
 
-        validate( cleanInput )
-            .then( ( result ) => {
-                let requestType: string;
+        try { type = await validate( cleanInput ); }
+        catch ( error ) { reject( `Unable to determine request type. ${error}` ); }
 
-                try {
-                    switch ( result ) {
-                        case "yt_video":
-                            resolve( new YouTubeVideoRequest( input, userId, channelId ) );
-                            break;
-                        case false:
-                            reject( "Unable to determine type of request" );
-                            break;
-                        default:
-                            reject( `Requests of type '${result}' are not yet supported` );
-                    }//end switch
-                } catch ( error ) {
-                    reject( `Failed to create request of type '${result}'. ${error}` );
-                }//end try-catch
-            } )
-            .catch( ( reason ) => { reject( `Unable to determine request type. ${reason}` ); } );
+        try {
+
+            switch ( type ) {
+                case "yt_video":
+                    request = new YouTubeVideoRequest( input, userId, channelId );
+                    await request.init();
+                    resolve( request );
+                case false:
+                    reject( "Unable to determine type of request" );
+                default:
+                    reject( `Requests of type '${type}' are not yet supported` );
+            }//end switch
+
+        } catch ( error ) {
+            reject( error );
+        }//end try-catch
+
     } );
 
 }//end function createRequest

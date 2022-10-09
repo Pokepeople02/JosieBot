@@ -3,7 +3,10 @@ import { Snowflake } from "discord.js";
 import { InfoData, stream_from_info, video_info, yt_validate } from "play-dl";
 import { AbstractRequest } from "./AbstractRequest";
 
-/**A request for a specific YouTube video resource made using a direct link or raw video ID.*/
+/**A request for a specific YouTube video resource made using a direct link or raw video ID.
+ * 
+ * Requests SHOULD NOT be initialized using `new`. The `createRequest` factory function should be exclusively used to create requests!
+*/
 export class YouTubeVideoRequest extends AbstractRequest {
 
     /**The input YouTube video URL or raw video ID after being scrubbed of potential post-ID data, such as playlists*/
