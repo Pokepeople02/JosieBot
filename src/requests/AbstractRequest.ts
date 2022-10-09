@@ -1,6 +1,6 @@
 import { AudioPlayer, AudioResource } from "@discordjs/voice";
 import { Snowflake } from "discord.js";
-import { Request } from "./request";
+import { Request } from "./Request";
 
 /**A base from which children representing different request types can be built.*/
 export abstract class AbstractRequest implements Request {

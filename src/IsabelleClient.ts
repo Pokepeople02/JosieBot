@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, Client, ClientOptions, Collection, GuildChannel, Snowflake, ThreadChannel } from "discord.js";
-import { GuildContract } from "./guild-contract";
+import { GuildContract } from "./GuildContract";
 
 /** Manages global bot behavior and interaction with the Discord API across all servers. */
 export class IsabelleClient extends Client {

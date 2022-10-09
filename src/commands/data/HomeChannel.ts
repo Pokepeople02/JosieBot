@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { ChatInputCommandInteraction, GuildBasedChannel } from "discord.js";
-import { GuildContract } from "../../guild-contract";
-import { Command } from "../../command";
-import { setHomeChannel, clearHomeChannel } from "../execution/home-channel";
+import { GuildContract } from "../../GuildContract";
+import { Command } from "../../Command";
+import { setHomeChannel, clearHomeChannel } from "../execution/HomeChannel";
 
 let HomeChannel: Command = {
 

@@ -1,7 +1,7 @@
 import { AudioPlayer, createAudioResource } from "@discordjs/voice";
 import { Snowflake } from "discord.js";
 import { InfoData, stream_from_info, video_info, yt_validate } from "play-dl";
-import { AbstractRequest } from "./abstract-request";
+import { AbstractRequest } from "./AbstractRequest";
 
 /**A request for a specific YouTube video resource made using a direct link or raw video ID.*/
 export class YouTubeVideoRequest extends AbstractRequest {

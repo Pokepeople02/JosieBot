@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, GuildBasedChannel, GuildChannel, ThreadChannel } from "discord.js";
-import { GuildContract } from "../../guild-contract";
+import { GuildContract } from "../../GuildContract";
 
 
 /**Sets the home channel, where bot status messages are sent, for a guild.

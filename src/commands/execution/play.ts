@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, Snowflake } from "discord.js";
-import { GuildContract } from "../../guild-contract";
-import { Request } from "../../requests/request";
-import { createRequest } from "../../requests/request-factory";
+import { GuildContract } from "../../GuildContract";
+import { Request } from "../../requests/Request";
+import { createRequest } from "../../requests/RequestFactory";
 
 export async function processNewRequest( interaction: ChatInputCommandInteraction, channelId: Snowflake ): Promise<void> {
     const contract = globalThis.client.contracts.get( interaction.guildId! )!;

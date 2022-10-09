@@ -1,5 +1,5 @@
 import { Snowflake } from "discord.js";
-import { IsabelleClient } from "./isabelle-client";
+import { IsabelleClient } from "./IsabelleClient";
 
 /**Represents the contract between bot and guild the bot operates in. 
  * Stores information about their relationship and carries out core bot activities.

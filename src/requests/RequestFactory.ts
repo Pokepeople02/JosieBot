@@ -1,7 +1,7 @@
 import { Snowflake } from "discord.js";
 import { validate } from "play-dl";
-import { Request } from "./request";
-import { YouTubeVideoRequest } from "./yt-video";
+import { Request } from "./Request";
+import { YouTubeVideoRequest } from "./YouTubeVideoRequest";
 
 /**Creates a promise for a new request corresponding to the format of the input provided.
  * Rejects if the input corresponds to a type of request that is not yet supported,

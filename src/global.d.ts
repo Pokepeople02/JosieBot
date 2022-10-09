@@ -1,4 +1,4 @@
-import { IsabelleClient } from "./isabelle-client";
+import { IsabelleClient } from "./IsabelleClient";
 
 declare global {
     /**The global discord.js client. */

@@ -1,8 +1,8 @@
 import { Collection, GatewayIntentBits, Interaction } from "discord.js";
 import * as config from "../config.json";
-import { GuildContract } from "./guild-contract";
-import { IsabelleClient } from "./isabelle-client";
-import { Command } from "./command";
+import { GuildContract } from "./GuildContract";
+import { IsabelleClient } from "./IsabelleClient";
+import { Command } from "./Command";
 import fs = require( "node:fs" );
 import path = require( "node:path" );
 
