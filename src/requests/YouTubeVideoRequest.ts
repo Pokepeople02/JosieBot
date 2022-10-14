@@ -1,6 +1,8 @@
 import { AudioPlayer, createAudioResource } from "@discordjs/voice";
 import { Snowflake } from "discord.js";
 import { InfoData, stream_from_info, video_info, yt_validate } from "play-dl";
+import { ResourceUnobtainableError } from "../errors/ResourceUnobtainableError";
+import { TimeoutError } from "../errors/TimeoutError";
 import { AbstractRequest } from "./AbstractRequest";
 
 /**A request for a specific YouTube video resource made using a direct link or raw video ID.
@@ -29,8 +31,6 @@ export class YouTubeVideoRequest extends AbstractRequest {
         else
             this.cleanInput = input;
 
-        if ( !( this.cleanInput.includes( "youtube.com/" ) && yt_validate( this.cleanInput ) === "video" ) )
-            throw new Error( "Input provided does not resolve to a valid YouTube video" );
     }//end constructor
 
     public async init(): Promise<void> {
@@ -38,7 +38,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
             return;
 
         return new Promise<void>( ( resolve, reject ) => {
-            setTimeout( () => { reject( "Unable to initialize request in a reasonable amount of time" ); }, globalThis.timeLimit );
+            setTimeout( () => { reject( new TimeoutError( "Request initialization timed out" ) ); }, globalThis.timeLimit );
 
             video_info( this.cleanInput )
                 .then( ( info ) => {
@@ -53,7 +53,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
 
                     resolve();
                 } )
-                .catch( ( reason ) => { reject( `Unable to obtain video info: ${reason}` ); } );
+                .catch( ( reason ) => { reject( new ResourceUnobtainableError( `Unable to obtain video info: ${reason}` ) ); } );
         } );
 
     }//end method init
@@ -61,10 +61,10 @@ export class YouTubeVideoRequest extends AbstractRequest {
     public play( player: AudioPlayer ): Promise<void> {
 
         return new Promise<void>( ( resolve, reject ) => {
-            if ( !this.ready )
+            if ( !this.ready ) //TODO Replace with custom error
                 reject( "Request is not fully initialized" );
 
-            setTimeout( () => { reject( "Unable to obtain resource stream in a reasonable amount of time" ); }, globalThis.timeLimit );
+            setTimeout( () => { reject( new TimeoutError( "Audio Resource creation timed out" ) ); }, globalThis.timeLimit );
 
             stream_from_info( this.info!, {
                 discordPlayerCompatibility: true,
@@ -83,7 +83,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
 
                     resolve();
                 } )
-                .catch( ( reason ) => { reject( `Unable to obtain stream: ${reason}` ); } );
+                .catch( ( reason ) => { reject( new ResourceUnobtainableError( `Unable to obtain stream: ${reason}` ) ); } );
         } );
 
     }//end method play

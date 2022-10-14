@@ -1,5 +1,6 @@
 import { Snowflake } from "discord.js";
-import { IsabelleClient } from "./IsabelleClient";
+import { NonTextChannelError } from "./errors/NonTextChannelError";
+import { UnresolvedChannelError } from "./errors/UnresolvedChannelError";
 
 /**Represents the contract between bot and guild the bot operates in. 
  * Stores information about their relationship and carries out core bot activities.
@@ -22,7 +23,10 @@ export class GuildContract {
         return this._homeId;
     }//end getter homeId
 
-    /**If set to a snowflake, throws TypeError when set if unable to resolve it to a Channel object or if resolves into a non-text-based channel. */
+    /**If set to a snowflake, throws TypeError when set if unable to resolve it to a Channel object or if resolves into a non-text-based channel.
+     * @throws `UnresolvedChannelError` When the given ID does not resolve to a known channel.
+     * @throws `NonTextChannelError` When the given ID does not correspond to a text-based channel.
+     */
     public set homeId( homeId: Snowflake | null ) {
         let channel;
 
@@ -30,9 +34,9 @@ export class GuildContract {
             channel = globalThis.client.channels.resolve( homeId );
 
             if ( !channel )
-                throw new TypeError( `"${homeId}" is not resolvable to a channel.` );
+                throw new UnresolvedChannelError( `Home ID is not resolvable (ID: ${homeId})` );
             else if ( !channel.isTextBased() )
-                throw new TypeError( `"${channel.name!}" is not a text-based channel.` );
+                throw new NonTextChannelError( `"${channel.name!}" is not text-based` );
 
         }//end if
 

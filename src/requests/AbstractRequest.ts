@@ -1,5 +1,9 @@
 import { AudioPlayer, AudioResource } from "@discordjs/voice";
 import { Snowflake } from "discord.js";
+import { DurationError } from "../errors/DurationError";
+import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
+import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
+import { UnresolvedUserError } from "../errors/UnresolvedUserError";
 import { Request } from "./Request";
 
 /**A base from which children representing different request types can be built.*/
@@ -26,22 +30,24 @@ export abstract class AbstractRequest implements Request {
      * @param input The string this request was built from.
      * @param userId The ID of the user who made this request.
      * @param channelId The ID of the channel in which this request is to be played.
-     * @param start The duration into the request to begin playing.
-     * @param end The duration into the request to stop playing.
+     * @param start The duration into the request to begin playing. When higher than end, the two are swapped.
+     * @param end The duration into the request to stop playing. When lower than start, the two are swapped.
+     * @throws `UnresolvedUserError` When the provided user ID does not resolve to a known user.
      */
     constructor( input: string, userId: Snowflake, channelId: Snowflake, start: number, end: number ) {
         this.channelId = channelId;
 
         if ( !globalThis.client.users.resolve( userId ) )
-            throw new Error( "User ID is unable to be resolved to a valid user" );
+            throw new UnresolvedUserError( `Unable to resolve request owner user ID (ID: ${userId})`, );
         else
             this._userId = userId;
 
         this.input = input;
 
-        if ( start > end )
-            throw new Error( `Requested start "${start}" contradicts requested end "${end}"` );
-        else {
+        if ( start > end ) {
+            this.start = end;
+            this.end = start;
+        } else {
             this.start = start;
             this.end = end;
         }//end if-else
@@ -53,13 +59,17 @@ export abstract class AbstractRequest implements Request {
         return this._channelId;
     }//end getter channelId
 
+    /**
+     * @throws `UnresolvedChannelError` When the provided ID does not resolve to a known channel.
+     * @throws `NonVoiceChannelError` When the provided ID does not correspond to a voice-based channel.
+     */
     public set channelId( newId: Snowflake ) {
         let resultChannel = globalThis.client.channels.resolve( newId );
 
         if ( !resultChannel )
-            throw new Error( "The target channel ID is unable to be resolved to a valid channel" );
+            throw new UnresolvedChannelError( `Unable to resolve request playback channel ID (ID: ${newId})` );
         else if ( !resultChannel.isVoiceBased() )
-            throw new Error( "The target channel ID is not a voice-based channel" );
+            throw new NonVoiceChannelError( `The target channel "${resultChannel}" is not a voice-based channel` );
 
         this._channelId = newId;
     }//end setter channelId
@@ -68,9 +78,10 @@ export abstract class AbstractRequest implements Request {
         return this._start;
     }//end getter start
 
+    /**@throws `DurationError` When the provided value is less than 0, greater than end, or greater than length. */
     public set start( newStart: number ) {
         if ( newStart < 0 || newStart > this._end || ( this._length && newStart > this._length ) )
-            throw new RangeError( "The requested start is not in a valid range" );
+            throw new DurationError( `The requested start (${newStart}) is not in a valid range` );
 
         this._start = newStart;
     }//end setter start
@@ -79,9 +90,10 @@ export abstract class AbstractRequest implements Request {
         return this._end;
     }//end getter end
 
+    /**@throws `DurationError` When the provided value is less than 0, less than start, or greater than length. */
     public set end( newEnd: number ) {
         if ( newEnd < 0 || newEnd < this._start || ( this._length && newEnd > this._length ) )
-            throw new RangeError( "The requested end is not in a valid range." );
+            throw new DurationError( `The requested end (${newEnd}) is not in a valid range` );
 
         this._end = newEnd;
     }//end setter end

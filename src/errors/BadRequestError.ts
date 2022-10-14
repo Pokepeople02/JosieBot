@@ -1,6 +1,6 @@
 
-/**An error occurring when a request with an erroneous or unknown type is made.*/
-export class RequestTypeError extends TypeError {
+/**An error occurring when an untenable request is made.*/
+export class BadRequestError extends TypeError {
 
     /**The particular way in which the erroneous request's type is problematic.
      * Acceptable values are as follows:
@@ -13,9 +13,9 @@ export class RequestTypeError extends TypeError {
      */
     readonly type: "invalid" | "unknown" | "unsupported";
 
-    /**Creates a new RequestTypeError for a request with an erroneous type.
+    /**Creates a new BadRequestError for an erroneous request.
      * @param message The error message.
-     * @param type The particular way in which the erroneous request's type is problematic.
+     * @param type The particular way in which the erroneous request is problematic.
      */
     constructor( message: string, type: "invalid" | "unknown" | "unsupported" ) {
         super( message );
