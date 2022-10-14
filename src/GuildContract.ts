@@ -24,8 +24,8 @@ export class GuildContract {
     }//end getter homeId
 
     /**If set to a snowflake, throws TypeError when set if unable to resolve it to a Channel object or if resolves into a non-text-based channel.
-     * @throws `UnresolvedChannelError` When the given ID does not resolve to a known channel.
-     * @throws `NonTextChannelError` When the given ID does not correspond to a text-based channel.
+     * @throws `UnresolvedChannelError` When the given ID is not null, but does not resolve to a known channel.
+     * @throws `NonTextChannelError` When the given ID is not null, but does not correspond to a text-based channel.
      */
     public set homeId( homeId: Snowflake | null ) {
         let channel;

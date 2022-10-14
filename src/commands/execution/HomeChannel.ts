@@ -1,4 +1,6 @@
-import { ChatInputCommandInteraction, GuildBasedChannel, GuildChannel, ThreadChannel } from "discord.js";
+import { ChatInputCommandInteraction, GuildBasedChannel, GuildChannel, InteractionReplyOptions, ThreadChannel } from "discord.js";
+import { NonTextChannelError } from "../../errors/NonTextChannelError";
+import { UnresolvedChannelError } from "../../errors/UnresolvedChannelError";
 import { GuildContract } from "../../GuildContract";
 
 
@@ -10,21 +12,33 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, channe
     const contract = globalThis.client.contracts.get( interaction.guildId! )!;
     const currHome = contract.homeId ? globalThis.client.channels.resolve( contract.homeId ) as GuildBasedChannel : null;
 
-    if ( !channel.isTextBased() ) {
-        globalThis.client.log( `Failed to set home channel: channel "${channel.name}" not text-based`, interaction );
+    try {
+        contract.homeId = channel.id;
+    } catch ( error ) {
+        let replyContent: InteractionReplyOptions = { embeds: [] };
 
-        interaction.reply( {
-            embeds: [{
+        globalThis.client.log( `Failed to set home: ${error}`, interaction );
+
+        if ( error instanceof UnresolvedChannelError ) {
+            replyContent.embeds = [{
                 title: "❌  Unable to Set Home Channel",
-                description: `${channel} is not a text-based channel. Please choose a different channel.
-                Current home channel: ${currHome ?? "None"}.`
-            }]
-        } );
+                description: `The provided channel cannot be found. Please choose a different channel.` +
+                    `\nCurrent home channel: ${currHome ?? "None"}.`
+            }];
+        } else if ( error instanceof NonTextChannelError ) {
+            replyContent.embeds = [{
+                title: "❌  Unable to Set Home Channel",
+                description: `${channel} is not a text-based channel. Please choose a different channel.` +
+                    `Current home channel: ${currHome ?? "None"}.`
+            }];
+        } else { //Unexpected
+            throw error;
+        }//end if-else
+
+        interaction.reply( replyContent );
 
         return;
-    }//end if
-
-    contract.homeId = channel.id;
+    }//end try-catch
 
     globalThis.client.log( `Home channel set to "${channel.name}"`, interaction );
 
