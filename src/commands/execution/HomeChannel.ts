@@ -17,7 +17,7 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, channe
     } catch ( error ) {
         let replyContent: InteractionReplyOptions = { embeds: [] };
 
-        globalThis.client.log( `Failed to set home: ${error}`, interaction );
+        globalThis.client.log( `Failed to set home -- ${error}`, interaction );
 
         if ( error instanceof UnresolvedChannelError ) {
             replyContent.embeds = [{
@@ -29,7 +29,7 @@ export function setHomeChannel( interaction: ChatInputCommandInteraction, channe
             replyContent.embeds = [{
                 title: "❌  Unable to Set Home Channel",
                 description: `${channel} is not a text-based channel. Please choose a different channel.` +
-                    `Current home channel: ${currHome ?? "None"}.`
+                    `\nCurrent home channel: ${currHome ?? "None"}.`
             }];
         } else { //Unexpected
             throw error;

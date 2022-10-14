@@ -42,7 +42,7 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
             await command.execute( interaction );
 
     } catch ( error ) {
-        globalThis.client.log( `Error during command: "${error as string}"`, interaction );
+        globalThis.client.log( `Unexpected error during command -- ${error as string}`, interaction );
 
         try {
             if ( interaction.deferred ) interaction.editReply( "There was an error while executing this command!" );
