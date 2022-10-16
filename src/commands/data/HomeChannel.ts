@@ -25,7 +25,7 @@ let HomeChannel: Command = {
         )
         .toJSON(),
 
-    /** Sets or unsets the home channel of the supplied guild subscription. */
+    /** TODO: Unfinished */
     async execute( interaction: ChatInputCommandInteraction ): Promise<void> {
         let subcommand: string = interaction.options.getSubcommand();
 

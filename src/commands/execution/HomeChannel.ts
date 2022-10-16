@@ -1,12 +1,11 @@
-import { ChatInputCommandInteraction, GuildBasedChannel, GuildChannel, InteractionReplyOptions, ThreadChannel } from "discord.js";
+import { ChatInputCommandInteraction, GuildBasedChannel, InteractionReplyOptions } from "discord.js";
 import { NonTextChannelError } from "../../errors/NonTextChannelError";
 import { UnresolvedChannelError } from "../../errors/UnresolvedChannelError";
-import { GuildContract } from "../../GuildContract";
 
 
 /**Sets the home channel, where bot status messages are sent, for a guild.
- * @param interaction The prompting command interaction.
- * @param channel The guild channel to be set as the new home channel.
+ * @param {ChatInputCommandInteraction} interaction The prompting command interaction.
+ * @param {GuildBasedChannel} channel The guild channel to be set as the new home channel.
  */
 export function setHomeChannel( interaction: ChatInputCommandInteraction, channel: GuildBasedChannel ): void {
     const contract = globalThis.client.contracts.get( interaction.guildId! )!;

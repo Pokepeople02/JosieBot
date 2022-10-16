@@ -15,6 +15,7 @@ let Play: Command = {
         )
         .toJSON(),
 
+    /**TODO: Unfinished */
     async execute( interaction: ChatInputCommandInteraction ): Promise<void> {
         //Check if user is in voice, handle channelId 0 differently
 

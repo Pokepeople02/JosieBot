@@ -2,30 +2,31 @@ import { Snowflake } from "discord.js";
 import { NonTextChannelError } from "./errors/NonTextChannelError";
 import { UnresolvedChannelError } from "./errors/UnresolvedChannelError";
 
-/**Represents the contract between bot and guild the bot operates in. 
- * Stores information about their relationship and carries out core bot activities.
- */
+/**Represents the relationship between bot and guild. Stores information and carries out core bot activities. */
 export class GuildContract {
 
-    /**The identifier of the guild associated with this contract. */
+    private _homeId: Snowflake | null = null;
+
+    /**The guild's ID. */
     readonly guildId: Snowflake;
 
-    /**The identifier of the home channel within this contract's guild. Null when not set. */
-    private _homeId: Snowflake | null;
-
+    /**Creates a new contract.
+     * @param {Snowflake} guildId The ID of the associated guild.
+     */
     constructor( guildId: Snowflake ) {
+        //TODO: Add check that throws UnresolvedGuildError when implemented
+
         this.guildId = guildId;
-        this._homeId = null;
     }//end constructor
 
-    /**The identifier for the home channel of the associated guild. Defaults to null. */
+    /**Channel ID of the guild's home channel. Defaults to null. */
     public get homeId(): Snowflake | null {
         return this._homeId;
     }//end getter homeId
 
-    /**If set to a snowflake, throws TypeError when set if unable to resolve it to a Channel object or if resolves into a non-text-based channel.
-     * @throws `UnresolvedChannelError` When the given ID is not null, but does not resolve to a known channel.
-     * @throws `NonTextChannelError` When the given ID is not null, but does not correspond to a text-based channel.
+    /**
+     * @throws {@link UnresolvedChannelError} When set to a non-null ID that is unable to be resolved to a known channel.
+     * @throws {@link NonTextChannelError} When set to a non-null ID that does not correspond to a text-based channel.
      */
     public set homeId( homeId: Snowflake | null ) {
         let channel;

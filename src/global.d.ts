@@ -1,8 +1,15 @@
 import { IsabelleClient } from "./IsabelleClient";
 
 declare global {
-    /**The global discord.js client. */
+
+    /**The discord.js client.
+     * @global
+     */
     var client: IsabelleClient;
-    /** A "reasonable amount of time", in milliseconds. Used for promise rejection timeouts.*/
+
+    /** A "reasonable amount of time", in milliseconds. Used for promise rejection timeouts.
+     * @global
+     */
     var timeLimit: number;
+
 }//end declaration global

@@ -1,48 +1,57 @@
 import { AudioPlayer } from "@discordjs/voice";
 import { Snowflake } from "discord.js";
+import { YouTubeVideoRequest } from "./YouTubeVideoRequest";
 
+/**The template for a valid request.
+ * @interface
+ */
 export interface Request {
 
-    /**The string provided when the request was made. */
+    /**The input to build this request from. */
     input: string;
-    /**The ID of the channel in which the request is to be played. */
+    /**The ID of the channel in which to play this request. */
     channelId: Snowflake;
-    /**The ID of the user who made the request. */
+    /**The ID of the user who made this request. */
     userId: Snowflake;
-    /**The total length or duration of the resource associated with the request. Undefined until request is ready. */
+    /**The total duration of this request's underlying resource. Undefined until request is ready. */
     length: number | undefined;
-    /**The duration into the request to begin playing. */
+    /**The duration into this request to begin playing. */
     start: number;
-    /**The duration into the request to stop playing. */
+    /**The duration into this request to stop playing. */
     end: number;
-    /**The title of the resource associated with the request. Undefined until request is ready. */
+    /**The title of this request. Undefined until request is ready. */
     title: string | undefined;
-    /**The creator of the resource associated with the request. Undefined until request is ready. */
+    /**The attributed creator of this request's underlying resource. Undefined until request is ready. */
     creator: string | undefined;
-    /**The URL of the resource associated with the request. Undefined until request is ready.*/
+    /**The URL of this request's underlying resource. Undefined until request is ready.*/
     resourceUrl: string | undefined;
-    /**The URL of the thumbnail associated with the request. Undefined until request is ready. */
+    /**The URL of the thumbnail of this request's underlying resource. Undefined until request is ready. */
     thumbnailUrl: string | undefined;
-    /**Whether or not the request has been properly initialized yet or not. */
+    /**Whether this request is currently considered usable.
+     * @see {@link Request}
+    */
     ready: boolean;
 
-    /**Finalizes initialization and marks this request as ready to be used. 
-     * Rejects if unable to finalize initialization within a reasonable amount of time.*/
+    /**Initializes asynchronously-filled properties and marks this request as ready to be used. 
+     * @see {@link YouTubeVideoRequest.init} and other concrete implementing classes for exact errors thrown.
+     * @async
+     */
     init(): Promise<void>;
 
     /**Plays the associated resource with this request on the supplied audio player.
-     * Rejects if unable to begin playing within a reasonable amount of time.
-     * @param player The Audio Player through which the request should be played.
+     * @param {AudioPlayer} player The Audio Player through which the request should be played.
+     * @see https://discord.js.org/#/docs/voice/main/class/AudioPlayer
+     * @async
      */
     play( player: AudioPlayer ): Promise<void>;
 
-    /**Pauses this request if it is currently playing on an Audio Player.
-     * Rejects if unable to pause request within a reasonable amount of time.
+    /**Pauses this request if it is currently playing.
+     * @async
      */
     pause(): Promise<void>;
 
-    /**Resumes playing on the previous Audio Player if this request is currently paused.
-     * Rejects if unable to resume playing within a reasonable amount of time.
+    /**If this request is paused, resumes playing on the previously used Audio Player.
+     * @async
      */
     resume(): Promise<void>;
 

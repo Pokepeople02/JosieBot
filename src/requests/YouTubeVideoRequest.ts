@@ -1,27 +1,46 @@
 import { AudioPlayer, createAudioResource } from "@discordjs/voice";
 import { Snowflake } from "discord.js";
-import { InfoData, stream_from_info, video_info, yt_validate } from "play-dl";
+import { InfoData, stream_from_info, video_info, YouTubeStream } from "play-dl";
 import { ResourceUnobtainableError } from "../errors/ResourceUnobtainableError";
 import { TimeoutError } from "../errors/TimeoutError";
+import { DurationError } from "../errors/DurationError";
+import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
+import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
+import { UnresolvedUserError } from "../errors/UnresolvedUserError";
 import { AbstractRequest } from "./AbstractRequest";
 
-/**A request for a specific YouTube video resource made using a direct link or raw video ID.
- * 
- * Requests SHOULD NOT be initialized using `new`. The `createRequest` factory function should be exclusively used to create requests!
+/**A request for a YouTube video resource made using a direct URL or video ID as input.
+ * @remark Concrete requests should NOT be initialized using `new` if at all possible. See remark in linked parent.
+ * @see {@link AbstractRequest}
 */
 export class YouTubeVideoRequest extends AbstractRequest {
 
-    /**The input YouTube video URL or raw video ID after being scrubbed of potential post-ID data, such as playlists*/
+    /**The input YouTube video URL or ID after removal of post-ID clutter. */
     private cleanInput: string;
-    /**The Play-DL info retreived for the request. */
-    private info: InfoData | undefined;
+    /**The play-dl info retreived for this request. Undefined until request is ready. 
+     * @see https://play-dl.github.io/interfaces/InfoData.html
+    */
+    private info: InfoData | undefined = undefined;
+    /**The play-dl stream retreived for this request. Undefined until play has started.
+     * @see https://play-dl.github.io/modules.html#YouTubeStream
+     */
+    private stream: YouTubeStream | undefined = undefined;
+    /**Timer that stops play upon reaching the appropriate number of seconds dictated by {@link start} and {@link end}.
+     * Undefined until play has started, cleared upon firing.
+    */
+    private playTimer: NodeJS.Timeout | undefined = undefined;
 
-    /**Creates a new uninitialized request for a YouTube Video resource.
-     * @param input A direct link to a YouTube video, or a raw YouTube video ID.
-     * @param userId The ID of the user who made this request.
-     * @param channelId The ID of the channel in which this request is to be played.
-     * @param start The duration into the video to begin playing, in seconds. Defaults to 0
-     * @param end The duration into the video to stop playing, in seconds. Defaults to the length of the video.
+    /**Creates a new YouTube Video request.
+     * @param {string} input A YouTube video link or raw video ID.
+     * @param {Snowflake} userId The ID of the user who made this request.
+     * @param {Snowflake} channelId The ID of the channel in which to play this request.
+     * @param {Snowflake} start The number of seconds into the video to begin playback. Defaults to 0.
+     * @param {Snowflake} end The number of seconds into the video to end playback. Defaults to the length of the video.
+     * @throws {@link UnresolvedUserError} See linked documentation for exact circumstances.
+     * @throws {@link DurationError} See linked documentation for exact circumstances.
+     * @throws {@link UnresolvedChannelError} See linked documentation for exact circumstances.
+     * @throws {@link NonVoiceChannelError} See linked documentation for exact circumstances.
+     * @see {@link AbstractRequest} constructor for sources of error.
      */
     constructor( input: string, userId: Snowflake, channelId: Snowflake, start?: number, end?: number ) {
         super( input, userId, channelId, start ?? 0, end ?? Infinity );
@@ -33,66 +52,80 @@ export class YouTubeVideoRequest extends AbstractRequest {
 
     }//end constructor
 
+    /**
+     * @throws {@link TimeoutError} When retreiving request info from YouTube takes too long to fulfill.
+     * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving request info.
+     */
     public async init(): Promise<void> {
         if ( this.ready )
             return;
 
-        return new Promise<void>( ( resolve, reject ) => {
-            setTimeout( () => { reject( new TimeoutError( "Request initialization timed out" ) ); }, globalThis.timeLimit );
+        setTimeout( () => { throw new TimeoutError( "Request initialization timed out" ); }, globalThis.timeLimit );
 
-            video_info( this.cleanInput )
-                .then( ( info ) => {
-                    this.info = info;
-                    this._resourceUrl = info.video_details.url;
-                    this._title = info.video_details.title ?? "Unknown";
-                    this._creator = info.video_details.channel?.name ?? "Unknown";
-                    this._length = info.video_details.durationInSec;
-                    this.end = info.video_details.durationInSec;
-                    this._thumbnailUrl = info.video_details.thumbnails[0]?.url;
-                    this._ready = true;
+        try { this.info = await video_info( this.cleanInput ); }
+        catch ( error ) { throw new ResourceUnobtainableError( `Unable to obtain video info: ${error}` ); }
 
-                    resolve();
-                } )
-                .catch( ( reason ) => { reject( new ResourceUnobtainableError( `Unable to obtain video info: ${reason}` ) ); } );
-        } );
+        this._resourceUrl = this.info.video_details.url;
+        this._title = this.info.video_details.title ?? "Unknown";
+        this._creator = this.info.video_details.channel?.name ?? "Unknown";
+        this._length = this.info.video_details.durationInSec;
+        this.end = this.info.video_details.durationInSec;
+        this._thumbnailUrl = this.info.video_details.thumbnails[0]?.url;
+        this._ready = true;
 
+        return;
     }//end method init
 
-    public play( player: AudioPlayer ): Promise<void> {
+    /**
+     * @throws {Error} When the request has not yet been made ready.
+     * @throws {@link TimeoutError} When retreiving the usable stream from YouTube takes too long to fulfill.
+     * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving the stream.
+     */
+    public async play( player: AudioPlayer ): Promise<void> {
+        if ( !this.ready ) //TODO Replace with custom error
+            throw new Error( "Request is not yet ready" );
 
-        return new Promise<void>( ( resolve, reject ) => {
-            if ( !this.ready ) //TODO Replace with custom error
-                reject( "Request is not fully initialized" );
+        setTimeout( () => { throw new TimeoutError( "Audio Resource creation timed out" ); }, globalThis.timeLimit );
 
-            setTimeout( () => { reject( new TimeoutError( "Audio Resource creation timed out" ) ); }, globalThis.timeLimit );
+        try {
 
-            stream_from_info( this.info!, {
-                discordPlayerCompatibility: true,
-                seek: this.start
-            } )
-                .then( ( stream ) => {
-                    this.resource = createAudioResource( stream.stream, { inputType: stream.type } );
+            this.stream = await stream_from_info(
+                this.info!,
+                {
+                    discordPlayerCompatibility: true,
+                    seek: this.start
+                }
+            );
 
-                    player.play( this.resource );
-                    this.player = player;
+        } catch ( error ) {
+            throw new ResourceUnobtainableError( `Unable to obtain stream: ${error}` );
+        }//end try-catch
 
-                    setTimeout( () => {
-                        if ( !this.resource!.ended )
-                            this.player?.stop( true );
-                    }, ( this.end - this.start ) * 1000 );
+        this.resource = createAudioResource(
+            this.stream.stream,
+            {
+                inputType: this.stream.type
+            }
+        );
 
-                    resolve();
-                } )
-                .catch( ( reason ) => { reject( new ResourceUnobtainableError( `Unable to obtain stream: ${reason}` ) ); } );
-        } );
+        player.play( this.resource );
+        this.player = player;
 
+        this.playTimer = setTimeout( () => {
+            if ( !this.resource!.ended )
+                this.player?.stop( true );
+
+            this.playTimer = undefined;
+        }, ( this.end - this.start ) * 1000 );
+
+        return;
     }//end method play
 
-    public pause(): Promise<void> {
+    public async pause(): Promise<void> {
         throw new Error( "Method not implemented" );
     }//end method pause
 
-    public resume(): Promise<void> {
+    public async resume(): Promise<void> {
         throw new Error( "Method not implemented" );
     }//end method resume
 

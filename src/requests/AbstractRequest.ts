@@ -5,8 +5,13 @@ import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
 import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
 import { UnresolvedUserError } from "../errors/UnresolvedUserError";
 import { Request } from "./Request";
+import { createRequest } from "./RequestFactory";
 
-/**A base from which children representing different request types can be built.*/
+/**Base for children classes representing concrete request types.
+ * @remark After initialization of concrete child classes, asynchronously obtained fields are filled via {@link init()} before  the request is considered ready. It is recommended that the instantiation and initialization of concrete children request types should  be done exclusively through the factory method {@link createRequest()} for ease of use.
+ * @implements Request
+ * @see {@link createRequest()}
+*/
 export abstract class AbstractRequest implements Request {
 
     public readonly input: string;
@@ -21,18 +26,27 @@ export abstract class AbstractRequest implements Request {
     protected _length: number | undefined;
     protected _thumbnailUrl: string | undefined;
 
-    /**The discord.js Audio Player which is playing the request. Undefined when not being played. */
+    /**The audio player currently playing this request. Undefined when not playing.
+     * @see https://discord.js.org/#/docs/voice/main/class/AudioPlayer
+    */
     protected player: AudioPlayer | undefined = undefined;
-    /**The discord.js AudioResource obtained for the request. */
+    /**The audio resource created from this request. Undefined until play has started.
+     * @see https://discord.js.org/#/docs/voice/main/class/AudioResource
+     */
     protected resource: AudioResource | undefined = undefined;
 
-    /**Creates a new request with the specified fields. Child classes are responsible for validating their own input during construction.
-     * @param input The string this request was built from.
-     * @param userId The ID of the user who made this request.
-     * @param channelId The ID of the channel in which this request is to be played.
-     * @param start The duration into the request to begin playing. When higher than end, the two are swapped.
-     * @param end The duration into the request to stop playing. When lower than start, the two are swapped.
-     * @throws `UnresolvedUserError` When the provided user ID does not resolve to a known user.
+    /**Creates a new request.
+     * @param {string} input The input to build this request from.
+     * @param {Snowflake} userId The ID of the user who made this request.
+     * @param {Snowflake} channelId The ID of the channel in which to play this request.
+     * @param {number} start The duration into this request to begin playback. When greater than end, the two are swapped.
+     * @param {number} end The duration into this request to stop playback. When less than start, the two are swapped.
+     * @throws {@link UnresolvedUserError} When the requester's user ID does not resolve to a known user.
+     * @throws {@link DurationError} When start or end are not in a valid range, see linked documentation.
+     * @throws {@link UnresolvedChannelError} When channelId is invalid, see linked documentation.
+     * @throws {@link NonVoiceChannelError} When channelId is invalid, see linked documentation.
+     * @see {@link start} and {@link end} for the valid ranges of their respective values.
+     * @see {@link AbstractRequest.channelId} for circumstances in which channelId may be invalid.
      */
     constructor( input: string, userId: Snowflake, channelId: Snowflake, start: number, end: number ) {
         this.channelId = channelId;
@@ -60,8 +74,8 @@ export abstract class AbstractRequest implements Request {
     }//end getter channelId
 
     /**
-     * @throws `UnresolvedChannelError` When the provided ID does not resolve to a known channel.
-     * @throws `NonVoiceChannelError` When the provided ID does not correspond to a voice-based channel.
+     * @throws {@link UnresolvedChannelError} When set to an ID that does not resolve to a known channel.
+     * @throws {@link NonVoiceChannelError} When set to an ID that does not correspond to a voice-based channel.
      */
     public set channelId( newId: Snowflake ) {
         let resultChannel = globalThis.client.channels.resolve( newId );
@@ -78,7 +92,7 @@ export abstract class AbstractRequest implements Request {
         return this._start;
     }//end getter start
 
-    /**@throws `DurationError` When the provided value is less than 0, greater than end, or greater than length. */
+    /**@throws {@link DurationError} When set to a value that is less than 0, greater than {@link end}, or greater than {@link length}. */
     public set start( newStart: number ) {
         if ( newStart < 0 || newStart > this._end || ( this._length && newStart > this._length ) )
             throw new DurationError( `The requested start (${newStart}) is not in a valid range` );
@@ -90,7 +104,7 @@ export abstract class AbstractRequest implements Request {
         return this._end;
     }//end getter end
 
-    /**@throws `DurationError` When the provided value is less than 0, less than start, or greater than length. */
+    /**@throws {link DurationError} When set to a value that is less than 0, less than {@link start}, or greater than {@link length}. */
     public set end( newEnd: number ) {
         if ( newEnd < 0 || newEnd < this._start || ( this._length && newEnd > this._length ) )
             throw new DurationError( `The requested end (${newEnd}) is not in a valid range` );
@@ -130,15 +144,15 @@ export abstract class AbstractRequest implements Request {
         throw new Error( "Method not implemented." );
     }//end method init
 
-    public play( player: AudioPlayer ): Promise<void> {
+    public async play( player: AudioPlayer ): Promise<void> {
         throw new Error( "Method not implemented." );
     }//end method play
 
-    public pause(): Promise<void> {
+    public async pause(): Promise<void> {
         throw new Error( "Method not implemented." );
     }//end method pause
 
-    public resume(): Promise<void> {
+    public async resume(): Promise<void> {
         throw new Error( "Method not implemented." );
     }//end method resume
 
