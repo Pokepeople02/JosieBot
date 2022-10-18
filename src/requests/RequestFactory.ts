@@ -30,8 +30,6 @@ export async function createRequest( input: string, userId: Snowflake, channelId
     let type: Awaited<ReturnType<typeof validate>>;
     let request: Request;
 
-    setTimeout( () => { throw new TimeoutError( "Request creation timed out" ); }, globalThis.timeLimit );
-
     //Clean up YouTube URL bloat that could cause false type
     if ( input.toLowerCase().includes( "youtube.com" ) && input.includes( "&" ) )
         cleanInput = input.substring( 0, input.indexOf( "&" ) );
@@ -39,7 +37,9 @@ export async function createRequest( input: string, userId: Snowflake, channelId
         cleanInput = input;
 
     try { type = await validate( cleanInput ); }
-    catch ( error ) { throw new BadRequestError( `Unable to determine type of request: ${error}`, "unknown" ); }
+    catch ( error ) {
+        throw new BadRequestError( `Unable to determine type of request: ${error}`, "unknown" );
+    }//end try-catch
 
     //Passes errors up
     switch ( type ) {

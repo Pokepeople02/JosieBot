@@ -58,13 +58,21 @@ export class YouTubeVideoRequest extends AbstractRequest {
      * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving request info.
      */
     public async init(): Promise<void> {
+        let fulfilled = false;
+
         if ( this.ready )
             return;
 
-        setTimeout( () => { throw new TimeoutError( "Request initialization timed out" ); }, globalThis.timeLimit );
+        setTimeout( () => {
+            if ( !fulfilled )
+                throw new TimeoutError( "Request initialization timed out" );
+        }, globalThis.timeLimit );
 
         try { this.info = await video_info( this.cleanInput ); }
-        catch ( error ) { throw new ResourceUnobtainableError( `Unable to obtain video info: ${error}` ); }
+        catch ( error ) {
+            fulfilled = true;
+            throw new ResourceUnobtainableError( `Unable to obtain video info: ${error}` );
+        }//end try-catch
 
         this._resourceUrl = this.info.video_details.url;
         this._title = this.info.video_details.title ?? "Unknown";
@@ -74,6 +82,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
         this._thumbnailUrl = this.info.video_details.thumbnails[0]?.url;
         this._ready = true;
 
+        fulfilled = true;
         return;
     }//end method init
 
@@ -84,10 +93,15 @@ export class YouTubeVideoRequest extends AbstractRequest {
      * @throws {@link UninitializedRequestError} If called before {@link init()} has finished.
      */
     public async play( player: AudioPlayer ): Promise<void> {
+        let fulfilled = false;
+
         if ( !this.ready )
             throw new UninitializedRequestError( `Request with input "${this.input}" played before ready` );
 
-        setTimeout( () => { throw new TimeoutError( "Audio Resource creation timed out" ); }, globalThis.timeLimit );
+        setTimeout( () => {
+            if ( !fulfilled )
+                throw new TimeoutError( "Audio Resource creation timed out" );
+        }, globalThis.timeLimit );
 
         try {
 
@@ -100,6 +114,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
             );
 
         } catch ( error ) {
+            fulfilled = true;
             throw new ResourceUnobtainableError( `Unable to obtain stream: ${error}` );
         }//end try-catch
 
@@ -120,6 +135,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
             this.playTimer = undefined;
         }, ( this.end - this.start ) * 1000 );
 
+        fulfilled = true;
         return;
     }//end method play
 
