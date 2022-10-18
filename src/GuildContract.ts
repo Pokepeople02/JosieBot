@@ -1,6 +1,7 @@
 import { Snowflake } from "discord.js";
 import { NonTextChannelError } from "./errors/NonTextChannelError";
 import { UnresolvedChannelError } from "./errors/UnresolvedChannelError";
+import { UnresolvedGuildError } from "./errors/UnresolvedGuildError";
 
 /**Represents the relationship between bot and guild. Stores information and carries out core bot activities. */
 export class GuildContract {
@@ -14,7 +15,8 @@ export class GuildContract {
      * @param {Snowflake} guildId The ID of the associated guild.
      */
     constructor( guildId: Snowflake ) {
-        //TODO: Add check that throws UnresolvedGuildError when implemented
+        if ( !globalThis.client.guilds.resolve( guildId ) )
+            throw new UnresolvedGuildError( `Contracted guild ID ${guildId} does not resolve to a valid guild` );
 
         this.guildId = guildId;
     }//end constructor

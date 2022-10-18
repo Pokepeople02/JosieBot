@@ -27,8 +27,13 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
 
     globalThis.client.log( `${interaction.user.tag} executed ${interaction.toString()}`, interaction );
 
-    if ( !globalThis.client.contracts.has( interaction.guildId ) )
-        globalThis.client.contracts.set( interaction.guildId, new GuildContract( interaction.guildId ) );
+    try {
+        if ( !globalThis.client.contracts.has( interaction.guildId ) )
+            globalThis.client.contracts.set( interaction.guildId, new GuildContract( interaction.guildId ) );
+    } catch ( error ) {
+        globalThis.client.log( `Failed to create contract -- ${error}` );
+        return;
+    }//end try-catch
 
     const contract = client.contracts.get( interaction.guildId )!;
     const command = commands.get( interaction.commandName );
@@ -51,6 +56,7 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
 
     }//end try-catch
 
+    return;
 } );
 
 globalThis.client.login( config.token );
