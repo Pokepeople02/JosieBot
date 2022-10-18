@@ -1,8 +1,9 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { ChatInputCommandInteraction, GuildBasedChannel } from "discord.js";
-import { GuildContract } from "../../GuildContract";
+import { ChatInputCommandInteraction, GuildBasedChannel, InteractionReplyOptions } from "discord.js";
 import { Command } from "../../Command";
 import { setHomeChannel, clearHomeChannel } from "../execution/HomeChannel";
+import { UnresolvedChannelError } from "../../errors/UnresolvedChannelError";
+import { NonTextChannelError } from "../../errors/NonTextChannelError";
 
 let HomeChannel: Command = {
 
@@ -25,16 +26,61 @@ let HomeChannel: Command = {
         )
         .toJSON(),
 
-    /** TODO: Unfinished */
+    /** Determines the /home-channel subcommand to execute, and replies to the prompting interaction as appropriate. */
     async execute( interaction: ChatInputCommandInteraction ): Promise<void> {
-        let subcommand: string = interaction.options.getSubcommand();
+        const contract = globalThis.client.contracts.get( interaction.guildId! )!;
+        const subcommand = interaction.options.getSubcommand();
 
         switch ( subcommand ) {
             case "set":
-                setHomeChannel( interaction, interaction.options.getChannel( "channel", true )! as GuildBasedChannel );
+                let channel = interaction.options.getChannel( "channel", true )! as GuildBasedChannel; //API types shouldn't be returned, already cached
+
+                try {
+                    setHomeChannel( interaction, channel );
+
+                    await interaction.reply( {
+                        embeds: [{
+                            title: "✅  Home Channel Set",
+                            description: `Successfully updated the home channel to ${channel}.`
+                        }],
+                    } );
+
+                } catch ( error ) {
+                    const currHome = contract.homeId ? globalThis.client.channels.resolve( contract.homeId ) as GuildBasedChannel : null;
+                    let replyContent: InteractionReplyOptions = { embeds: [] };
+
+                    if ( error instanceof UnresolvedChannelError ) {
+                        replyContent.embeds = [{
+                            title: "❌  Unable to Set Home Channel",
+                            description: `The provided channel cannot be found in a known server. Please choose a different channel.` +
+                                `\nCurrent home channel: ${currHome ?? "None"}.`
+                        }];
+
+                    } else if ( error instanceof NonTextChannelError ) {
+                        replyContent.embeds = [{
+                            title: "❌  Unable to Set Home Channel",
+                            description: `${channel} is not a text-based channel. Please choose a different channel.` +
+                                `\nCurrent home channel: ${currHome ?? "None"}.`
+                        }];
+
+                    } else { //Unexpected
+                        throw error;
+                    }//end if-else
+
+                    await interaction.reply( replyContent );
+                }//end try-catch
+
                 break;
             case "clear":
                 clearHomeChannel( interaction );
+
+                await interaction.reply( {
+                    embeds: [{
+                        title: "✅  Home Channel Cleared",
+                        description: "Successfully cleared the home channel."
+                    }],
+                } );
+
                 break;
             default:
                 globalThis.client.log( `${interaction.user.tag} attempted unknown command "${interaction.commandName}"`, interaction );
