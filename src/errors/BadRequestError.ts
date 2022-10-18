@@ -3,6 +3,7 @@
 export class BadRequestError extends TypeError {
 
     /**The particular way in which the erroneous request's type is problematic.
+     * @remark
      * Acceptable values are as follows:
      * 
      *  `invalid` -- The original request was entirely invalid.
