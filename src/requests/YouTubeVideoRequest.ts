@@ -8,6 +8,7 @@ import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
 import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
 import { UnresolvedUserError } from "../errors/UnresolvedUserError";
 import { AbstractRequest } from "./AbstractRequest";
+import { UninitializedRequestError } from "../errors/UninitializedRequestError";
 
 /**A request for a YouTube video resource made using a direct URL or video ID as input.
  * @remark Concrete requests should NOT be initialized using `new` if at all possible. See remark in linked parent.
@@ -80,10 +81,11 @@ export class YouTubeVideoRequest extends AbstractRequest {
      * @throws {Error} When the request has not yet been made ready.
      * @throws {@link TimeoutError} When retreiving the usable stream from YouTube takes too long to fulfill.
      * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving the stream.
+     * @throws {@link UninitializedRequestError} If called before {@link init()} has finished.
      */
     public async play( player: AudioPlayer ): Promise<void> {
-        if ( !this.ready ) //TODO Replace with custom error
-            throw new Error( "Request is not yet ready" );
+        if ( !this.ready )
+            throw new UninitializedRequestError( `Request with input "${this.input}" played before ready` );
 
         setTimeout( () => { throw new TimeoutError( "Audio Resource creation timed out" ); }, globalThis.timeLimit );
 
