@@ -7,10 +7,12 @@ export enum Mode {
     Paused = "Paused",
     /**Bot is connected to a populated voice channel, but has recently exhausted the queue.
      * After a certain amount of time without any new requests, transitions into Idle mode.
+     * `Standby` mode supercedes `Waiting` mode when conditions for both are present simultaneously.
     */
     Waiting = "Waiting",
     /**Bot is in an unpopulated voice channel.
      * After a certain amount of time without any listening users, transitions into Idle mode.
+     * `Standby` mode supercedes `Waiting` mode when conditions for both are present simultaneously.
      */
     Standby = "Standby",
     /**Bot is disconnected from voice channels and the queue is empty. */
