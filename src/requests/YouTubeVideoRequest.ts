@@ -87,7 +87,6 @@ export class YouTubeVideoRequest extends AbstractRequest {
     }//end method init
 
     /**
-     * @throws {Error} When the request has not yet been made ready.
      * @throws {@link TimeoutError} When retreiving the usable stream from YouTube takes too long to fulfill.
      * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving the stream.
      * @throws {@link UninitializedRequestError} If called before {@link init()} has finished.
@@ -136,6 +135,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
         }, ( this.end - this.start ) * 1000 );
 
         fulfilled = true;
+        this._started = true;
         return;
     }//end method play
 

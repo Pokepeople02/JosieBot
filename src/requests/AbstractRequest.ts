@@ -20,6 +20,7 @@ export abstract class AbstractRequest implements Request {
     private _end: number = Infinity;
     private _userId: Snowflake;
     protected _ready: boolean;
+    protected _started: boolean;
     protected _resourceUrl: string | undefined;
     protected _title: string | undefined;
     protected _creator: string | undefined;
@@ -67,6 +68,7 @@ export abstract class AbstractRequest implements Request {
         }//end if-else
 
         this._ready = false;
+        this._started = false;
     }//end constructor
 
     public get channelId() {
@@ -119,6 +121,10 @@ export abstract class AbstractRequest implements Request {
     public get ready() {
         return this._ready;
     }//end getter ready
+
+    public get started() {
+        return this._started;
+    }//end getter started
 
     public get resourceUrl() {
         return this._resourceUrl;

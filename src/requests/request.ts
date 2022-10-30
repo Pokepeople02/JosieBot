@@ -27,10 +27,10 @@ export interface Request {
     resourceUrl: string | undefined;
     /**The URL of the thumbnail of this request's underlying resource. Undefined until request is ready. */
     thumbnailUrl: string | undefined;
-    /**Whether this request is currently considered usable.
-     * @see {@link Request}
-    */
+    /**Whether this request is currently considered usable. */
     ready: boolean;
+    /**Whether this request has begun playback yet or not. */
+    started: boolean;
 
     /**Initializes asynchronously-filled properties and marks this request as ready to be used. 
      * @see {@link YouTubeVideoRequest.init} and other concrete implementing classes for exact errors thrown.
