@@ -1,12 +1,9 @@
 import { AudioPlayer, AudioResource } from "@discordjs/voice";
 import { Snowflake } from "discord.js";
-import { validate } from "play-dl";
 import { DurationError } from "../errors/DurationError";
-import { BadRequestError } from "../errors/BadRequestError";
 import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
 import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
 import { UnresolvedUserError } from "../errors/UnresolvedUserError";
-import { YouTubeVideoRequest } from "./YouTubeVideoRequest";
 
 /**Base for children classes representing concrete request types.
  * @remark
@@ -158,52 +155,6 @@ export abstract class Request {
     public get thumbnailUrl() {
         return this._thumbnailUrl;
     }//end getter thumbnailUrl
-
-    /**Creates a promise for a new request corresponding to the format of the input provided.
-     * Errors during request creation and initialization are passed upwards to the calling function. See throws.
-     * @param {string} input The input for this request.
-     * @param {Snowflake} userId The ID of the user who made this request.
-     * @param {Snowflake} channelId The ID of the channel in which to play this request.
-     * @return {Promise<Request>} A promise for a Request of the type appropriate for the given input string. 
-     * @throws {@link UnresolvedUserError} When constructing a YouTubeVideoRequest. See linked documentation for more details.
-     * @throws {@link DurationError} When constructing a YouTubeVideoRequest. See linked documentation for more details.
-     * @throws {@link UnresolvedChannelError} When constructing a YouTubeVideoRequest. See linked documentation for more details.
-     * @throws {@link NonVoiceChannelError} When constructing a YouTubeVideoRequest. See linked documentation for more details.
-     * @throws {@link TimeoutError} When initializing a YouTubeVideoRequest. See linked documentation for more details.
-     * @throws {@link ResourceUnobtainableError} When initializing a YouTubeVideoRequest. See linked documentation for more details.
-     * @see {@link YouTubeVideoRequest} For errors that may occur during YouTubeVideoRequest construction, and their exact circumstances.
-     * @see {@link YouTubeVideoRequest.init} For errors that may occur during YouTubeVideoRequest initialization, and their exact circumstances.
-     */
-    public static async create( input: string, userId: Snowflake, channelId: Snowflake ): Promise<Request> {
-        let cleanInput: string;
-        let type: Awaited<ReturnType<typeof validate>>;
-        let request: Request;
-
-        //Clean up YouTube URL bloat that could cause false type
-        if ( input.toLowerCase().includes( "youtube.com" ) && input.includes( "&" ) )
-            cleanInput = input.substring( 0, input.indexOf( "&" ) );
-        else
-            cleanInput = input;
-
-        try { type = await validate( cleanInput ); }
-        catch ( error ) {
-            throw new BadRequestError( `Unable to determine type of request: ${error}`, "unknown" );
-        }//end try-catch
-
-        //Passes errors up
-        switch ( type ) {
-            case "yt_video":
-                request = new YouTubeVideoRequest( input, userId, channelId );
-                await request.init();
-                break;
-            case false:
-                throw new BadRequestError( "Request is of invalid type", "invalid" );
-            default:
-                throw new BadRequestError( `Request of unsupported type "${type}"`, "unsupported" );
-        }//end switch
-
-        return request;
-    }//end method create
 
     /**Initializes asynchronously-filled properties and marks this request as ready to be used. 
      * @see {@link YouTubeVideoRequest.init} and other concrete implementing classes for exact errors thrown.
