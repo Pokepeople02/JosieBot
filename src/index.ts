@@ -35,7 +35,6 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
         return;
     }//end try-catch
 
-    const contract = client.contracts.get( interaction.guildId )!;
     const command = commands.get( interaction.commandName );
 
     try {
