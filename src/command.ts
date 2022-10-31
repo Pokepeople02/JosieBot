@@ -9,6 +9,6 @@ export interface Command {
     /**Wrapper method for bot and discord.js calls which carry out command behavior.
      * @param interaction The prompting slash-command interaction.
      */
-    execute( interaction: ChatInputCommandInteraction ): Promise<void>;
+    execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void>;
 
 }//end interface Command
