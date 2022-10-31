@@ -27,8 +27,8 @@ let HomeChannel: Command = {
         .toJSON(),
 
     /** Determines the /home-channel subcommand to execute, and replies to the prompting interaction as appropriate. */
-    async execute( interaction: ChatInputCommandInteraction ): Promise<void> {
-        const contract = globalThis.client.contracts.get( interaction.guildId! )!;
+    async execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
+        const contract = globalThis.client.contracts.get( interaction.guildId )!;
         const subcommand = interaction.options.getSubcommand();
 
         switch ( subcommand ) {
