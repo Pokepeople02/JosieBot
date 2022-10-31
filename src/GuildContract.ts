@@ -46,7 +46,7 @@ export class GuildContract {
             this.transition();
         } );
 
-        this.audioPlayer.on( AudioPlayerStatus.Idle, ( _prev, _curr ) => {
+        this.audioPlayer.on( AudioPlayerStatus.Idle, ( _prev: any, _curr: any ) => {
             this.skipTo( 1 );
             this.transition();
         } );
@@ -568,7 +568,7 @@ export class GuildContract {
             this.transition();
         } );
 
-        voiceConn.on( VoiceConnectionStatus.Destroyed, ( _prev, _curr ) => {
+        voiceConn.on( VoiceConnectionStatus.Destroyed, ( _prev: any, _curr: any ) => {
             globalThis.client.log( "Voice connection has been destroyed.", this.guildId );
             this.areVoiceListenersSet = false;
 
