@@ -7,14 +7,14 @@ import { DurationError } from "../errors/DurationError";
 import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
 import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
 import { UnresolvedUserError } from "../errors/UnresolvedUserError";
-import { AbstractRequest } from "./AbstractRequest";
+import { Request } from "./Request";
 import { UninitializedRequestError } from "../errors/UninitializedRequestError";
 
 /**A request for a YouTube video resource made using a direct URL or video ID as input.
  * @remark Concrete requests should NOT be initialized using `new` if at all possible. See remark in linked parent.
- * @see {@link AbstractRequest}
+ * @see {@link Request}
 */
-export class YouTubeVideoRequest extends AbstractRequest {
+export class YouTubeVideoRequest extends Request {
 
     /**The input YouTube video URL or ID after removal of post-ID clutter. */
     private cleanInput: string;
@@ -41,7 +41,7 @@ export class YouTubeVideoRequest extends AbstractRequest {
      * @throws {@link DurationError} See linked documentation for exact circumstances.
      * @throws {@link UnresolvedChannelError} See linked documentation for exact circumstances.
      * @throws {@link NonVoiceChannelError} See linked documentation for exact circumstances.
-     * @see {@link AbstractRequest} constructor for sources of error.
+     * @see {@link Request} constructor for sources of error.
      */
     constructor( input: string, userId: Snowflake, channelId: Snowflake, start?: number, end?: number ) {
         super( input, userId, channelId, start ?? 0, end ?? Infinity );
