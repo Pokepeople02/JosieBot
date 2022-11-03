@@ -26,9 +26,6 @@ export async function play( interaction: ChatInputCommandInteraction<"cached">, 
     let request: Request;
 
     request = await createRequest( input, userId, channelId );
-
-    console.log( "Adding request now" );
-
     contract.add( request );
 
     return request;
