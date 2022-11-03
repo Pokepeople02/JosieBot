@@ -44,7 +44,7 @@ export class YouTubeVideoRequest extends Request {
      * @see {@link Request} constructor for sources of error.
      */
     constructor( input: string, userId: Snowflake, channelId: Snowflake, start?: number, end?: number ) {
-        super( input, userId, channelId, start ?? 0, end ?? Infinity );
+        super( input, userId, channelId, start ?? 0, end ?? Infinity, "Duration" );
 
         if ( input.toLowerCase().includes( "youtube.com" ) && input.includes( "&" ) )
             this.cleanInput = input.substring( 0, input.indexOf( "&" ) );
@@ -77,9 +77,17 @@ export class YouTubeVideoRequest extends Request {
         this._resourceUrl = this.info.video_details.url;
         this._title = this.info.video_details.title ?? "Unknown";
         this._creator = this.info.video_details.channel?.name ?? "Unknown";
-        this._length = this.info.video_details.durationInSec;
         this.end = this.info.video_details.durationInSec;
         this._thumbnailUrl = this.info.video_details.thumbnails[0]?.url;
+
+        if ( this.info.video_details.live ) {
+            this._length = Infinity;
+            this._lengthFormatted = "🔴 LIVE";
+        } else {
+            this._length = this.info.video_details.durationInSec;
+            this._lengthFormatted = this.info.video_details.durationRaw;
+        }//end if-else
+
         this._ready = true;
 
         fulfilled = true;
