@@ -66,7 +66,7 @@ export class YouTubeVideoRequest extends Request {
         setTimeout( () => {
             if ( !fulfilled )
                 throw new TimeoutError( "Request initialization timed out" );
-        }, globalThis.timeLimit );
+        }, globalThis.promiseTimeout );
 
         try { this.info = await video_info( this.cleanInput ); }
         catch ( error ) {
@@ -108,7 +108,7 @@ export class YouTubeVideoRequest extends Request {
         setTimeout( () => {
             if ( !fulfilled )
                 throw new TimeoutError( "Audio Resource creation timed out" );
-        }, globalThis.timeLimit );
+        }, globalThis.promiseTimeout );
 
         try {
 
