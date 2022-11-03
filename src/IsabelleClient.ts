@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Client, GuildChannel, Snowflake, ThreadChannel } from "discord.js";
+import { ChatInputCommandInteraction, Client, ClientOptions, GuildChannel, Snowflake, ThreadChannel } from "discord.js";
 import { GuildContract } from "./GuildContract";
 
 /** Bot client managing interactions with the Discord API and global behavior across all guilds.
@@ -8,6 +8,12 @@ export class IsabelleClient extends Client {
 
     /**Map of guild IDs to their appropriate contract. */
     readonly contracts = new Map<Snowflake, GuildContract>;
+
+    constructor( options: ClientOptions ) {
+        super( options );
+
+        this.on( "voiceStateUpdate", GuildContract.standbyToggle );
+    }//end constructor
 
     /**Logs message to console with appropriately tagged info.
      * @param {string} message The message content.
