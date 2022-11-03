@@ -16,15 +16,18 @@ import { Snowflake } from "discord.js";
  * @param {string} input The input for this request.
  * @param {Snowflake} userId The ID of the user who made this request.
  * @param {Snowflake} channelId The ID of the channel in which to play this request.
- * @return {Promise<Request>} A promise for a Request of the type appropriate for the given input string. 
- * @throws {@link UnresolvedUserError} When constructing a YouTubeVideoRequest. See linked documentation for more details.
- * @throws {@link DurationError} When constructing a YouTubeVideoRequest. See linked documentation for more details.
- * @throws {@link UnresolvedChannelError} When constructing a YouTubeVideoRequest. See linked documentation for more details.
- * @throws {@link NonVoiceChannelError} When constructing a YouTubeVideoRequest. See linked documentation for more details.
- * @throws {@link TimeoutError} When initializing a YouTubeVideoRequest. See linked documentation for more details.
- * @throws {@link ResourceUnobtainableError} When initializing a YouTubeVideoRequest. See linked documentation for more details.
- * @see {@link YouTubeVideoRequest} For errors that may occur during YouTubeVideoRequest construction, and their exact circumstances.
- * @see {@link YouTubeVideoRequest.init} For errors that may occur during YouTubeVideoRequest initialization, and their exact circumstances.
+ * @return {Promise<Request>} A promise for a Request of the type appropriate for the given input string.
+ * 
+ * For requests of any type: 
+ * @throws {@link BadRequestError} When the type of request wanted is invalid, unsupported, or unable to be determined.
+ * @throws {@link UnresolvedUserError} When the requesting user's ID is unable to be resolved.
+ * @throws {@link DurationError} When the `start` or `end` durations are not in a valid range for that request.
+ * @throws {@link UnresolvedChannelError} When the target channel ID is unable to be resolved.
+ * @throws {@link NonVoiceChannelError} When the target channel ID resolves to a non-voice channel.
+ * 
+ * For YouTube video and live stream requests:
+ * @throws {@link TimeoutError} When retreiving request info from YouTube takes too long to fulfill.
+ * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving request info from YouTube.
  */
 export async function createRequest( input: string, userId: Snowflake, channelId: Snowflake ): Promise<Request> {
     let cleanInput: string;
