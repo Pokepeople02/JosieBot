@@ -8,7 +8,9 @@ import path = require( "node:path" );
 
 //Initialize globals
 globalThis.client = new IsabelleClient( { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] } );
-globalThis.timeLimit = 3000;
+globalThis.promiseTimeout = 3_000; //3 sec.
+globalThis.waitingTimeout = 600_000; //10 min.
+globalThis.standbyTimeout = 120_000; //2 min.
 
 //Gather commands
 const commands = new Collection<string, Command>();
