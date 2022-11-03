@@ -39,7 +39,7 @@ let Play: Command = {
 
             await interaction.reply( {
                 embeds: [{
-                    title: "❌ Unable to Add Request",
+                    title: "❌  Unable to Add Request",
                     description: `You need to be in a voice channel to use </play:${playId}>.\nJoin a channel, or use either ` +
                         `</play-channel:${playChannelId}> or </play-user:${playUserId}> to add requests.`,
                 }],
@@ -55,7 +55,7 @@ let Play: Command = {
 
             await interaction.editReply( {
                 embeds: [{
-                    title: "✅ Added a Request",
+                    title: "✅  Added a Request",
                     description: `Successfully queued [${request.title!}](${request.resourceUrl!}) for your channel.`,
                     thumbnail: request.thumbnailUrl ? { url: request.thumbnailUrl } : undefined,
                     fields: [
