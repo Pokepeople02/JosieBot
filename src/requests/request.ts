@@ -23,6 +23,7 @@ export abstract class Request {
     protected _title: string | undefined;
     protected _creator: string | undefined;
     protected _length: number | undefined;
+    protected _lengthFormatted: string | undefined;
     protected _thumbnailUrl: string | undefined;
     /**The audio player currently playing this request. Undefined when not playing.
      * @see https://discord.js.org/#/docs/voice/main/class/AudioPlayer
@@ -34,6 +35,8 @@ export abstract class Request {
     protected resource: AudioResource | undefined = undefined;
     /**The input to build this request from. */
     public readonly input: string;
+    /**The type of quantity represented by the `lengh` field of the request. */
+    public readonly lengthType: string;
 
     /**Creates a new request.
      * @param {string} input The input to build this request from.
@@ -41,6 +44,7 @@ export abstract class Request {
      * @param {Snowflake} channelId The ID of the channel in which to play this request.
      * @param {number} start The duration into this request to begin playback. When greater than end, the two are swapped.
      * @param {number} end The duration into this request to stop playback. When less than start, the two are swapped.
+     * @param {string} lengthType The type of quantity represented by the `lengh` field of the request.
      * @throws {@link UnresolvedUserError} When the requester's user ID does not resolve to a known user.
      * @throws {@link DurationError} When start or end are not in a valid range, see linked documentation.
      * @throws {@link UnresolvedChannelError} When channelId is invalid, see linked documentation.
@@ -48,7 +52,7 @@ export abstract class Request {
      * @see {@link start} and {@link end} for the valid ranges of their respective values.
      * @see {@link Request.channelId} for circumstances in which channelId may be invalid.
      */
-    constructor( input: string, userId: Snowflake, channelId: Snowflake, start: number, end: number ) {
+    constructor( input: string, userId: Snowflake, channelId: Snowflake, start: number, end: number, lengthType: string ) {
         this.channelId = channelId;
 
         if ( !globalThis.client.users.resolve( userId ) )
@@ -57,6 +61,7 @@ export abstract class Request {
             this._userId = userId;
 
         this.input = input;
+        this.lengthType = lengthType;
 
         if ( start > end ) {
             this.start = end;
@@ -146,10 +151,15 @@ export abstract class Request {
         return this._creator;
     }//end getter creator
 
-    /**The total duration of this request's underlying resource. Undefined until request is ready. */
+    /**The total length of this request's underlying resource. Undefined until request is ready. `Infinity` if request is a live stream. */
     public get length() {
         return this._length;
     }//end getter length
+
+    /**Formatted string for the total length of this request's underlying resource. Undefined until request is ready. */
+    public get lengthFormatted() {
+        return this._lengthFormatted;
+    }//end getter lengthFormatted
 
     /**The URL of the thumbnail of this request's underlying resource. Undefined until request is ready. */
     public get thumbnailUrl() {
