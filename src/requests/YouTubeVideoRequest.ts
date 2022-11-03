@@ -127,9 +127,7 @@ export class YouTubeVideoRequest extends Request {
 
         this.resource = createAudioResource(
             this.stream.stream,
-            {
-                inputType: this.stream.type
-            }
+            { inputType: this.stream.type },
         );
 
         player.play( this.resource );
