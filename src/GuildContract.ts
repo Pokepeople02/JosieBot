@@ -176,8 +176,8 @@ export class GuildContract {
 
         if ( !channel )
             throw new UnresolvedChannelError( `Channel ID is not resolvable (ID: ${channelId})` );
-        else if ( !channel.isTextBased() )
-            throw new NonTextChannelError( `"${channel.name ?? `Unnamed (ID: ${channelId})`}" is not text-based` );
+        else if ( !channel.isVoiceBased() )
+            throw new NonTextChannelError( `Channel "${channel}" is not voice-based` );
 
         connection = joinVoiceChannel( {
             channelId: channelId,
@@ -211,6 +211,7 @@ export class GuildContract {
 
         this._prevMode = this._mode;
         this._mode = Mode.Paused;
+        globalThis.client.log( "Bot is now Paused", this.guildId );
 
         if ( this.modeTimer )
             clearTimeout( this.modeTimer );
@@ -226,6 +227,7 @@ export class GuildContract {
 
         this._prevMode = this._mode;
         this._mode = Mode.Playing;
+        globalThis.client.log( "Bot has resumed Playing", this.guildId );
 
         if ( !( await this.play() ) ) {
             this.skipTo( 1 );
@@ -250,12 +252,15 @@ export class GuildContract {
      * @see https://discord.js.org/#/docs/discord.js/main/class/VoiceState For the behavior of discord.js VoiceStates.
      */
     static standbyToggle( prev: VoiceState, curr: VoiceState ): void {
-        const contract = globalThis.client.contracts.get( curr.guild.id )!;
+        const contract = globalThis.client.contracts.get( curr.guild.id );
         const botId = globalThis.client.user!.id;
         const currChannelHasBot = curr.channel?.members.has( botId );
         const prevChannelHasBot = prev.channel?.members.has( botId );
         const currChannelNumMembers = prev.channel?.members.size;
         const prevChannelNumMembers = prev.channel?.members.size;
+
+        if ( !contract )
+            return;
 
         switch ( contract.currentMode ) {
             case Mode.Idle:
@@ -290,6 +295,7 @@ export class GuildContract {
 
         this._prevMode = this._mode;
         this._mode = Mode.Standby;
+        globalThis.client.log( "Bot is now on Standby", this.guildId );
 
         if ( this._prevMode === Mode.Playing )
             this._queue[0].pause();
@@ -299,7 +305,7 @@ export class GuildContract {
 
         this.modeTimer = setTimeout( () => {
             this.idle();
-        }, 120_000 ); //2 min
+        }, globalThis.standbyTimeout );
 
         return;
     }//end method startStandby
@@ -393,6 +399,8 @@ export class GuildContract {
         if ( !( this._mode === Mode.Playing || this._mode === Mode.Paused ) )
             return;
 
+        globalThis.client.log( "Transitioning to next request", this.guildId );
+
         this._queue.shift();
 
         if ( this._queue.length !== 0 ) {
@@ -422,6 +430,7 @@ export class GuildContract {
      */
     private async play(): Promise<boolean> {
         const currRequest = this._queue[0];
+        let voiceId: Snowflake | undefined;
 
         if ( this._queue.length === 0 )
             return false;
@@ -434,6 +443,9 @@ export class GuildContract {
                 currRequest.resume();
             else
                 await currRequest.play( this.audioPlayer );
+
+            voiceId = globalThis.client.guilds.resolve( this.guildId )!.members.me?.voice.channelId ?? undefined;
+            globalThis.client.log( `Now playing "${currRequest.title}"`, this.guildId, voiceId );
         } catch ( error ) {
             this.sendRequestError( error as Error );
             return false;
@@ -442,6 +454,7 @@ export class GuildContract {
         if ( this._mode !== Mode.Playing ) {
             this._prevMode = this._mode;
             this._mode = Mode.Playing;
+            globalThis.client.log( "Bot is now Playing", this.guildId );
         }//end if
 
         if ( this.modeTimer ) {
@@ -464,6 +477,7 @@ export class GuildContract {
 
         this._prevMode = this._mode;
         this._mode = Mode.Waiting;
+        globalThis.client.log( "Bot is now Waiting", this.guildId );
 
         this._queue = [];
         this.audioPlayer.stop();
@@ -473,7 +487,7 @@ export class GuildContract {
 
         this.modeTimer = setTimeout( () => {
             this.idle();
-        }, 600_000 ); //10 min
+        }, globalThis.waitingTimeout );
 
         return;
     }//end method wait
@@ -488,6 +502,7 @@ export class GuildContract {
 
         this._prevMode = this._mode;
         this._mode = Mode.Idle;
+        globalThis.client.log( "Bot is now Idle", this.guildId );
 
         if ( this.modeTimer )
             clearTimeout( this.modeTimer );
@@ -581,6 +596,7 @@ export class GuildContract {
                 this.idle();
         } );
 
+        globalThis.client.log( "Set voice connection listeners successfully", this.guildId );
         this.areVoiceListenersSet = true;
         return;
     }//end method setupVoiceConnListeners
