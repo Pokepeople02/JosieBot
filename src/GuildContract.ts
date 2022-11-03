@@ -54,7 +54,7 @@ export class GuildContract {
 
     /**A shallow copy of the guild's stored active queue. The current request, if `Playing`, is the first item in the queue. */
     public get queue(): Array<Request> {
-        return Object.assign( {}, this._queue );
+        return this._queue.slice();
     }//end getter queue
 
     /**The current mode of the bot for this guild.
@@ -94,7 +94,7 @@ export class GuildContract {
             if ( !channel )
                 throw new UnresolvedChannelError( `Home ID is not resolvable (ID: ${homeId})` );
             else if ( !channel.isTextBased() )
-                throw new NonTextChannelError( `"${channel.name ?? `Unnamed (ID: ${homeId})`}" is not text-based` );
+                throw new NonTextChannelError( `"Requested home channel "${channel}" is not text-based` );
 
         }//end if
 
