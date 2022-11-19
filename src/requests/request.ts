@@ -19,6 +19,7 @@ export abstract class Request {
     private _userId: Snowflake;
     protected _ready: boolean;
     protected _started: boolean;
+    protected _paused: boolean;
     protected _resourceUrl: string | undefined;
     protected _title: string | undefined;
     protected _creator: string | undefined;
@@ -73,6 +74,7 @@ export abstract class Request {
 
         this._ready = false;
         this._started = false;
+        this._paused = false;
     }//end constructor
 
     /**The ID of the channel in which to play this request. */
@@ -135,6 +137,11 @@ export abstract class Request {
     public get started() {
         return this._started;
     }//end getter started
+
+    /**Whether this request is currently paused or not. */
+    public get paused() {
+        return this._paused;
+    }//end getter paused
 
     /**The URL of this request's underlying resource. Undefined until request is ready.*/
     public get resourceUrl() {

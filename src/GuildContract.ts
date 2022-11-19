@@ -251,16 +251,29 @@ export class GuildContract {
      * @param {VoiceState} curr The current VoiceState of the bot in the originating guild.
      * @see https://discord.js.org/#/docs/discord.js/main/class/VoiceState For the behavior of discord.js VoiceStates.
      */
-    static standbyToggle( prev: VoiceState, curr: VoiceState ): void {
+    static async standbyToggle( prev: VoiceState, curr: VoiceState ): Promise<void> {
         const contract = globalThis.client.contracts.get( curr.guild.id );
         const botId = globalThis.client.user!.id;
         const currChannelHasBot = curr.channel?.members.has( botId );
         const prevChannelHasBot = prev.channel?.members.has( botId );
-        const currChannelNumMembers = prev.channel?.members.size;
+        const currChannelNumMembers = curr.channel?.members.size;
         const prevChannelNumMembers = prev.channel?.members.size;
 
         if ( !contract )
             return;
+
+        console.log( "\nPREV VOICE STATE:" );
+        console.log( 'channel: ' + prev.channel?.name );
+        console.log( 'channel size: ' + prevChannelNumMembers );
+        console.log( 'channel has bot: ' + prevChannelHasBot );
+        console.log( `guild: ` + prev.guild.name );
+        console.log( `member: ` + prev.member?.displayName );
+        console.log( "\nCURR VOICE STATE:" );
+        console.log( 'channel: ' + curr.channel?.name );
+        console.log( 'channel size: ' + currChannelNumMembers );
+        console.log( 'channel has bot: ' + currChannelHasBot );
+        console.log( `guild: ` + curr.guild.name );
+        console.log( `member: ` + curr.member?.displayName );
 
         switch ( contract.currentMode ) {
             case Mode.Idle:
@@ -269,7 +282,7 @@ export class GuildContract {
 
                 //Either bot joined populated channel or user joined bot's unpopulated channel
                 if ( curr.channel && currChannelHasBot! && currChannelNumMembers! > 1 )
-                    contract.endStandby();
+                    await contract.endStandby();
 
                 break;
             case Mode.Waiting:
@@ -279,7 +292,7 @@ export class GuildContract {
                     ( curr.channel && currChannelHasBot! && currChannelNumMembers! === 1 ) || //Either bot joined unpopulated channel...
                     ( prev.channel && prevChannelHasBot! && prevChannelNumMembers! === 1 ) //...or last user left bot's unpopulated channel
                 )
-                    contract.startStandby();
+                    await contract.startStandby();
         }//end switch
 
         return;
@@ -289,7 +302,7 @@ export class GuildContract {
      * Updates the mode to `Standby`.
      * @remark If already on Standby, does nothing. Clears any mode timers that have been set otherwise.
      */
-    private startStandby(): void {
+    private async startStandby(): Promise<void> {
         if ( this._mode === Mode.Standby )
             return;
 
@@ -298,7 +311,7 @@ export class GuildContract {
         globalThis.client.log( "Bot is now on Standby", this.guildId );
 
         if ( this._prevMode === Mode.Playing )
-            this._queue[0].pause();
+            await this._queue[0].pause();
 
         if ( this.modeTimer )
             clearTimeout( this.modeTimer );
@@ -321,14 +334,14 @@ export class GuildContract {
      * Otherwise, failsafes to `Idle` mode.
      * 
     */
-    private endStandby(): void {
+    private async endStandby(): Promise<void> {
 
         switch ( this._prevMode ) {
             case Mode.Playing:
-                this.play();
+                await this.play();
                 break;
             case Mode.Paused:
-                this.pause();
+                await this.pause();
                 this.sendPaused();
                 break;
             case Mode.Waiting:
@@ -440,7 +453,7 @@ export class GuildContract {
 
         try {
             if ( currRequest.started )
-                currRequest.resume();
+                await currRequest.resume();
             else
                 await currRequest.play( this.audioPlayer );
 

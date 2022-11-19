@@ -1,4 +1,4 @@
-import { AudioPlayer, createAudioResource } from "@discordjs/voice";
+import { AudioPlayer, AudioResource, createAudioResource } from "@discordjs/voice";
 import { Snowflake } from "discord.js";
 import { InfoData, stream_from_info, video_info, YouTubeStream } from "play-dl";
 import { ResourceUnobtainableError } from "../errors/ResourceUnobtainableError";
@@ -30,6 +30,10 @@ export class YouTubeVideoRequest extends Request {
      * Undefined until play has started, cleared upon firing.
     */
     private playTimer: NodeJS.Timeout | undefined = undefined;
+    /**Timestamp upon which the current `playTimer` ends. Null when not playing. */
+    private timerEnd: number | null = null;
+    /**Time left for the current playTimer, in milliseconds. Null when not paused. */
+    private timeLeft: number | null = null;
 
     /**Creates a new YouTube Video request.
      * @param {string} input A YouTube video link or raw video ID.
@@ -134,23 +138,69 @@ export class YouTubeVideoRequest extends Request {
         this.player = player;
 
         this.playTimer = setTimeout( () => {
-            if ( !this.resource!.ended )
+            if ( !this.resource?.ended )
                 this.player?.stop( true );
 
             this.playTimer = undefined;
         }, ( this.end - this.start ) * 1000 );
+        this.timerEnd = new Date().getTime() + ( ( this.end - this.start ) * 1000 );
 
         fulfilled = true;
         this._started = true;
+        this._paused = false;
+
         return;
     }//end method play
 
+    /**
+     * @throws {@link UninitializedRequestError} If called before {@link init()} has finished.
+     * @throws If not yet playing or unable to pause the request.
+     */
     public async pause(): Promise<void> {
-        throw new Error( "Method not implemented" );
+        if ( !this.ready )
+            throw new UninitializedRequestError( `Request with input "${this.input}" paused before ready` );
+
+        if ( !this.started || !this.player!.pause() )
+            throw new Error( "Unable to pause request" );
+
+        if ( !this.info!.video_details.live )
+            this.stream!.pause();
+
+        clearTimeout( this.playTimer );
+        this.timeLeft = this.timerEnd! - ( new Date().getTime() );
+        this.timerEnd = null;
+
+        this._paused = true;
+
+        return;
     }//end method pause
 
+    /**
+     * @throws {@link UninitializedRequestError} If called before {@link init()} has finished.
+     * @throws If not paused or unable to resume the request.
+     */
     public async resume(): Promise<void> {
-        throw new Error( "Method not implemented" );
+        if ( !this.ready )
+            throw new UninitializedRequestError( `Request with input "${this.input}" paused before ready` );
+
+        if ( !this.paused || !this.player!.unpause() )
+            throw new Error( "Unable to resume request" );
+
+        if ( !this.info!.video_details.live )
+            this.stream!.resume();
+
+        this.playTimer = setTimeout( () => {
+            if ( !this.resource?.ended )
+                this.player?.stop( true );
+
+            this.playTimer = undefined;
+        }, this.timeLeft! );
+        this.timerEnd = new Date().getTime() + this.timeLeft!;
+        this.timeLeft = null;
+
+        this._paused = false;
+
+        return;
     }//end method resume
 
 }//end class YouTubeVideoRequest
