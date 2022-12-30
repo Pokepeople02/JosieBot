@@ -196,7 +196,7 @@ export class GuildContract {
 
     /**Attempts to pause the current request, if currently `Playing`. Otherwise, does nothing.
      * @remark
-     * If an error occurs while trying to pause the current request, sends 
+     * If an error occurs while trying to pause the current request, sends an "Error Occurred when Pausing Request" message and does nothing.
      */
     public async pause(): Promise<void> {
         if ( this._mode !== Mode.Playing )
@@ -299,8 +299,14 @@ export class GuildContract {
         this._mode = Mode.Standby;
         globalThis.client.log( "Bot is now on Standby", this.guildId );
 
-        if ( this._prevMode === Mode.Playing )
-            await this._queue[0].pause();
+        if ( this._prevMode === Mode.Playing ) {
+
+            try { await this._queue[0].pause(); }
+            catch ( error ) {
+                this.sendStandbyError( error as Error );
+            }//end try-catch
+
+        }//end if
 
         if ( this.modeTimer )
             clearTimeout( this.modeTimer );
@@ -327,7 +333,17 @@ export class GuildContract {
 
         switch ( this._prevMode ) {
             case Mode.Playing:
-                await this.play();
+                let botVoiceChannel = globalThis.client.guilds.resolve( this.guildId )!.members.me!.voice.channel;
+
+                //Handles edge case where bot was moved from original channel
+                if ( botVoiceChannel && ( this._queue[0]?.channelId !== botVoiceChannel.id ) ) {
+                    this._queue[0].channelId = botVoiceChannel.id;
+                }//end if
+
+                if ( !await this.play() ) {
+                    this.transition();
+                }//end if
+
                 break;
             case Mode.Paused:
                 await this.pause();
@@ -393,12 +409,12 @@ export class GuildContract {
      * @remark
      * Does not check for the validity of the next request before transitioning.
      * 
-     * Does nothing outside of `Playing` and `Paused` modes.
+     * Does nothing outside of `Playing`, `Paused`, and `Standby` modes.
      */
     private async transition(): Promise<void> {
         const guild = globalThis.client.guilds.resolve( this.guildId )!;
 
-        if ( !( this._mode === Mode.Playing || this._mode === Mode.Paused ) )
+        if ( !( this._mode === Mode.Playing || this._mode === Mode.Paused || this._mode === Mode.Standby ) )
             return;
 
         globalThis.client.log( "Transitioning to next request", this.guildId );
@@ -441,10 +457,9 @@ export class GuildContract {
             return false;
 
         try {
-            if ( currRequest.started )
-                await currRequest.resume();
-            else
-                await currRequest.play( this.audioPlayer );
+
+            try { await currRequest.resume(); }
+            catch { await currRequest.play( this.audioPlayer ); }
 
             voiceId = globalThis.client.guilds.resolve( this.guildId )!.members.me?.voice.channelId ?? undefined;
             globalThis.client.log( `Now playing "${currRequest.title}"`, this.guildId, voiceId );
@@ -539,6 +554,13 @@ export class GuildContract {
     private sendPauseError( error: Error ): void {
 
     }//end method sendPauseError
+
+    /**Sends the 'Error Occurred when Pausing Request for Standby Mode' message to the guild's home channel, if one exists.
+     * @param {Error} error The error that has occurred.
+     */
+    sendStandbyError( error: Error ): void {
+
+    }//end method sendStandbyError
 
     /**Sends 'Error Occurred with Audio Player' message to the guild's home channel, if one exists. */
     private sendPlayerError(): void {
