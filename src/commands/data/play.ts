@@ -8,9 +8,10 @@ import { ResourceUnobtainableError } from "../../errors/ResourceUnobtainableErro
 import { EmbedBuilder } from "@discordjs/builders";
 import { UnresolvedChannelError } from "../../errors/UnresolvedChannelError";
 
+/**Contains JSON data for the /play command and a method for responding to /play calls. */
 let Play: Command = {
 
-    /** JSON data for /play subcommands, built with discord.js' SlashCommandBuilder. */
+    /** JSON data for the /play command. */
     data: new SlashCommandBuilder()
         .setName( "play" )
         .setDescription( "Adds a new request to the queue for your current voice channel." )
@@ -20,20 +21,18 @@ let Play: Command = {
         )
         .toJSON(),
 
-    /**Determines the appropriate channel  */
+    /** Determines the voice channel of the calling user, initiates the behavior to handle the request made, and replies to the prompting interaction. */
     async execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
         const user = interaction.member;
         const userVoice = user.voice.channel;
-        let commands: Collection<Snowflake, ApplicationCommand>;
-        let playId: Snowflake, playChannelId: Snowflake, playUserId: Snowflake;
         let request: Request;
+        let commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
+        let playId: Snowflake = commands.filter( command => command.name === "play" ).first()!.id;
+        let playChannelId: Snowflake = commands.filter( command => command.name === "play-channel" ).first()!.id;
+        let playUserId: Snowflake = commands.filter( command => command.name === "play-user" ).first()!.id;
 
+        //User not in voice channel, respond for failure
         if ( !userVoice ) {
-            //Get play command IDs
-            commands = await globalThis.client.application!.commands.fetch();
-            playId = commands.filter( command => command.name === "play" ).first()!.id;
-            playChannelId = commands.filter( command => command.name === "play-channel" ).first()!.id;
-            playUserId = commands.filter( command => command.name === "play-user" ).first()!.id;
 
             await interaction.reply( {
                 embeds: [{
@@ -46,36 +45,16 @@ let Play: Command = {
             return;
         }//end if
 
-        try {
-            await interaction.deferReply();
+        await interaction.deferReply();
 
-            request = await play( interaction, userVoice.id );
-
-            await interaction.editReply( {
-                embeds: [{
-                    title: "✅  Added a Request",
-                    description: `Successfully queued [${request.title!}](${request.resourceUrl!}) for your channel.`,
-                    thumbnail: request.thumbnailUrl ? { url: request.thumbnailUrl } : undefined,
-                    fields: [
-                        {
-                            name: "Duration",
-                            value: request.lengthFormatted!,
-                            inline: true,
-                        },
-                        {
-                            name: "Uploaded by",
-                            value: request.creator!,
-                            inline: true,
-                        },
-                    ]
-                }],
-            } );
-
-        } catch ( error ) {
+        //Initiate play or respond if failed
+        try { request = await play( interaction, userVoice.id ); }
+        catch ( error ) {
             let replyEmbed = new EmbedBuilder();
-            replyEmbed.setTitle( "❌  Unable to Add Request" );
 
             globalThis.client.log( `Failed to add request -- ${error}`, interaction );
+
+            replyEmbed.setTitle( "❌  Unable to Add Request" );
 
             if ( error instanceof BadRequestError ) {
                 switch ( error.type ) {
@@ -100,7 +79,29 @@ let Play: Command = {
             }//end if-else
 
             await interaction.editReply( { embeds: [replyEmbed] } );
+            return;
         }//end try-catch
+
+        //Reply for play success
+        await interaction.editReply( {
+            embeds: [{
+                title: "✅  Added a Request",
+                description: `Successfully queued [${request.title!}](${request.resourceUrl!}) for your channel.`,
+                thumbnail: request.thumbnailUrl ? { url: request.thumbnailUrl } : undefined,
+                fields: [
+                    {
+                        name: "Duration",
+                        value: request.lengthFormatted!,
+                        inline: true,
+                    },
+                    {
+                        name: "Uploaded by",
+                        value: request.creator!,
+                        inline: true,
+                    },
+                ]
+            }],
+        } );
 
         return;
     }//end method execute

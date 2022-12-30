@@ -5,9 +5,10 @@ import { setHomeChannel, clearHomeChannel } from "../execution/HomeChannel";
 import { UnresolvedChannelError } from "../../errors/UnresolvedChannelError";
 import { NonTextChannelError } from "../../errors/NonTextChannelError";
 
+/**Contains JSON data for /home-channel commands and a method for responding to /home-channel calls. */
 let HomeChannel: Command = {
 
-    /** JSON data for /home-channel subcommands, built with discord.js' SlashCommandBuilder. */
+    /** JSON data for /home-channel subcommands. */
     data: new SlashCommandBuilder()
         .setName( "home-channel" )
         .setDescription( "Manages which text channel the bot sends messages to." )
@@ -26,26 +27,19 @@ let HomeChannel: Command = {
         )
         .toJSON(),
 
-    /** Determines the /home-channel subcommand to execute, and replies to the prompting interaction as appropriate. */
+    /** Determines the /home-channel subcommand to execute, executes the appropriate behavior, and replies to the prompting interaction. */
     async execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
         const contract = globalThis.client.contracts.get( interaction.guildId )!;
         const subcommand = interaction.options.getSubcommand();
 
+        //Determine and execute appropriate behavior
         switch ( subcommand ) {
             case "set":
-                let channel = interaction.options.getChannel( "channel", true )! as GuildBasedChannel; //API types shouldn't be returned, already cached
+                let channel: GuildBasedChannel = interaction.options.getChannel( "channel", true )!;
 
-                try {
-                    setHomeChannel( interaction, channel );
-
-                    await interaction.reply( {
-                        embeds: [{
-                            title: "✅  Home Channel Set",
-                            description: `Successfully updated the home channel to ${channel}.`
-                        }],
-                    } );
-
-                } catch ( error ) {
+                //Set home channel, or reply if failed
+                try { setHomeChannel( interaction, channel ); }
+                catch ( error ) {
                     const currHome = contract.homeId ? globalThis.client.channels.resolve( contract.homeId ) as GuildBasedChannel : null;
                     let replyContent: InteractionReplyOptions = { embeds: [] };
 
@@ -68,10 +62,21 @@ let HomeChannel: Command = {
                     }//end if-else
 
                     await interaction.reply( replyContent );
+
+                    return;
                 }//end try-catch
+
+                //Reply for success
+                await interaction.reply( {
+                    embeds: [{
+                        title: "✅  Home Channel Set",
+                        description: `Successfully updated the home channel to ${channel}.`
+                    }],
+                } );
 
                 break;
             case "clear":
+                //Cannot fail
                 clearHomeChannel( interaction );
 
                 await interaction.reply( {
