@@ -3,8 +3,6 @@ import { Command } from "../../Command";
 import { play } from "../execution/Play";
 import { Request } from "../../requests/Request";
 import { BadRequestError } from "../../errors/BadRequestError";
-import { DurationError } from "../../errors/DurationError";
-import { NonVoiceChannelError } from "../../errors/NonVoiceChannelError";
 import { TimeoutError } from "../../errors/TimeoutError";
 import { ResourceUnobtainableError } from "../../errors/ResourceUnobtainableError";
 import { EmbedBuilder } from "@discordjs/builders";
@@ -60,7 +58,7 @@ let Play: Command = {
                     thumbnail: request.thumbnailUrl ? { url: request.thumbnailUrl } : undefined,
                     fields: [
                         {
-                            name: request.lengthType,
+                            name: "Duration",
                             value: request.lengthFormatted!,
                             inline: true,
                         },
@@ -91,9 +89,7 @@ let Play: Command = {
                         replyEmbed.setDescription( "This type of request is not yet supported. Please try a different request." );
                         break;
                 }//end switch
-            } else if ( error instanceof DurationError )
-                replyEmbed.setDescription( "The desired `start` and `end` don't make sense for this request. Please fix and try again." );
-            else if ( error instanceof UnresolvedChannelError )
+            } else if ( error instanceof UnresolvedChannelError )
                 replyEmbed.setDescription( "Failed to determine what channel to play this request in. Please try a different channel." );
             else if ( error instanceof TimeoutError )
                 replyEmbed.setDescription( "The source for this request took too long to respond. Please try again." );

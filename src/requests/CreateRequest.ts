@@ -1,7 +1,6 @@
 
 import { validate } from "play-dl";
 import { BadRequestError } from "../errors/BadRequestError";
-import { DurationError } from "../errors/DurationError";
 import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
 import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
 import { UnresolvedUserError } from "../errors/UnresolvedUserError";

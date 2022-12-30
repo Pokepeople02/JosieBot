@@ -3,7 +3,6 @@ import { Snowflake } from "discord.js";
 import { InfoData, stream_from_info, video_info, YouTubeStream } from "play-dl";
 import { ResourceUnobtainableError } from "../errors/ResourceUnobtainableError";
 import { TimeoutError } from "../errors/TimeoutError";
-import { DurationError } from "../errors/DurationError";
 import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
 import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
 import { UnresolvedUserError } from "../errors/UnresolvedUserError";
@@ -18,37 +17,28 @@ export class YouTubeVideoRequest extends Request {
 
     /**The input YouTube video URL or ID after removal of post-ID clutter. */
     private cleanInput: string;
+
     /**The play-dl info retreived for this request. Undefined until request is ready. 
      * @see https://play-dl.github.io/interfaces/InfoData.html
     */
     private info: InfoData | undefined = undefined;
+
     /**The play-dl stream retreived for this request. Undefined until play has started.
      * @see https://play-dl.github.io/modules.html#YouTubeStream
      */
     private stream: YouTubeStream | undefined = undefined;
-    /**Timer that stops play upon reaching the appropriate number of seconds dictated by {@link start} and {@link end}.
-     * Undefined until play has started, cleared upon firing.
-    */
-    private playTimer: NodeJS.Timeout | undefined = undefined;
-    /**Timestamp upon which the current `playTimer` ends. Null when not playing. */
-    private timerEnd: number | null = null;
-    /**Time left for the current playTimer, in milliseconds. Null when not paused. */
-    private timeLeft: number | null = null;
 
     /**Creates a new YouTube Video request.
      * @param {string} input A YouTube video link or raw video ID.
      * @param {Snowflake} userId The ID of the user who made this request.
      * @param {Snowflake} channelId The ID of the channel in which to play this request.
-     * @param {Snowflake} start The number of seconds into the video to begin playback. Defaults to 0.
-     * @param {Snowflake} end The number of seconds into the video to end playback. Defaults to the length of the video.
      * @throws {@link UnresolvedUserError} See linked documentation for exact circumstances.
-     * @throws {@link DurationError} See linked documentation for exact circumstances.
      * @throws {@link UnresolvedChannelError} See linked documentation for exact circumstances.
      * @throws {@link NonVoiceChannelError} See linked documentation for exact circumstances.
      * @see {@link Request} constructor for sources of error.
      */
-    constructor( input: string, userId: Snowflake, channelId: Snowflake, start?: number, end?: number ) {
-        super( input, userId, channelId, start ?? 0, end ?? Infinity, "Duration" );
+    constructor( input: string, userId: Snowflake, channelId: Snowflake ) {
+        super( input, userId, channelId );
 
         if ( input.toLowerCase().includes( "youtube.com" ) && input.includes( "&" ) )
             this.cleanInput = input.substring( 0, input.indexOf( "&" ) );
@@ -81,7 +71,6 @@ export class YouTubeVideoRequest extends Request {
         this._resourceUrl = this.info.video_details.url;
         this._title = this.info.video_details.title ?? "Unknown";
         this._creator = this.info.video_details.channel?.name ?? "Unknown";
-        this.end = this.info.video_details.durationInSec;
         this._thumbnailUrl = this.info.video_details.thumbnails[0]?.url;
 
         if ( this.info.video_details.live ) {
@@ -119,8 +108,7 @@ export class YouTubeVideoRequest extends Request {
             this.stream = await stream_from_info(
                 this.info!,
                 {
-                    discordPlayerCompatibility: true,
-                    seek: this.start
+                    discordPlayerCompatibility: true
                 }
             );
 
@@ -137,15 +125,8 @@ export class YouTubeVideoRequest extends Request {
         player.play( this.resource );
         this.player = player;
 
-        this.playTimer = setTimeout( () => {
-            if ( !this.resource?.ended )
-                this.player?.stop( true );
-
-            this.playTimer = undefined;
-        }, ( this.end - this.start ) * 1000 );
-        this.timerEnd = new Date().getTime() + ( ( this.end - this.start ) * 1000 );
-
         fulfilled = true;
+
         this._started = true;
         this._paused = false;
 
@@ -162,13 +143,6 @@ export class YouTubeVideoRequest extends Request {
 
         if ( !this.started || !this.player!.pause() )
             throw new Error( "Unable to pause request" );
-
-        if ( !this.info!.video_details.live )
-            this.stream!.pause();
-
-        clearTimeout( this.playTimer );
-        this.timeLeft = this.timerEnd! - ( new Date().getTime() );
-        this.timerEnd = null;
 
         this._paused = true;
 
@@ -187,16 +161,7 @@ export class YouTubeVideoRequest extends Request {
             throw new Error( "Unable to resume request" );
 
         if ( !this.info!.video_details.live )
-            this.stream!.resume();
-
-        this.playTimer = setTimeout( () => {
-            if ( !this.resource?.ended )
-                this.player?.stop( true );
-
-            this.playTimer = undefined;
-        }, this.timeLeft! );
-        this.timerEnd = new Date().getTime() + this.timeLeft!;
-        this.timeLeft = null;
+            this.play( this.player! );
 
         this._paused = false;
 

@@ -1,6 +1,5 @@
 import { AudioPlayer, AudioResource } from "@discordjs/voice";
 import { Snowflake } from "discord.js";
-import { DurationError } from "../errors/DurationError";
 import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
 import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
 import { UnresolvedUserError } from "../errors/UnresolvedUserError";
@@ -14,9 +13,8 @@ import { UnresolvedUserError } from "../errors/UnresolvedUserError";
 export abstract class Request {
 
     private _channelId!: Snowflake;
-    private _start: number = 0;
-    private _end: number = Infinity;
     private _userId: Snowflake;
+
     protected _ready: boolean;
     protected _started: boolean;
     protected _paused: boolean;
@@ -26,6 +24,7 @@ export abstract class Request {
     protected _length: number | undefined;
     protected _lengthFormatted: string | undefined;
     protected _thumbnailUrl: string | undefined;
+
     /**The audio player currently playing this request. Undefined when not playing.
      * @see https://discord.js.org/#/docs/voice/main/class/AudioPlayer
     */
@@ -34,26 +33,20 @@ export abstract class Request {
      * @see https://discord.js.org/#/docs/voice/main/class/AudioResource
      */
     protected resource: AudioResource | undefined = undefined;
+
     /**The input to build this request from. */
     public readonly input: string;
-    /**The type of quantity represented by the `lengh` field of the request. */
-    public readonly lengthType: string;
 
     /**Creates a new request.
      * @param {string} input The input to build this request from.
      * @param {Snowflake} userId The ID of the user who made this request.
      * @param {Snowflake} channelId The ID of the channel in which to play this request.
-     * @param {number} start The duration into this request to begin playback. When greater than end, the two are swapped.
-     * @param {number} end The duration into this request to stop playback. When less than start, the two are swapped.
-     * @param {string} lengthType The type of quantity represented by the `lengh` field of the request.
      * @throws {@link UnresolvedUserError} When the requester's user ID does not resolve to a known user.
-     * @throws {@link DurationError} When start or end are not in a valid range, see linked documentation.
      * @throws {@link UnresolvedChannelError} When channelId is invalid, see linked documentation.
      * @throws {@link NonVoiceChannelError} When channelId is invalid, see linked documentation.
-     * @see {@link start} and {@link end} for the valid ranges of their respective values.
      * @see {@link Request.channelId} for circumstances in which channelId may be invalid.
      */
-    constructor( input: string, userId: Snowflake, channelId: Snowflake, start: number, end: number, lengthType: string ) {
+    constructor( input: string, userId: Snowflake, channelId: Snowflake ) {
         this.channelId = channelId;
 
         if ( !globalThis.client.users.resolve( userId ) )
@@ -62,15 +55,6 @@ export abstract class Request {
             this._userId = userId;
 
         this.input = input;
-        this.lengthType = lengthType;
-
-        if ( start > end ) {
-            this.start = end;
-            this.end = start;
-        } else {
-            this.start = start;
-            this.end = end;
-        }//end if-else
 
         this._ready = false;
         this._started = false;
@@ -96,32 +80,6 @@ export abstract class Request {
 
         this._channelId = newId;
     }//end setter channelId
-
-    /**The duration into this request to begin playing. */
-    public get start() {
-        return this._start;
-    }//end getter start
-
-    /**@throws {@link DurationError} When set to a value that is less than 0, greater than {@link end}, or greater than {@link length}. */
-    public set start( newStart: number ) {
-        if ( newStart < 0 || newStart > this._end || ( this._length && newStart > this._length ) )
-            throw new DurationError( `The requested start (${newStart}) is not in a valid range` );
-
-        this._start = newStart;
-    }//end setter start
-
-    /**The duration into this request to stop playing. */
-    public get end() {
-        return this._end;
-    }//end getter end
-
-    /**@throws {link DurationError} When set to a value that is less than 0, less than {@link start}, or greater than {@link length}. */
-    public set end( newEnd: number ) {
-        if ( newEnd < 0 || newEnd < this._start || ( this._length && newEnd > this._length ) )
-            throw new DurationError( `The requested end (${newEnd}) is not in a valid range` );
-
-        this._end = newEnd;
-    }//end setter end
 
     /**The ID of the user who made this request. */
     public get userId() {
