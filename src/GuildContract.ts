@@ -253,46 +253,35 @@ export class GuildContract {
      */
     static async standbyToggle( prev: VoiceState, curr: VoiceState ): Promise<void> {
         const contract = globalThis.client.contracts.get( curr.guild.id );
-        const botId = globalThis.client.user!.id;
-        const currChannelHasBot = curr.channel?.members.has( botId );
-        const prevChannelHasBot = prev.channel?.members.has( botId );
-        const currChannelNumMembers = curr.channel?.members.size;
-        const prevChannelNumMembers = prev.channel?.members.size;
+        const botChannel = curr.guild.members.me!.voice.channel;
 
         if ( !contract )
             return;
 
-        console.log( "\nPREV VOICE STATE:" );
-        console.log( 'channel: ' + prev.channel?.name );
-        console.log( 'channel size: ' + prevChannelNumMembers );
-        console.log( 'channel has bot: ' + prevChannelHasBot );
-        console.log( `guild: ` + prev.guild.name );
-        console.log( `member: ` + prev.member?.displayName );
-        console.log( "\nCURR VOICE STATE:" );
-        console.log( 'channel: ' + curr.channel?.name );
-        console.log( 'channel size: ' + currChannelNumMembers );
-        console.log( 'channel has bot: ' + currChannelHasBot );
-        console.log( `guild: ` + curr.guild.name );
-        console.log( `member: ` + curr.member?.displayName );
+        //Pre-emptive check if need to force idle
+        if ( !botChannel && contract.currentMode !== Mode.Idle ) {
+            contract.idle();
+            return;
+        }//end if
 
         switch ( contract.currentMode ) {
             case Mode.Idle:
-                break; //Ignore while Idle
+                break; //Ignore
             case Mode.Standby:
 
                 //Either bot joined populated channel or user joined bot's unpopulated channel
-                if ( curr.channel && currChannelHasBot! && currChannelNumMembers! > 1 )
+                if ( botChannel && botChannel.members.size > 1 )
                     await contract.endStandby();
 
                 break;
             case Mode.Waiting:
             case Mode.Paused:
             case Mode.Playing:
-                if (
-                    ( curr.channel && currChannelHasBot! && currChannelNumMembers! === 1 ) || //Either bot joined unpopulated channel...
-                    ( prev.channel && prevChannelHasBot! && prevChannelNumMembers! === 1 ) //...or last user left bot's unpopulated channel
-                )
+
+                //Either bot joined unpopulated channel or last user left bot's unpopulated channel
+                if ( botChannel && botChannel.members.size === 1 )
                     await contract.startStandby();
+
         }//end switch
 
         return;
@@ -599,19 +588,11 @@ export class GuildContract {
         voiceConn.on( VoiceConnectionStatus.Destroyed, ( _prev: any, _curr: any ) => {
             globalThis.client.log( "Voice connection has been destroyed.", this.guildId );
             this.areVoiceListenersSet = false;
-
-            if ( this._mode !== Mode.Idle )
-                this.idle();
-        } );
-
-        voiceConn.on( VoiceConnectionStatus.Disconnected, ( prev: VoiceConnectionState, curr: VoiceConnectionState ) => {
-            if ( this._mode !== Mode.Idle )
-                this.idle();
         } );
 
         globalThis.client.log( "Set voice connection listeners successfully", this.guildId );
         this.areVoiceListenersSet = true;
         return;
-    }//end method setupVoiceConnListeners
+    };//end method setupVoiceConnListeners
 
 }//end class GuildContract
