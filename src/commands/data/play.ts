@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, CacheType, SlashCommandBuilder, Snowflake, ApplicationCommand, Collection, MessagePayload } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, Snowflake, ApplicationCommand, Collection } from "discord.js";
 import { Command } from "../../Command";
 import { play } from "../execution/Play";
 import { Request } from "../../requests/Request";
