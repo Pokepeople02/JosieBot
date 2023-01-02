@@ -21,12 +21,7 @@ export class YouTubeVideoRequest extends Request {
     /**The play-dl info retreived for this request. Undefined until request is ready. 
      * @see https://play-dl.github.io/interfaces/InfoData.html
     */
-    private info: InfoData | undefined = undefined;
-
-    /**The play-dl stream retreived for this request. Undefined until play has started.
-     * @see https://play-dl.github.io/modules.html#YouTubeStream
-     */
-    private stream: YouTubeStream | undefined = undefined;
+    private info: InfoData | undefined;
 
     /**Creates a new YouTube Video request.
      * @param {string} input A YouTube video link or raw video ID.
@@ -45,7 +40,47 @@ export class YouTubeVideoRequest extends Request {
         else
             this.cleanInput = input;
 
+        this.info = undefined;
+        this._started = false;
+        this._playing = false;
     }//end constructor
+
+    public get ready(): boolean {
+        return !!this.info;
+    }//end getter ready
+
+    public get resourceUrl(): string | undefined {
+        return this.cleanInput;
+    }//end getter resourceUrl
+
+    public get title(): string | undefined {
+        return this.info?.video_details.title;
+    }//end getter title
+
+    public get creator(): string | undefined {
+        return this.info?.video_details.channel?.name;
+    }//end getter creator
+
+    /**The total length of this YouTube video request in seconds, or `Infinity` if this request is a YouTube live stream.
+     * Undefined until request is ready.
+     */
+    public get length(): number | undefined {
+        if ( this.info?.video_details.live === undefined ) return undefined;
+
+        return this.info?.video_details.live ? Infinity : this.info.video_details.durationInSec;
+    }//end getter length
+
+    /**String for the total duration of this YouTube video request, formatted as HH:MM:SS. Undefined until request is ready. */
+    public get lengthFormatted(): string | undefined {
+        if ( this.info?.video_details.live === undefined ) return undefined;
+
+        return this.info?.video_details.live ? "🔴 LIVE" : this.info.video_details.durationRaw;
+    }//end getter lengthFormatted
+
+    public get thumbnailUrl(): string | undefined {
+        try { return this.info?.video_details.thumbnails[0].url; }
+        catch { return undefined; }
+    }//end getter thumbnailUrl
 
     /**
      * @throws {@link TimeoutError} When retreiving request info from YouTube takes too long to fulfill.
@@ -68,21 +103,6 @@ export class YouTubeVideoRequest extends Request {
             throw new ResourceUnobtainableError( `Unable to obtain video info: ${error}` );
         }//end try-catch
 
-        this._resourceUrl = this.info.video_details.url;
-        this._title = this.info.video_details.title ?? "Unknown";
-        this._creator = this.info.video_details.channel?.name ?? "Unknown";
-        this._thumbnailUrl = this.info.video_details.thumbnails[0]?.url;
-
-        if ( this.info.video_details.live ) {
-            this._length = Infinity;
-            this._lengthFormatted = "🔴 LIVE";
-        } else {
-            this._length = this.info.video_details.durationInSec;
-            this._lengthFormatted = this.info.video_details.durationRaw;
-        }//end if-else
-
-        this._ready = true;
-
         fulfilled = true;
         return;
     }//end method init
@@ -94,6 +114,8 @@ export class YouTubeVideoRequest extends Request {
      */
     public async play( player: AudioPlayer ): Promise<void> {
         let fulfilled = false;
+        let resource: AudioResource;
+        let stream: YouTubeStream;
 
         if ( !this.ready )
             throw new UninitializedRequestError( `Request with input "${this.input}" played before ready` );
@@ -104,25 +126,21 @@ export class YouTubeVideoRequest extends Request {
         }, globalThis.promiseTimeout );
 
         try {
-
-            this.stream = await stream_from_info(
+            stream = await stream_from_info(
                 this.info!,
-                {
-                    discordPlayerCompatibility: true
-                }
+                { discordPlayerCompatibility: true }
             );
-
         } catch ( error ) {
             fulfilled = true;
             throw new ResourceUnobtainableError( `Unable to obtain stream: ${error}` );
         }//end try-catch
 
-        this.resource = createAudioResource(
-            this.stream.stream,
-            { inputType: this.stream.type },
+        resource = createAudioResource(
+            stream.stream,
+            { inputType: stream.type },
         );
 
-        player.play( this.resource );
+        player.play( resource );
         this.player = player;
 
         fulfilled = true;
@@ -157,11 +175,13 @@ export class YouTubeVideoRequest extends Request {
         if ( !this.ready )
             throw new UninitializedRequestError( `Request with input "${this.input}" paused before ready` );
 
-        if ( !this.paused || !this.player!.unpause() )
+        if ( !this.paused )
             throw new Error( "Unable to resume request" );
 
-        if ( !this.info!.video_details.live )
+        if ( this.info!.video_details.live )
             this.play( this.player! );
+        else if ( !this.player!.unpause() )
+            throw new Error( "Unable to resume request" );
 
         this._paused = false;
 
