@@ -488,6 +488,10 @@ export class GuildContract {
 
         this.sendNowPlaying();
 
+        //If playing in empty channel, start standby immediately
+        if ( voiceId && ( globalThis.client.channels.resolve( voiceId )! as VoiceBasedChannel ).members.size === 1 )
+            await this.startStandby();
+
         return true;
     }//end method play
 
