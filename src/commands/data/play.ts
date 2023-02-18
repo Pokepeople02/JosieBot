@@ -86,7 +86,7 @@ let Play: Command = {
         await interaction.editReply( {
             embeds: [{
                 title: "✅  Added a Request",
-                description: `Successfully queued [${request.title!}](${request.resourceUrl!}) for your channel.`,
+                description: `Successfully queued [${request.title!}](${request.resourceUrl!}) for your channel (${userVoice.toString()}).`,
                 thumbnail: request.thumbnailUrl ? { url: request.thumbnailUrl } : undefined,
                 fields: [
                     {
