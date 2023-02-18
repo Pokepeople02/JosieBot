@@ -2,7 +2,6 @@ import { AudioPlayer, AudioResource, createAudioResource } from "@discordjs/voic
 import { Snowflake } from "discord.js";
 import { InfoData, stream_from_info, video_info, YouTubeStream } from "play-dl";
 import { ResourceUnobtainableError } from "../errors/ResourceUnobtainableError";
-import { TimeoutError } from "../errors/TimeoutError";
 import { NonVoiceChannelError } from "../errors/NonVoiceChannelError";
 import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
 import { UnresolvedUserError } from "../errors/UnresolvedUserError";
@@ -83,47 +82,30 @@ export class YouTubeVideoRequest extends Request {
     }//end getter thumbnailUrl
 
     /**
-     * @throws {@link TimeoutError} When retreiving request info from YouTube takes too long to fulfill.
      * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving request info.
      */
     public async init(): Promise<void> {
-        let fulfilled = false;
-
         if ( this.ready )
             return;
 
-        setTimeout( () => {
-            if ( !fulfilled )
-                throw new TimeoutError( "Request initialization timed out" );
-        }, globalThis.promiseTimeout );
-
         try { this.info = await video_info( this.cleanInput ); }
         catch ( error ) {
-            fulfilled = true;
             throw new ResourceUnobtainableError( `Unable to obtain video info: ${error}` );
         }//end try-catch
 
-        fulfilled = true;
         return;
     }//end method init
 
     /**
-     * @throws {@link TimeoutError} When retreiving the usable stream from YouTube takes too long to fulfill.
      * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving the stream.
      * @throws {@link UninitializedRequestError} If called before {@link init()} has finished.
      */
     public async play( player: AudioPlayer ): Promise<void> {
-        let fulfilled = false;
         let resource: AudioResource;
         let stream: YouTubeStream;
 
         if ( !this.ready )
             throw new UninitializedRequestError( `Request with input "${this.input}" played before ready` );
-
-        setTimeout( () => {
-            if ( !fulfilled )
-                throw new TimeoutError( "Audio Resource creation timed out" );
-        }, globalThis.promiseTimeout );
 
         try {
             stream = await stream_from_info(
@@ -131,7 +113,6 @@ export class YouTubeVideoRequest extends Request {
                 { discordPlayerCompatibility: true }
             );
         } catch ( error ) {
-            fulfilled = true;
             throw new ResourceUnobtainableError( `Unable to obtain stream: ${error}` );
         }//end try-catch
 
@@ -142,8 +123,6 @@ export class YouTubeVideoRequest extends Request {
 
         player.play( resource );
         this.player = player;
-
-        fulfilled = true;
 
         this._started = true;
         this._paused = false;

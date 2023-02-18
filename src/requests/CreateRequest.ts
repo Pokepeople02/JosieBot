@@ -48,7 +48,11 @@ export async function createRequest( input: string, userId: Snowflake, channelId
     switch ( type ) {
         case "yt_video":
             request = new YouTubeVideoRequest( input, userId, channelId );
-            await request.init();
+
+            await Promise.race( [request.init(), new Promise( ( _resolve, reject ) => {
+                setTimeout( () => { reject( new TimeoutError( "Request initialization timed out" ) ); }, globalThis.promiseTimeout );
+            } )] );
+
             break;
         case false:
             throw new BadRequestError( "Request is of invalid type", "invalid" );

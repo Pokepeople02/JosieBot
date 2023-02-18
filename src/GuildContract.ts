@@ -6,6 +6,7 @@ import { UnresolvedGuildError } from "./errors/UnresolvedGuildError";
 import { Request } from "./requests/Request";
 import { Mode } from "./Mode";
 import { NonVoiceChannelError } from "./errors/NonVoiceChannelError";
+import { TimeoutError } from "./errors/TimeoutError";
 
 /**Represents the relationship between bot and guild. Stores information and carries out core bot activities. */
 export class GuildContract {
@@ -458,8 +459,14 @@ export class GuildContract {
 
         try {
 
-            try { await currRequest.resume(); }
-            catch { await currRequest.play( this.audioPlayer ); }
+            try {
+                await currRequest.resume();
+            } catch {
+                await Promise.race( [currRequest.play( this.audioPlayer ), new Promise( ( _resolve, reject ) => {
+                    setTimeout( () => { reject( new TimeoutError( "Audio Resource creation timed out" ) ); }, globalThis.promiseTimeout );
+                } )] );
+
+            }//end try-catch
 
             voiceId = globalThis.client.guilds.resolve( this.guildId )!.members.me?.voice.channelId ?? undefined;
             globalThis.client.log( `Now playing "${currRequest.title}"`, this.guildId, voiceId );
