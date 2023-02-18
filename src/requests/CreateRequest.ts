@@ -39,8 +39,11 @@ export async function createRequest( input: string, userId: Snowflake, channelId
     else
         cleanInput = input;
 
-    try { type = await validate( cleanInput ); }
-    catch ( error ) {
+    try {
+        type = await Promise.race( [validate( cleanInput ), new Promise( ( _resolve, reject ) => {
+            setTimeout( () => { reject( new TimeoutError( "Request validation timed out" ) ); }, globalThis.promiseTimeout );
+        } )] ) as Awaited<ReturnType<typeof validate>>;
+    } catch ( error ) {
         throw new BadRequestError( `Unable to determine type of request: ${error}`, "unknown" );
     }//end try-catch
 
