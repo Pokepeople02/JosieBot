@@ -242,10 +242,6 @@ export class GuildContract {
         return;
     }//end method resume
 
-    public modify( index: number, channelId?: Snowflake, userId?: Snowflake, start?: number, end?: number ): void {
-
-    }//end method modify
-
     /**Activated whenever a change has happened in the voice state for any guild the bot occupies.
      * Determines whether the bot should enter or exit `Standby` mode for the originating guild, and takes action accordingly.
      * @param {VoiceState} prev The previous VoiceState of the bot in the originating guild.
