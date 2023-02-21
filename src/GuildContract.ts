@@ -1,12 +1,12 @@
 import { AudioPlayer, AudioPlayerError, AudioPlayerState, AudioPlayerStatus, createAudioPlayer, getVoiceConnection, joinVoiceChannel, VoiceConnection, VoiceConnectionState, VoiceConnectionStatus } from "@discordjs/voice";
-import { Guild, Snowflake, VoiceBasedChannel, VoiceState } from "discord.js";
+import { Guild, MessageCreateOptions, MessagePayload, Snowflake, TextBasedChannel, TextChannel, VoiceBasedChannel, VoiceState } from "discord.js";
 import { NonTextChannelError } from "./errors/NonTextChannelError";
 import { UnresolvedChannelError } from "./errors/UnresolvedChannelError";
 import { UnresolvedGuildError } from "./errors/UnresolvedGuildError";
 import { Request } from "./requests/Request";
 import { Mode } from "./Mode";
-import { NonVoiceChannelError } from "./errors/NonVoiceChannelError";
 import { TimeoutError } from "./errors/TimeoutError";
+import { EmbedBuilder } from "@discordjs/builders";
 
 /**Represents the relationship between bot and guild. Stores information and carries out core bot activities. */
 export class GuildContract {
@@ -42,7 +42,7 @@ export class GuildContract {
 
         this.audioPlayer.on( "error", ( error: AudioPlayerError ) => {
             globalThis.client.log( `Audio player error: ${error}`, this.guildId );
-            this.sendPlayerError();
+            this.sendPlayerError( error );
             this.skipTo( 1 );
             this.transition();
         } );
@@ -101,7 +101,8 @@ export class GuildContract {
 
         this._homeId = homeId;
 
-        this.sendNowPlaying();
+        if ( this.currentMode === Mode.Playing )
+            this.sendNowPlaying();
     }//end setter homeId
 
     /**Adds a new request to the queue. If this is the first request in the queue, begins playing.
@@ -540,7 +541,20 @@ export class GuildContract {
 
     /**Sends the 'Now Playing...' message to the guild's home channel, if one exists. */
     private sendNowPlaying(): void {
+        const currRequest = this.queue[0];
+        const requestString = currRequest.resourceUrl ? "[" + currRequest.title + "](" + currRequest.resourceUrl + ")" : "unknown";
+        const homeChannel = globalThis.client.channels.resolve( this.homeId ?? "0" );
+        const requestingUser = globalThis.client.users.resolve( currRequest.userId );
 
+        this.sendHomeChannelMessage( {
+            embeds: [
+                new EmbedBuilder()
+                    .setDescription( `Now playing ${requestString} in ${homeChannel?.toString()}\n` +
+                        `<queued by ${requestingUser?.toString() ?? "unknown user"}>` )
+            ]
+        } );
+
+        return;
     }//end method sendNowPlaying
 
     /**Sends the 'Bot is Currently Paused' message to the guild's home channel, if one exists. */
@@ -565,19 +579,42 @@ export class GuildContract {
     /**Sends the 'Error Occurred when Pausing Request for Standby Mode' message to the guild's home channel, if one exists.
      * @param {Error} error The error that has occurred.
      */
-    sendStandbyError( error: Error ): void {
+    private sendStandbyError( error: Error ): void {
 
     }//end method sendStandbyError
 
-    /**Sends 'Error Occurred with Audio Player' message to the guild's home channel, if one exists. */
-    private sendPlayerError(): void {
+    /**Sends 'Error Occurred with Audio Player' message to the guild's home channel, if one exists.
+     * @param {Error} error The error that has occurred.
+     */
+    private sendPlayerError( error: Error ): void {
 
     }//end method sendPlayerError
 
-    /**Sends the 'Error Occurred with Voice Connection' message to the guild's home channel, if one exists. */
-    private sendConnectionError(): void {
+    /**Sends the 'Error Occurred with Voice Connection' message to the guild's home channel, if one exists.
+     * @param {Error} error The error that has occurred.
+    */
+    private sendConnectionError( error: Error ): void {
 
     }//end method sendConnectionError
+
+    /**Attempts to send a message to the guild's home channel, if one exists.
+     * @param contents The contents of the message
+     */
+    private sendHomeChannelMessage( contents: string | MessagePayload | MessageCreateOptions ) {
+        const homeChannel = this.homeId ? globalThis.client.channels.resolve( this.homeId ) as TextChannel | null : null;
+
+        if ( homeChannel ) {
+
+            try {
+                homeChannel.send( contents );
+            } catch ( error: unknown ) {
+                globalThis.client.log( "Failed to send home channel message. Error:\n" + error, this.guildId, homeChannel.id );
+            }//end try-catch
+
+        }//end if
+
+        return;
+    }//end method sendHomeChannelMessage
 
     /**Determines if a channel is populated by non-bot users.
      * @param {Snowflake} channelId The ID of the channel examined.
@@ -610,7 +647,7 @@ export class GuildContract {
 
         voiceConn.on( 'error', ( error: Error ) => {
             globalThis.client.log( `Error in voice connection: ${error}` );
-            this.sendConnectionError();
+            this.sendConnectionError( error );
             this.transition();
         } );
 
