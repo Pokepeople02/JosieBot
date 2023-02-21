@@ -36,12 +36,13 @@ let PlayChannel: Command = {
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Add Request",
-                    description: `${channel.toString()} is not a voice channel. Please provide a voice channel to play in, or use either `
+                    description: `${channel.toString()} is not a voice channel in this server. Provide a voice channel to play in, or use either `
                         + `</play:${playId}> or </play-user:${playUserId}> to add requests.`,
                 }],
             } );
 
             return;
+            //Stage channels not supported
         } else if ( channel instanceof StageChannel ) {
             await interaction.reply( {
                 embeds: [{
