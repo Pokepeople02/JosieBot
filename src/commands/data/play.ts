@@ -25,11 +25,11 @@ let Play: Command = {
     async execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
         const user = interaction.member;
         const userVoice = user.voice.channel;
+        const commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
+        const playId: Snowflake = commands.filter( command => command.name === "play" ).first()!.id;
+        const playChannelId: Snowflake = commands.filter( command => command.name === "play-channel" ).first()!.id;
+        const playUserId: Snowflake = commands.filter( command => command.name === "play-user" ).first()!.id;
         let request: Request;
-        let commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
-        let playId: Snowflake = commands.filter( command => command.name === "play" ).first()!.id;
-        let playChannelId: Snowflake = commands.filter( command => command.name === "play-channel" ).first()!.id;
-        let playUserId: Snowflake = commands.filter( command => command.name === "play-user" ).first()!.id;
 
         //User not in voice channel, respond for failure
         if ( !userVoice ) {
