@@ -1,5 +1,5 @@
 import { AudioPlayer, AudioPlayerError, AudioPlayerState, AudioPlayerStatus, createAudioPlayer, getVoiceConnection, joinVoiceChannel, VoiceConnection, VoiceConnectionState, VoiceConnectionStatus } from "@discordjs/voice";
-import { Guild, MessageCreateOptions, MessagePayload, Snowflake, TextBasedChannel, TextChannel, VoiceBasedChannel, VoiceState } from "discord.js";
+import { ApplicationCommand, Collection, Guild, MessageCreateOptions, MessagePayload, Snowflake, TextBasedChannel, TextChannel, VoiceBasedChannel, VoiceState } from "discord.js";
 import { NonTextChannelError } from "./errors/NonTextChannelError";
 import { UnresolvedChannelError } from "./errors/UnresolvedChannelError";
 import { UnresolvedGuildError } from "./errors/UnresolvedGuildError";
@@ -543,70 +543,113 @@ export class GuildContract {
     private sendNowPlaying(): void {
         const currRequest = this.queue[0];
         const requestString = currRequest.resourceUrl ? "[" + currRequest.title + "](" + currRequest.resourceUrl + ")" : "unknown";
-        const homeChannel = globalThis.client.channels.resolve( this.homeId ?? "0" );
+        const requestChannel = globalThis.client.channels.resolve( currRequest.channelId ?? "0" );
         const requestingUser = globalThis.client.users.resolve( currRequest.userId );
 
-        this.sendHomeChannelMessage( {
-            embeds: [
-                new EmbedBuilder()
-                    .setDescription( `Now playing ${requestString} in ${homeChannel?.toString()}\n` +
-                        `<queued by ${requestingUser?.toString() ?? "unknown user"}>` )
-            ]
-        } );
+        this.sendHomeChannelMessage(
+            `Now playing ${requestString} in ${requestChannel?.toString() ?? "unknown"}\n` +
+            `<queued by ${requestingUser?.toString() ?? "unknown user"}>`
+        );
 
         return;
     }//end method sendNowPlaying
 
     /**Sends the 'Bot is Currently Paused' message to the guild's home channel, if one exists. */
-    private sendPaused(): void {
+    private async sendPaused(): Promise<void> {
+        const currentChannel = globalThis.client.guilds.resolve( this.guildId )!.members.me!.voice.channel;
+        const commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
+        const unpauseId: Snowflake = commands.filter( command => command.name === "unpause" ).first()!.id;
+        const skipId: Snowflake = commands.filter( command => command.name === "skip" ).first()!.id;
 
+
+        this.sendHomeChannelMessage(
+            "Currently paused" + ( currentChannel ? ` in ${currentChannel.toString()}` : "" ) + ".\n" +
+            `Use </unpause:${unpauseId}> to continue the current request or </skip:${skipId}> to skip to the next one.`
+        );
+
+        return;
     }//end method sendPaused
 
     /**Sends the 'Error Occurred when Playing Request' message to the guild's home channel, if one exists.
      * @param {Error} error The error that has occurred.
      */
     private sendRequestError( error: Error ): void {
+        this.sendHomeChannelMessage(
+            "An error occurred when attempting to play the next request! Skipping to the next request, if one exists...\n" +
+            `Error message: ${error.message}\n` +
+            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+        );
 
+        return;
     }//end method sendRequestError
 
     /**Sends the 'Error Occurred when Pausing Request' message to the guild's home channel, if one exists.
      * @param {Error} error The error that has occurred.
      */
     private sendPauseError( error: Error ): void {
+        this.sendHomeChannelMessage(
+            "An error occurred when attempting to pause the current request! The request could not be paused.\n" +
+            `Error message: ${error.message}\n` +
+            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+        );
 
+        return;
     }//end method sendPauseError
 
     /**Sends the 'Error Occurred when Pausing Request for Standby Mode' message to the guild's home channel, if one exists.
      * @param {Error} error The error that has occurred.
      */
     private sendStandbyError( error: Error ): void {
+        this.sendHomeChannelMessage(
+            "An error occurred when attempting to temporarily pause the current request for standby! The request could not be paused.\n" +
+            `Error message: ${error.message}\n` +
+            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+        );
 
+        return;
     }//end method sendStandbyError
 
     /**Sends 'Error Occurred with Audio Player' message to the guild's home channel, if one exists.
      * @param {Error} error The error that has occurred.
      */
     private sendPlayerError( error: Error ): void {
+        this.sendHomeChannelMessage(
+            "An error occurred with the audio player!. Skipping to the next request, if one exists...\n" +
+            `Error message: ${error.message}\n` +
+            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+        );
 
+        return;
     }//end method sendPlayerError
 
     /**Sends the 'Error Occurred with Voice Connection' message to the guild's home channel, if one exists.
      * @param {Error} error The error that has occurred.
     */
     private sendConnectionError( error: Error ): void {
+        this.sendHomeChannelMessage(
+            "An error occurred with the voice connection!. Skipping to the next request, if one exists...\n" +
+            `Error message: ${error.message}\n` +
+            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+        );
 
+        return;
     }//end method sendConnectionError
 
     /**Attempts to send a message to the guild's home channel, if one exists.
      * @param contents The contents of the message
      */
-    private sendHomeChannelMessage( contents: string | MessagePayload | MessageCreateOptions ) {
+    private sendHomeChannelMessage( message: string ) {
         const homeChannel = this.homeId ? globalThis.client.channels.resolve( this.homeId ) as TextChannel | null : null;
 
         if ( homeChannel ) {
 
             try {
-                homeChannel.send( contents );
+                homeChannel.send( {
+                    embeds: [
+                        new EmbedBuilder()
+                            .setDescription( message )
+                    ]
+                } );
             } catch ( error: unknown ) {
                 globalThis.client.log( "Failed to send home channel message. Error:\n" + error, this.guildId, homeChannel.id );
             }//end try-catch
