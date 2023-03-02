@@ -105,6 +105,17 @@ export class GuildContract {
             this.sendNowPlaying();
     }//end setter homeId
 
+    /**
+     * The current request, if the bot is {@link Mode.Playing Playing}, {@link Mode.Paused Paused}, or on {@link Mode.Standby Standby}.
+     * Otherwise, if the bot is {@link Mode.Waiting Waiting} or {@link Mode.Idle Idle}, null.
+     */
+    public get currentRequest(): Request | null {
+        if ( this.currentMode === Mode.Waiting || this.currentMode === Mode.Idle )
+            return null;
+
+        return this._queue[0];
+    }//end getter currentRequest
+
     /**Adds a new request to the queue. If this is the first request in the queue, begins playing.
      * @remark Adding a request at an out-of-bounds index will instead be added to either the beginning or the end of the queue, whichever is appropriate.
      * @param {Request} request The request to be added.
