@@ -11,10 +11,10 @@ let HomeChannel: Command = {
     /** JSON data for /home-channel subcommands. */
     data: new SlashCommandBuilder()
         .setName( "home-channel" )
-        .setDescription( "Manages which text channel the bot sends messages to." )
+        .setDescription( "Manages which text channel the bot sends status messages to." )
         .addSubcommand( subcommand => subcommand
             .setName( "set" )
-            .setDescription( "Sets a new home channel for the bot." )
+            .setDescription( "Sets the text channel the bot sends status messages to." )
             .addChannelOption( option => option
                 .setName( "channel" )
                 .setDescription( "The new home channel." )
@@ -23,7 +23,7 @@ let HomeChannel: Command = {
         )
         .addSubcommand( subcommand => subcommand
             .setName( "clear" )
-            .setDescription( "Unsets the home channel for the bot." )
+            .setDescription( "Unsets what text channel the bot sends status messages to." )
         )
         .toJSON(),
 
