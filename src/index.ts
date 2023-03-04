@@ -18,7 +18,7 @@ const commandsPath: string = path.join( __dirname, "commands/data" );
 const commandFiles: string[] = fs.readdirSync( commandsPath ).filter( file => file.endsWith( ".js" ) );
 for ( const fileName of commandFiles ) {
     const filePath: string = path.join( commandsPath, fileName );
-    const command: Command = Object.values( require( filePath ) )[0] as Command;
+    const command: Command = require( filePath ) as Command;
     commands.set( command.data.name, command );
 }//end for
 

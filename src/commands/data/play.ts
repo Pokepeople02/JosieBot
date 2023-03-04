@@ -1,5 +1,4 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, Snowflake, ApplicationCommand, Collection, StageChannel } from "discord.js";
-import { Command } from "../../Command";
 import { play } from "../execution/Play";
 import { Request } from "../../requests/Request";
 import { BadRequestError } from "../../errors/BadRequestError";
@@ -8,86 +7,79 @@ import { ResourceUnobtainableError } from "../../errors/ResourceUnobtainableErro
 import { EmbedBuilder } from "@discordjs/builders";
 import { UnresolvedChannelError } from "../../errors/UnresolvedChannelError";
 
-/**Contains JSON data for the /play command and a method for responding to /play calls. */
-let Play: Command = {
+export const data = new SlashCommandBuilder()
+    .setName( "play" )
+    .setDescription( "Adds a new request to the queue for your current voice channel." )
+    .addStringOption( option => option
+        .setName( "request" )
+        .setDescription( "Your request to be played." )
+    )
+    .toJSON();
 
-    /** JSON data for the /play command. */
-    data: new SlashCommandBuilder()
-        .setName( "play" )
-        .setDescription( "Adds a new request to the queue for your current voice channel." )
-        .addStringOption( option => option
-            .setName( "request" )
-            .setDescription( "Your request to be played." )
-        )
-        .toJSON(),
+/** Determines the voice channel of the calling user, initiates the behavior to handle the request made, and replies to the prompting interaction. */
+export async function execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
+    const user = interaction.member;
+    const userVoice = user.voice.channel;
+    const commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
+    const playId: Snowflake = commands.filter( command => command.name === "play" ).first()!.id;
+    const playChannelId: Snowflake = commands.filter( command => command.name === "play-channel" ).first()!.id;
+    const playUserId: Snowflake = commands.filter( command => command.name === "play-user" ).first()!.id;
+    let request: Request;
 
-    /** Determines the voice channel of the calling user, initiates the behavior to handle the request made, and replies to the prompting interaction. */
-    async execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
-        const user = interaction.member;
-        const userVoice = user.voice.channel;
-        const commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
-        const playId: Snowflake = commands.filter( command => command.name === "play" ).first()!.id;
-        const playChannelId: Snowflake = commands.filter( command => command.name === "play-channel" ).first()!.id;
-        const playUserId: Snowflake = commands.filter( command => command.name === "play-user" ).first()!.id;
-        let request: Request;
-
-        //User not in voice channel, respond for failure
-        if ( !userVoice ) {
-            await interaction.reply( {
-                embeds: [{
-                    title: "❌  Unable to Add Request",
-                    description: `You need to be in a voice channel to use </play:${playId}>. Join a channel, or use either ` +
-                        `</play-channel:${playChannelId}> or </play-user:${playUserId}> to add requests.`,
-                }],
-            } );
-
-            return;
-        } else if ( userVoice instanceof StageChannel ) {
-            await interaction.reply( {
-                embeds: [{
-                    title: "❌  Unable to Add Request",
-                    description: `Cannot play in ${userVoice.toString()}, stage channels are not currently supported. Please provide a different voice channel to play in.`,
-                }],
-            } );
-
-            return;
-        }//end if-else
-
-        await interaction.deferReply();
-
-        //Initiate play or respond if failed
-        try { request = await play( interaction, userVoice.id ); }
-        catch ( error ) {
-
-            globalThis.client.log( `Failed to add request -- ${error}`, interaction );
-            await interaction.editReply( { embeds: [getPlayFailedResponseEmbed( error )] } );
-
-            return;
-        }//end try-catch
-
-        //Reply for play success
-        await interaction.editReply( {
+    //User not in voice channel, respond for failure
+    if ( !userVoice ) {
+        await interaction.reply( {
             embeds: [{
-                title: "✅  Added a Request",
-                description: `Successfully queued [${request.title!}](${request.resourceUrl!}) for your channel (${userVoice.toString()}).`,
-                thumbnail: request.thumbnailUrl ? { url: request.thumbnailUrl } : undefined,
-                fields: [{
-                    name: "Duration",
-                    value: request.lengthFormatted!,
-                    inline: true,
-                }, {
-                    name: "Uploaded by",
-                    value: request.creator!,
-                    inline: true,
-                }]
+                title: "❌  Unable to Add Request",
+                description: `You need to be in a voice channel to use </play:${playId}>. Join a channel, or use either ` +
+                    `</play-channel:${playChannelId}> or </play-user:${playUserId}> to add requests.`,
             }],
         } );
 
         return;
-    }//end method execute
-};
+    } else if ( userVoice instanceof StageChannel ) {
+        await interaction.reply( {
+            embeds: [{
+                title: "❌  Unable to Add Request",
+                description: `Cannot play in ${userVoice.toString()}, stage channels are not currently supported. Please provide a different voice channel to play in.`,
+            }],
+        } );
 
-export { Play };
+        return;
+    }//end if-else
+
+    await interaction.deferReply();
+
+    //Initiate play or respond if failed
+    try { request = await play( interaction, userVoice.id ); }
+    catch ( error ) {
+
+        globalThis.client.log( `Failed to add request -- ${error}`, interaction );
+        await interaction.editReply( { embeds: [getPlayFailedResponseEmbed( error )] } );
+
+        return;
+    }//end try-catch
+
+    //Reply for play success
+    await interaction.editReply( {
+        embeds: [{
+            title: "✅  Added a Request",
+            description: `Successfully queued [${request.title!}](${request.resourceUrl!}) for your channel (${userVoice.toString()}).`,
+            thumbnail: request.thumbnailUrl ? { url: request.thumbnailUrl } : undefined,
+            fields: [{
+                name: "Duration",
+                value: request.lengthFormatted!,
+                inline: true,
+            }, {
+                name: "Uploaded by",
+                value: request.creator!,
+                inline: true,
+            }]
+        }],
+    } );
+
+    return;
+}//end method execute
 
 /**Builds the embed for the reply after a /play command fails with a specific error message for the failure that occurred.
  * @param {unknown} error The error that occurred when attempting to play the request.
