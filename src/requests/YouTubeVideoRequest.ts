@@ -15,12 +15,12 @@ import { UninitializedRequestError } from "../errors/UninitializedRequestError";
 export class YouTubeVideoRequest extends Request {
 
     /**The input YouTube video URL or ID after removal of post-ID clutter. */
-    private cleanInput: string;
+    protected cleanInput: string;
 
     /**The play-dl info retreived for this request. Undefined until request is ready. 
      * @see https://play-dl.github.io/interfaces/InfoData.html
     */
-    private info: InfoData | undefined;
+    protected info: InfoData | undefined;
 
     /**Creates a new YouTube Video request.
      * @param {string} input A YouTube video link or raw video ID.
@@ -49,7 +49,7 @@ export class YouTubeVideoRequest extends Request {
     }//end getter ready
 
     public get resourceUrl(): string | undefined {
-        return this.cleanInput;
+        return this.info?.video_details.url;
     }//end getter resourceUrl
 
     public get title(): string | undefined {

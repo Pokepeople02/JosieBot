@@ -6,6 +6,7 @@ import { TimeoutError } from "../../errors/TimeoutError";
 import { ResourceUnobtainableError } from "../../errors/ResourceUnobtainableError";
 import { EmbedBuilder } from "@discordjs/builders";
 import { UnresolvedChannelError } from "../../errors/UnresolvedChannelError";
+import { NoResultsError } from "../../errors/NoResultsError";
 
 export const data = new SlashCommandBuilder()
     .setName( "play" )
@@ -108,6 +109,8 @@ export function getPlayFailedResponseEmbed( error: unknown, ): EmbedBuilder {
         replyEmbed.setDescription( "This request took too long to respond. Please try again." );
     } else if ( error instanceof ResourceUnobtainableError ) {
         replyEmbed.setDescription( "Could not obtain necessary info about this request, it may not be valid. Try again, or try a different request." );
+    } else if ( error instanceof NoResultsError ) {
+        replyEmbed.setDescription( "This search gave no results. Try again, or try a different request." );
     } else {
         replyEmbed.setDescription( "An unknown error occurred while adding this request. Try again, or try a different request." );
     }//end if-else

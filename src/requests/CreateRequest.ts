@@ -6,9 +6,11 @@ import { UnresolvedChannelError } from "../errors/UnresolvedChannelError";
 import { UnresolvedUserError } from "../errors/UnresolvedUserError";
 import { TimeoutError } from "../errors/TimeoutError";
 import { ResourceUnobtainableError } from "../errors/ResourceUnobtainableError";
+import { NoResultsError } from "../errors/NoResultsError";
 import { Request } from "./Request";
 import { YouTubeVideoRequest } from "./YouTubeVideoRequest";
 import { Snowflake } from "discord.js";
+import { YouTubeSearchRequest } from "./YouTubeSearchRequest";
 
 /**Creates a promise for a new request corresponding to the format of the input provided.
  * Errors during request creation and initialization are passed upwards to the calling function. See throws.
@@ -24,9 +26,12 @@ import { Snowflake } from "discord.js";
  * @throws {@link UnresolvedChannelError} When the target channel ID is unable to be resolved.
  * @throws {@link NonVoiceChannelError} When the target channel ID resolves to a non-voice channel.
  * 
- * For YouTube video and live stream requests:
+ * For YouTube video/live stream and search requests:
  * @throws {@link TimeoutError} When retreiving request info from YouTube takes too long to fulfill.
  * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving request info from YouTube.
+ * 
+ * For YouTube search requests only:
+ * @throws {@link NoResultsError} If the search yeilds no results.
  */
 export async function createRequest( input: string, userId: Snowflake, channelId: Snowflake ): Promise<Request> {
     let cleanInput: string;
@@ -51,17 +56,19 @@ export async function createRequest( input: string, userId: Snowflake, channelId
     switch ( type ) {
         case "yt_video":
             request = new YouTubeVideoRequest( input, userId, channelId );
-
-            await Promise.race( [request.init(), new Promise( ( _resolve, reject ) => {
-                setTimeout( () => { reject( new TimeoutError( "Request initialization timed out" ) ); }, globalThis.promiseTimeout );
-            } )] );
-
+            break;
+        case "search":
+            request = new YouTubeSearchRequest( input, userId, channelId );
             break;
         case false:
             throw new BadRequestError( "Request is of invalid type", "invalid" );
         default:
             throw new BadRequestError( `Request of unsupported type "${type}"`, "unsupported" );
     };//end switch
+
+    await Promise.race( [request.init(), new Promise( ( _resolve, reject ) => {
+        setTimeout( () => { reject( new TimeoutError( "Request initialization timed out" ) ); }, globalThis.promiseTimeout );
+    } )] );
 
     return request;
 }//end method createRequest
