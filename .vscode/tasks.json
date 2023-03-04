@@ -12,7 +12,7 @@
 		{
 			"label": "cleanup",
 			"type": "shell",
-			"command": "if ( Test-Path out/ ) { Remove-Item -Path out/ -Recurse }"
+			"command": "if ( Test-Path out/ ) { cmd /c del /s /q out }"
 		},
 		{
 			"label": "Cleanup and Build",
