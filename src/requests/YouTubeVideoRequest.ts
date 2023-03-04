@@ -138,8 +138,10 @@ export class YouTubeVideoRequest extends Request {
         if ( !this.ready )
             throw new UninitializedRequestError( `Request with input "${this.input}" paused before ready` );
 
-        if ( !this.started || !this.player!.pause() )
-            throw new Error( "Unable to pause request" );
+        if ( !this.started )
+            throw new Error( "Unable to pause request: request not started. " );
+        else if ( !this.player!.pause() )
+            throw new Error( "Unable to pause request: discord.js player refused to pause. " );
 
         this._paused = true;
 
@@ -155,12 +157,12 @@ export class YouTubeVideoRequest extends Request {
             throw new UninitializedRequestError( `Request with input "${this.input}" paused before ready` );
 
         if ( !this.paused )
-            throw new Error( "Unable to resume request" );
+            throw new Error( "Unable to resume request: request is not paused" );
 
         if ( this.info!.video_details.live )
             this.play( this.player! );
         else if ( !this.player!.unpause() )
-            throw new Error( "Unable to resume request" );
+            throw new Error( "Unable to resume request: discord.js player refused to unpause" );
 
         this._paused = false;
 
