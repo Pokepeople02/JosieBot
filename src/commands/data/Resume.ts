@@ -7,7 +7,7 @@ let Resume: Command = {
 
     data: new SlashCommandBuilder()
         .setName( "resume" )
-        .setDescription( "Resumes a currently paused request" )
+        .setDescription( "Resumes a paused request." )
         .toJSON(),
 
     async execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
