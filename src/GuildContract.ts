@@ -587,7 +587,7 @@ export class GuildContract {
     private sendRequestError( error: Error ): void {
         this.sendHomeChannelMessage(
             "An error occurred when attempting to play the next request! Skipping to the next request, if one exists...\n" +
-            `Error message: ${error.message}\n` +
+            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
 
@@ -600,7 +600,7 @@ export class GuildContract {
     private sendPauseError( error: Error ): void {
         this.sendHomeChannelMessage(
             "An error occurred when attempting to pause the current request! The request could not be paused.\n" +
-            `Error message: ${error.message}\n` +
+            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
 
@@ -613,7 +613,7 @@ export class GuildContract {
     private sendStandbyError( error: Error ): void {
         this.sendHomeChannelMessage(
             "An error occurred when attempting to temporarily pause the current request for standby! The request could not be paused.\n" +
-            `Error message: ${error.message}\n` +
+            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
 
@@ -626,7 +626,7 @@ export class GuildContract {
     private sendPlayerError( error: Error ): void {
         this.sendHomeChannelMessage(
             "An error occurred with the audio player!. Skipping to the next request, if one exists...\n" +
-            `Error message: ${error.message}\n` +
+            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
 
@@ -639,7 +639,7 @@ export class GuildContract {
     private sendConnectionError( error: Error ): void {
         this.sendHomeChannelMessage(
             "An error occurred with the voice connection!. Skipping to the next request, if one exists...\n" +
-            `Error message: ${error.message}\n` +
+            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
 
@@ -708,6 +708,13 @@ export class GuildContract {
         voiceConn.on( VoiceConnectionStatus.Destroyed, ( _prev: any, _curr: any ) => {
             globalThis.client.log( "Voice connection has been destroyed.", this.guildId );
             this.areVoiceListenersSet = false;
+        } );
+
+        //Workaround for discord.js error
+        voiceConn.on( 'stateChange', ( oldState, newState ) => {
+            if ( oldState.status === VoiceConnectionStatus.Ready && newState.status === VoiceConnectionStatus.Connecting ) {
+                voiceConn.configureNetworking();
+            }//end if
         } );
 
         globalThis.client.log( "Set voice connection listeners successfully", this.guildId );
