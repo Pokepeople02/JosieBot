@@ -43,7 +43,7 @@
     "play-dl": "^1.9.6",
     "sodium-native": "^4.0.1",
     "ts": "^0.0.0",
-    "utf-8-validate": "^6.0.2",
+    "utf-8-validate": "^6.0.3",
     "zlib-sync": "^0.1.8"
   }
 }
