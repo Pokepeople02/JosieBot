@@ -8,7 +8,7 @@ let Pause: Command = {
 
     data: new SlashCommandBuilder()
         .setName( "pause" )
-        .setDescription( "Pauses the current request, if one exists." )
+        .setDescription( "Pauses a playing request." )
         .toJSON(),
 
     async execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
