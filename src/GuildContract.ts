@@ -569,13 +569,13 @@ export class GuildContract {
     private async sendPaused(): Promise<void> {
         const currentChannel = globalThis.client.guilds.resolve( this.guildId )!.members.me!.voice.channel;
         const commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
-        const unpauseId: Snowflake = commands.filter( command => command.name === "unpause" ).first()!.id;
+        const resumeId: Snowflake = commands.filter( command => command.name === "resume" ).first()!.id;
         const skipId: Snowflake = commands.filter( command => command.name === "skip" ).first()!.id;
 
 
         this.sendHomeChannelMessage(
             "Currently paused" + ( currentChannel ? ` in ${currentChannel.toString()}` : "" ) + ".\n" +
-            `Use </unpause:${unpauseId}> to continue the current request or </skip:${skipId}> to skip to the next one.`
+            `Use </resume:${resumeId}> to continue the current request or </skip:${skipId}> to skip to the next one.`
         );
 
         return;
