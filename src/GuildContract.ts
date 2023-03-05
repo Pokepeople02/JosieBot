@@ -25,6 +25,8 @@ export class GuildContract {
     private modeTimer: NodeJS.Timeout | null = null;
     /**Flag for whether voice connection listeners have been set yet. */
     private areVoiceListenersSet: boolean = false;
+    /**Flag for whether to block the standby toggle for this guild. Temporarily set during skip commands to not attempt play twice.*/
+    private blockStandbyToggle: boolean = false;
 
     /**The guild's ID. */
     readonly guildId: Snowflake;
@@ -43,11 +45,11 @@ export class GuildContract {
         this.audioPlayer.on( "error", ( error: AudioPlayerError ) => {
             globalThis.client.log( `Audio player error: ${error}`, this.guildId );
             this.sendPlayerError( error );
-            this.skip( 1 );
+            this.skip();
         } );
 
         this.audioPlayer.on( AudioPlayerStatus.Idle, ( _prev: any, _curr: any ) => {
-            this.skip( 1 );
+            this.skip();
         } );
     }//end constructor
 
@@ -149,7 +151,7 @@ export class GuildContract {
 
         //Special case
         if ( index === 0 ) {
-            await this.skip( 1 );
+            await this.skip();
             return;
         }//end if
 
@@ -161,12 +163,19 @@ export class GuildContract {
     }//end method remove
 
     /**Skips to and plays the next request with the minimum specified index.
-     * @param {number} minIndex The first index to begin looking for a valid request at.
+     * @param {number} numRequests The minimum number of requests to skip.
+     * @param {boolean} blockStandbyToggle Whether to block the standby toggle during the skip. 
      * @returns {boolean} True if able to begin `Playing` after skipping. if not, false.
      */
-    public async skip( minIndex: number = 1 ): Promise<boolean> {
-        this.skipTo( minIndex );
+    public async skip( numRequests: number = 1, blockStandbyToggle: boolean = false ): Promise<boolean> {
+
+        //Prevents trying to play twice when toggle standby activates on skip transition to different channel.
+        this.blockStandbyToggle = blockStandbyToggle;
+
+        this.skipTo( numRequests );
         await this.transition();
+
+        this.blockStandbyToggle = false;
 
         return this._mode === Mode.Playing;
     }//end method skip
@@ -175,7 +184,7 @@ export class GuildContract {
      * @remark
      * If not yet set, sets up the voice connection listeners for error and disconnection.
      * @param {Snowflake} channelId The ID of the voice channel to join.
-     * @returns {boolean} True if able to successfully join the requested channel. Otherwise, false.
+     * @returns {boolean} True if able to successfully join (or already in) the requested channel. Otherwise, false.
      * @throws {UnresolvedChannelError} If unable to resolve the given ID.
      * @throws {NonVoiceChannelError} If ID given does not correspond to a voice-based channel.
      */
@@ -188,6 +197,8 @@ export class GuildContract {
             throw new UnresolvedChannelError( `Channel ID is not resolvable (ID: ${channelId})` );
         else if ( !channel.isVoiceBased() )
             throw new NonTextChannelError( `Channel "${channel}" is not voice-based` );
+        else if ( channelId === guild.members.me?.voice.channelId )
+            return true;
 
         connection = joinVoiceChannel( {
             channelId: channelId,
@@ -243,7 +254,7 @@ export class GuildContract {
         globalThis.client.log( "Bot has resumed Playing", this.guildId );
 
         if ( !( await this.play() ) ) {
-            this.skip( 1 );
+            this.skip();
         }//end if
 
         if ( this.modeTimer )
@@ -271,6 +282,10 @@ export class GuildContract {
             contract.idle();
             return;
         }//end if
+
+        //Go no further if standby toggle is blocked
+        if ( contract.blockStandbyToggle )
+            return;
 
         switch ( contract.currentMode ) {
             case Mode.Idle:
@@ -350,7 +365,7 @@ export class GuildContract {
                 }//end if
 
                 if ( !await this.play() ) {
-                    this.transition();
+                    await this.transition();
                 }//end if
 
                 break;
@@ -408,7 +423,7 @@ export class GuildContract {
             queue.unshift( current );
         this._queue = queue;
 
-        globalThis.client.log( `Skipped ${skipped.length} ${skipped.length === 1 ? "entry" : "entries"} in queue (excludes current request).`, this.guildId );
+        globalThis.client.log( `Skipped ${skipped.length} ${skipped.length === 1 ? "entry" : "entries"} in queue (excludes current).`, this.guildId );
 
         return skipped;
     }//end skipTo
@@ -433,11 +448,11 @@ export class GuildContract {
         if ( this._queue.length !== 0 ) {
 
             if ( !( await this.play() ) ) {
-                this.skip( 1 );
+                await this.skip();
             }//end if
 
         } else if ( guild.members.me!.voice.channel ) {
-            if ( guild.members.me!.voice.channel.members.size === 1 ) this.startStandby();
+            if ( guild.members.me!.voice.channel.members.size === 1 ) await this.startStandby();
             else this.wait();
         } else { //Failsafe to idle
             this.idle();

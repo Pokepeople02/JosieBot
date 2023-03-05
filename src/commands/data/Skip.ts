@@ -30,7 +30,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
     };//end if
 
     skipped = contract.currentRequest;
-    contract.skip( 1 );
+
+    contract.skip( 1, true );
 
     await interaction.reply( {
         embeds: [{
