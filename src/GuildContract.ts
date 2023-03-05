@@ -197,8 +197,6 @@ export class GuildContract {
             throw new UnresolvedChannelError( `Channel ID is not resolvable (ID: ${channelId})` );
         else if ( !channel.isVoiceBased() )
             throw new NonTextChannelError( `Channel "${channel}" is not voice-based` );
-        //else if ( channelId === guild.members.me?.voice.channelId )
-        //return true;
 
         connection = joinVoiceChannel( {
             channelId: channelId,
