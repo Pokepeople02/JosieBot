@@ -141,8 +141,13 @@ export class YouTubeVideoRequest extends Request {
 
         if ( !this.started )
             throw new Error( "Unable to pause request: request not started. " );
-        else if ( !this.player!.pause() )
-            throw new Error( "Unable to pause request: discord.js player refused to pause. " );
+        else if ( !this.player!.pause() ) {
+            //As last resort, wait 100 ms and try again. Otherwise, if immediately began playing and puase happens, pause may fail
+            await new Promise( () => setTimeout( () => {}, 100 ) );
+
+            if ( !this.player!.pause() )
+                throw new Error( "Unable to pause request: discord.js player refused to pause. " );
+        }//end if-else
 
         this._paused = true;
         this._playing = false;
