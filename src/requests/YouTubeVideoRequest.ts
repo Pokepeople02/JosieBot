@@ -125,6 +125,7 @@ export class YouTubeVideoRequest extends Request {
         this.player = player;
 
         this._started = true;
+        this._playing = true;
         this._paused = false;
 
         return;
@@ -144,6 +145,7 @@ export class YouTubeVideoRequest extends Request {
             throw new Error( "Unable to pause request: discord.js player refused to pause. " );
 
         this._paused = true;
+        this._playing = false;
 
         return;
     }//end method pause
@@ -165,6 +167,7 @@ export class YouTubeVideoRequest extends Request {
             throw new Error( "Unable to resume request: discord.js player refused to unpause" );
 
         this._paused = false;
+        this._playing = true;
 
         return;
     }//end method resume
