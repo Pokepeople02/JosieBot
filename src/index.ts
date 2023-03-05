@@ -16,9 +16,19 @@ globalThis.standbyTimeout = 120_000; //2 min.
 const commands = new Collection<string, Command>();
 const commandsPath: string = path.join( __dirname, "commands/data" );
 const commandFiles: string[] = fs.readdirSync( commandsPath ).filter( file => file.endsWith( ".js" ) );
+
 for ( const fileName of commandFiles ) {
     const filePath: string = path.join( commandsPath, fileName );
     const command: Command = require( filePath ) as Command;
+
+    if ( !command?.data ) {
+        globalThis.client.log( `Command data file "${fileName}" lacks data! Exiting...` );
+        process.exit( 1 );
+    } else if ( !command?.execute ) {
+        globalThis.client.log( `Command data file "${fileName}" lacks execute()! Exiting...` );
+        process.exit( 1 );
+    }//end if-else
+
     commands.set( command.data.name, command );
 }//end for
 
