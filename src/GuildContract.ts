@@ -408,7 +408,7 @@ export class GuildContract {
             queue.unshift( current );
         this._queue = queue;
 
-        globalThis.client.log( `Skipped ${skipped.length} ${skipped.length === 1 ? "entry" : "entries"} in queue.`, this.guildId );
+        globalThis.client.log( `Skipped ${skipped.length} ${skipped.length === 1 ? "entry" : "entries"} in queue (excludes current request).`, this.guildId );
 
         return skipped;
     }//end skipTo
@@ -437,7 +437,8 @@ export class GuildContract {
             }//end if
 
         } else if ( guild.members.me!.voice.channel ) {
-            this.wait();
+            if ( guild.members.me!.voice.channel.members.size === 1 ) this.startStandby();
+            else this.wait();
         } else { //Failsafe to idle
             this.idle();
         }//end if-else
@@ -562,8 +563,6 @@ export class GuildContract {
             `<queued by ${requestingUser?.toString() ?? "unknown user"}>`
         );
 
-        globalThis.client.log( "Attempted to send 'Now Playing' message.", this.guildId, this.homeId ?? undefined );
-
         return;
     }//end method sendNowPlaying
 
@@ -579,8 +578,6 @@ export class GuildContract {
             `Use </resume:${resumeId}> to continue playing or </skip:${skipId}> to skip to the next request.`
         );
 
-        globalThis.client.log( "Attempted to send 'Currently Paused' message.", this.guildId, this.homeId ?? undefined );
-
         return;
     }//end method sendPaused
 
@@ -594,8 +591,6 @@ export class GuildContract {
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
-
-        globalThis.client.log( "Attempted to send 'Play Error' message.", this.guildId, this.homeId ?? undefined );
 
         return;
     }//end method sendRequestError
@@ -611,8 +606,6 @@ export class GuildContract {
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
 
-        globalThis.client.log( "Attempted to send 'Pause Error' message.", this.guildId, this.homeId ?? undefined );
-
         return;
     }//end method sendPauseError
 
@@ -626,8 +619,6 @@ export class GuildContract {
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
-
-        globalThis.client.log( "Attempted to send 'Standby Error' message.", this.guildId, this.homeId ?? undefined );
 
         return;
     }//end method sendStandbyError
@@ -643,8 +634,6 @@ export class GuildContract {
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
 
-        globalThis.client.log( "Attempted to send 'Player Error' message.", this.guildId, this.homeId ?? undefined );
-
         return;
     }//end method sendPlayerError
 
@@ -658,8 +647,6 @@ export class GuildContract {
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
-
-        globalThis.client.log( "Attempted to send 'Connection Error' message.", this.guildId, this.homeId ?? undefined );
 
         return;
     }//end method sendConnectionError
