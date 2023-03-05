@@ -14,6 +14,7 @@ export const data = new SlashCommandBuilder()
     .addStringOption( option => option
         .setName( "request" )
         .setDescription( "Your request to be played." )
+        .setRequired( true )
     )
     .toJSON();
 
