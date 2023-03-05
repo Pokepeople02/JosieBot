@@ -22,6 +22,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
     switch ( contract.currentMode ) {
         case Mode.Idle:
         case Mode.Waiting:
+
+            globalThis.client.log( "Failed /pause: queue is empty", interaction );
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Pause",
@@ -32,6 +34,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
 
             break;
         case Mode.Paused:
+
+            globalThis.client.log( "Failed /pause: already paused", interaction );
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Pause",
@@ -42,6 +46,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
 
             break;
         case Mode.Standby:
+
+            globalThis.client.log( "Failed /pause: on standby", interaction );
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Pause",

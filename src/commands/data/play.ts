@@ -27,6 +27,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
 
     //User not in voice channel, respond for failure
     if ( !userVoice ) {
+
+        globalThis.client.log( "Failed /play: not in voice", interaction );
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
@@ -36,6 +38,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
 
         return;
     } else if ( userVoice instanceof StageChannel ) {
+
+        globalThis.client.log( "Failed /play: trying to play in stage", interaction );
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",

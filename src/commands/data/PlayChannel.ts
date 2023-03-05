@@ -25,6 +25,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
     let request: Request;
 
     if ( !channel.isVoiceBased() ) {
+
+        globalThis.client.log( "Failed /play-channel: non-voice channel", interaction );
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
@@ -35,6 +37,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
         return;
         //Stage channels not supported
     } else if ( channel instanceof StageChannel ) {
+
+        globalThis.client.log( "Failed /play-channel: trying to play in stage", interaction );
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",

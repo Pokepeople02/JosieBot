@@ -39,6 +39,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
                 const currHome = contract.homeId ? globalThis.client.channels.resolve( contract.homeId ) as GuildBasedChannel : null;
                 let replyContent: InteractionReplyOptions = { embeds: [] };
 
+                globalThis.client.log( "Caught error while setting home channel: " + error, interaction );
+
                 if ( error instanceof UnresolvedChannelError ) {
                     replyContent.embeds = [{
                         title: "❌  Unable to Set Home Channel",

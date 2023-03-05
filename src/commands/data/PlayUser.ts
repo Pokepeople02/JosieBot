@@ -27,6 +27,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
     let request: Request;
 
     if ( !guildMember ) {
+
+        globalThis.client.log( "Failed /play-user: unknown user", interaction );
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
@@ -36,6 +38,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
 
         return;
     } else if ( !userVoice ) {
+
+        globalThis.client.log( "Failed /play-user: user not in voice", interaction );
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",

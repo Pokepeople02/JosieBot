@@ -22,6 +22,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
     switch ( contract.currentMode ) {
         case Mode.Idle:
         case Mode.Waiting:
+
+            globalThis.client.log( "Failed /resume: queue is empty", interaction );
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Resume",
@@ -32,6 +34,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
 
             break;
         case Mode.Standby:
+
+            globalThis.client.log( "Failed /resume: on standby", interaction );
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Resume",
@@ -42,6 +46,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
 
             break;
         case Mode.Playing:
+
+            globalThis.client.log( "Failed /resume: already playing", interaction );
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Resume",

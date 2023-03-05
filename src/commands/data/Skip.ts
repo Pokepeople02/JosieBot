@@ -18,6 +18,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
 
     if ( contract.currentMode === Mode.Waiting || contract.currentMode === Mode.Idle ) {
 
+        globalThis.client.log( "Failed /skip: queue is empty", interaction );
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Skip",
