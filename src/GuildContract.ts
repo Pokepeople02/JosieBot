@@ -43,13 +43,11 @@ export class GuildContract {
         this.audioPlayer.on( "error", ( error: AudioPlayerError ) => {
             globalThis.client.log( `Audio player error: ${error}`, this.guildId );
             this.sendPlayerError( error );
-            this.skipTo( 1 );
-            this.transition();
+            this.skip( 1 );
         } );
 
         this.audioPlayer.on( AudioPlayerStatus.Idle, ( _prev: any, _curr: any ) => {
-            this.skipTo( 1 );
-            this.transition();
+            this.skip( 1 );
         } );
     }//end constructor
 
@@ -151,8 +149,7 @@ export class GuildContract {
 
         //Special case
         if ( index === 0 ) {
-            this.skipTo( 1 );
-            await this.transition();
+            await this.skip( 1 );
             return;
         }//end if
 
@@ -167,12 +164,12 @@ export class GuildContract {
      * @param {number} minIndex The first index to begin looking for a valid request at.
      * @returns {boolean} True if able to begin `Playing` after skipping. if not, false.
      */
-    public async skip( minIndex: number ): Promise<boolean> {
+    public async skip( minIndex: number = 1 ): Promise<boolean> {
         this.skipTo( minIndex );
         await this.transition();
 
         return this._mode === Mode.Playing;
-    }//end method skipTo
+    }//end method skip
 
     /**Attempts to move the bot into the voice channel with the specified ID.
      * @remark
@@ -246,8 +243,7 @@ export class GuildContract {
         globalThis.client.log( "Bot has resumed Playing", this.guildId );
 
         if ( !( await this.play() ) ) {
-            this.skipTo( 1 );
-            await this.transition();
+            this.skip( 1 );
         }//end if
 
         if ( this.modeTimer )
@@ -372,33 +368,31 @@ export class GuildContract {
         return;
     }//end method endStandby
 
-    /**Skip all requests between that currently playing (if exists) and the next valid request with a given minimum index.
+    /**Skip a minimum number of requests between the currently playing one (if exists) and the next valid request.
      * Does not affecting the currently playing request or the current mode.
      * @remark 
      * A valid request is one to be played in an existant voice channel populated by at least one non-bot user.
      * 
-     * A minimum index of 0 or less does nothing.
-     * 
-     * A minimum index within the bounds of the queue will clear out all previous requests, save for the currently playing request.
-     * 
-     * A minimum index of queue#length or greater will empty the queue, save for the currently playing request.
-     * @param {number} minIndex The first index at which to look for a valid request.
+     * A min number of requests of 0 or less does nothing.
+
+     * A minimum number of requests of queue#length or greater will empty the queue, save for the currently playing request.
+     * @param {number} numRequests The first index at which to look for a valid request.
      * @return {Array<Request>} An array containing the skipped requests, in the order they were skipped.
      */
-    private skipTo( minIndex: number ): Array<Request> {
+    private skipTo( numRequests: number ): Array<Request> {
         let queue = this.queue;
         let current: Request | null = null;
         let skipped: Array<Request> = [];
 
-        if ( minIndex <= 0 || queue.length === 0 )
+        if ( numRequests <= 0 || queue.length === 0 )
             return skipped;
 
         if ( this._mode !== Mode.Waiting && this._mode !== Mode.Idle ) {
             current = queue.shift()!;
-            minIndex--;
+            numRequests--;
         }//end if
 
-        for ( let i = 0; queue[0] && i < minIndex; ++i )
+        for ( let i = 0; queue[0] && i < numRequests; ++i )
             skipped.push( queue.shift()! );
 
         while ( queue[0] ) {
@@ -439,8 +433,7 @@ export class GuildContract {
         if ( this._queue.length !== 0 ) {
 
             if ( !( await this.play() ) ) {
-                this.skipTo( 1 );
-                await this.transition();
+                this.skip( 1 );
             }//end if
 
         } else if ( guild.members.me!.voice.channel ) {
