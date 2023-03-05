@@ -322,8 +322,9 @@ export class GuildContract {
 
         if ( this._prevMode === Mode.Playing ) {
 
-            try { await this._queue[0].pause(); }
-            catch ( error ) {
+            try {
+                await this._queue[0].pause();
+            } catch ( error ) {
                 globalThis.client.log( `Standby pause error for "${this._queue[0]?.title ?? "unknown request"}": ${error}`, this.guildId );
                 this.sendStandbyError( error as Error );
             }//end try-catch
@@ -357,8 +358,16 @@ export class GuildContract {
             case Mode.Playing:
                 let botVoiceChannel = globalThis.client.guilds.resolve( this.guildId )!.members.me!.voice.channel;
 
+                //Error state, failsafe to waiting or idle
+                if ( !this._queue[0] ) {
+                    if ( botVoiceChannel ) this.wait();
+                    else this.idle();
+
+                    break;
+                }//end if
+
                 //Handles edge case where bot was moved from original channel
-                if ( botVoiceChannel && ( this._queue[0]?.channelId !== botVoiceChannel.id ) ) {
+                if ( botVoiceChannel && ( this._queue[0].channelId !== botVoiceChannel.id ) ) {
                     this._queue[0].channelId = botVoiceChannel.id;
                 }//end if
 
@@ -450,9 +459,11 @@ export class GuildContract {
             }//end if
 
         } else if ( guild.members.me!.voice.channel ) {
-            if ( guild.members.me!.voice.channel.members.size === 1 ) await this.startStandby();
+            if ( this._mode === Mode.Standby ) this.idle();
+            else if ( guild.members.me!.voice.channel.members.size === 1 ) await this.startStandby();
             else this.wait();
         } else { //Failsafe to idle
+            globalThis.client.log( "Failsafed to Idle", this.guildId );
             this.idle();
         }//end if-else
 
