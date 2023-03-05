@@ -1,4 +1,4 @@
-import { Collection, GatewayIntentBits, Interaction } from "discord.js";
+import { Collection, DiscordAPIError, GatewayIntentBits, Interaction } from "discord.js";
 import * as config from "../config.json";
 import { GuildContract } from "./GuildContract";
 import { IsabelleClient } from "./IsabelleClient";
@@ -60,10 +60,17 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
     } catch ( error ) {
         globalThis.client.log( `Unexpected error during command -- ${error}`, interaction );
 
+        //No way to recover, just give up
+        if ( error instanceof DiscordAPIError )
+            return;
+
         try {
             if ( interaction.deferred ) interaction.editReply( "There was an error while executing this command!" );
             else if ( !interaction.replied ) interaction.reply( "There was an error while executing this command!" );
-        } catch {} //end try-catch
+        } catch ( error ) {
+            globalThis.client.log( "Couldn't respond to interaction: " + error );
+            return;
+        } //end try-catch
 
     }//end try-catch
 
