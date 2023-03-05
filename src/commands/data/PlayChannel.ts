@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, ApplicationCommand, Collection, Snowflake, StageChannel } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, StageChannel } from "discord.js";
 import { play } from "../execution/Play";
 import { Request } from "../../requests/Request";
 import { getPlayFailedResponseEmbed } from "./Play";
@@ -20,19 +20,14 @@ export const data = new SlashCommandBuilder()
 
 /** Determines the voice channel of the calling user, initiates the behavior to handle the request made, and replies to the prompting interaction. */
 export async function execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
-    const user = interaction.member;
     const channel = interaction.options.getChannel( "channel", true );
     let request: Request;
-    let commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
-    let playId: Snowflake = commands.filter( command => command.name === "play" ).first()!.id;
-    let playUserId: Snowflake = commands.filter( command => command.name === "play-user" ).first()!.id;
 
     if ( !channel.isVoiceBased() ) {
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
-                description: `${channel.toString()} is not a voice channel in this server. Provide a voice channel to play in, or use either `
-                    + `</play:${playId}> or </play-user:${playUserId}> to add requests.`,
+                description: `${channel.toString()} is not a voice channel. Provide a voice channel to play in or use a different command to add requests.`,
             }],
         } );
 
@@ -42,7 +37,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
-                description: `Cannot play in ${channel.toString()}, stage channels are not currently supported. Please provide a different voice channel to play in.`,
+                description: `Cannot play in ${channel.toString()} as stage channels are not currently supported. Please try a different channel.`,
             }],
         } );
 

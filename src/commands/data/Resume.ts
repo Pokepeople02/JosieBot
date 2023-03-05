@@ -25,8 +25,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Resume",
-                    description: "There's nothing in the queue! Start playing a request with " +
-                        `</play:${playId}>, </play-user:${playUserId}>, or </play-channel:${playChannelId}> first, then pause with </pause:${pauseId}>.`
+                    description: "There's nothing in the queue! Add a request to the queue with " +
+                        `</play:${playId}>, </play-user:${playUserId}>, or </play-channel:${playChannelId}> to get started.`
                 }],
             } );
 
@@ -36,7 +36,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
                 embeds: [{
                     title: "❌  Unable to Resume",
                     description: `Temporarily paused while on standby in ${channel!.toString()}. ` +
-                        `Wait until standby finishes, join ${channel!.toString()}, or use </skip:${skipId}> to continue playing first, then pause with </pause:${pauseId}>.`
+                        `Join ${channel!.toString()}, wait for auto-skip if nobody joins, or use </skip:${skipId}> to continue playing.`
                 }],
             } );
 
@@ -45,7 +45,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Resume",
-                    description: `Already playing [${currentReq!.title}](${currentReq!.resourceUrl!}) in ${channel!.toString()}. Pause it with </pause:${pauseId}> first.`
+                    description: `Already playing [${currentReq!.title}](${currentReq!.resourceUrl!}) in ${channel!.toString()}. Pause it with </pause:${pauseId}> before resuming.`
                 }],
             } );
 

@@ -21,8 +21,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Skip",
-                description: "There's nothing in the queue! Start playing with " +
-                    `</play:${playId}>, </play-user:${playUserId}>, or </play-channel:${playChannelId}> first.`
+                description: "There's nothing in the queue! Add a request to the queue with " +
+                    `</play:${playId}>, </play-user:${playUserId}>, or </play-channel:${playChannelId}> to get started.`
             }],
         } );
 

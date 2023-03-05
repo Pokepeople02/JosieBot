@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, Snowflake, ApplicationCommand, Collection, StageChannel } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, Snowflake, StageChannel } from "discord.js";
 import { play } from "../execution/Play";
 import { Request } from "../../requests/Request";
 import { BadRequestError } from "../../errors/BadRequestError";
@@ -21,10 +21,7 @@ export const data = new SlashCommandBuilder()
 export async function execute( interaction: ChatInputCommandInteraction<"cached"> ): Promise<void> {
     const user = interaction.member;
     const userVoice = user.voice.channel;
-    const commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
-    const playId: Snowflake = commands.filter( command => command.name === "play" ).first()!.id;
-    const playChannelId: Snowflake = commands.filter( command => command.name === "play-channel" ).first()!.id;
-    const playUserId: Snowflake = commands.filter( command => command.name === "play-user" ).first()!.id;
+    const playId: Snowflake = ( await globalThis.client.application!.commands.fetch() ).filter( command => command.name === "play" ).first()!.id;
     let request: Request;
 
     //User not in voice channel, respond for failure
@@ -32,8 +29,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
-                description: `You need to be in a voice channel to use </play:${playId}>. Join a channel, or use either ` +
-                    `</play-channel:${playChannelId}> or </play-user:${playUserId}> to add requests.`,
+                description: `You need to be in a voice channel to use </play:${playId}>. Join a voice channel or use a different command to add requests.`,
             }],
         } );
 
@@ -42,7 +38,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
-                description: `Cannot play in ${userVoice.toString()}, stage channels are not currently supported. Please provide a different voice channel to play in.`,
+                description: `Cannot play in ${userVoice.toString()} as stage channels are not currently supported. Please try a different channel.`,
             }],
         } );
 
@@ -97,23 +93,23 @@ export function getPlayFailedResponseEmbed( error: unknown, ): EmbedBuilder {
                 replyEmbed.setDescription( "Request is invalid and cannot be played. Please try a different request." );
                 break;
             case "unknown":
-                replyEmbed.setDescription( "Unable to determine what type of request this is. Please try a different request." );
+                replyEmbed.setDescription( "Unable to determine what kind of request this is. Please try a different request." );
                 break;
             case "unsupported":
                 replyEmbed.setDescription( "This type of request is not yet supported. Please try a different request." );
                 break;
         }//end switch
     } else if ( error instanceof UnresolvedChannelError ) {
-        replyEmbed.setDescription( "Failed to determine what channel to play this request in. Please try a different channel." );
+        replyEmbed.setDescription( "Unable to determine what channel to play this request in. Please try a different channel." );
     } else if ( error instanceof TimeoutError ) {
-        replyEmbed.setDescription( "This request took too long to respond. Please try again." );
+        replyEmbed.setDescription( "This request took too long to resolve. Please try again or try a different request." );
     } else if ( error instanceof ResourceUnobtainableError ) {
-        replyEmbed.setDescription( "Could not obtain necessary info about this request, it may not be valid. Try again, or try a different request." );
+        replyEmbed.setDescription( "Could not obtain necessary info about this request, it may not be valid. Please try again, or try a different request." );
     } else if ( error instanceof NoResultsError ) {
-        replyEmbed.setDescription( "This search gave no results. Try again, or try a different request." );
+        replyEmbed.setDescription( "There were no search results for this request. Please try a different request." );
     } else {
-        replyEmbed.setDescription( "An unknown error occurred while adding this request. Try again, or try a different request." );
+        replyEmbed.setDescription( "An unknown error occurred while adding this request. Please try again or try a different request." );
     }//end if-else
 
     return replyEmbed;
-};
+}//end method getPlayFailedResponseEmbed

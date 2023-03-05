@@ -42,14 +42,14 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
                 if ( error instanceof UnresolvedChannelError ) {
                     replyContent.embeds = [{
                         title: "❌  Unable to Set Home Channel",
-                        description: `The provided channel cannot be found in a known server. Please choose a different channel.` +
+                        description: `The provided channel cannot be found. Please choose a different channel.` +
                             `\nCurrent home channel: ${currHome ?? "None"}.`
                     }];
 
                 } else if ( error instanceof NonTextChannelError ) {
                     replyContent.embeds = [{
                         title: "❌  Unable to Set Home Channel",
-                        description: `${channel} is not a text-based channel. Please choose a different channel.` +
+                        description: `${channel} is not a text channel. Please choose a different channel.` +
                             `\nCurrent home channel: ${currHome ?? "None"}.`
                     }];
 

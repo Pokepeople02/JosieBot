@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, Collection, Snowflake, ApplicationCommand, StageChannel, VoiceBasedChannel, GuildDefaultMessageNotifications } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, VoiceBasedChannel } from "discord.js";
 import { Request } from "../../requests/Request";
 import { play } from "../execution/Play";
 import { getPlayFailedResponseEmbed } from "./Play";
@@ -25,16 +25,12 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
     const guildMember = interaction.guild.members.resolve( user.id );
     let userVoice: null | VoiceBasedChannel = guildMember?.voice?.channel ?? null;
     let request: Request;
-    let commands: Collection<Snowflake, ApplicationCommand> = await globalThis.client.application!.commands.fetch();
-    let playId: Snowflake = commands.filter( command => command.name === "play" ).first()!.id;
-    let playChannelId: Snowflake = commands.filter( command => command.name === "play-channel" ).first()!.id;
 
     if ( !guildMember ) {
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
-                description: `${user.toString()} is not a member of this server. Provide a member of this server currently in a voice channel, or use either ` +
-                    `</play-channel:${playChannelId}> or </play-user:${playId}> to add requests.`,
+                description: `${user.toString()} is not a member of this server. Provide a member currently in a voice channel or use a different command to add requests.`,
             }],
         } );
 
@@ -43,8 +39,8 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
-                description: `${user.toString()} is not currently in a voice channel. Provide a user currently in a voice channel, or ` +
-                    `I guess tell ${user.toString()} to hop in a voice channel or something.`,
+                description: `${user.toString()} is not currently in a voice channel. Provide a member currently in a voice channel or ` +
+                    `I guess tell them to join or whatever.`,
             }],
         } );
 

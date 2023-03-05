@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Guild, GuildBasedChannel, InteractionReplyOptions } from "discord.js";
+import { ChatInputCommandInteraction, Guild, GuildBasedChannel } from "discord.js";
 import { NonTextChannelError } from "../../errors/NonTextChannelError";
 import { UnresolvedChannelError } from "../../errors/UnresolvedChannelError";
 

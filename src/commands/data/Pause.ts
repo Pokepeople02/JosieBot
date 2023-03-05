@@ -26,7 +26,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
                 embeds: [{
                     title: "❌  Unable to Pause",
                     description: "There's nothing playing to pause! Add a request to the queue with " +
-                        `</play:${playId}>, </play-user:${playUserId}>, or </play-channel:${playChannelId}> to start playing first.`
+                        `</play:${playId}>, </play-user:${playUserId}>, or </play-channel:${playChannelId}> to get started.`
                 }],
             } );
 
@@ -36,16 +36,17 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
                 embeds: [{
                     title: "❌  Unable to Pause",
                     description: `[${currentReq!.title}](${currentReq!.resourceUrl!}) is already paused in ${channel!.toString()}. ` +
-                        `Use </resume:${resumeId}> or </skip:${skipId}> to continue playing first.`
+                        `Use </resume:${resumeId}> or </skip:${skipId}> to continue playing.`
                 }],
             } );
+
             break;
         case Mode.Standby:
             await interaction.reply( {
                 embeds: [{
                     title: "❌  Unable to Pause",
-                    description: `Temporarily paused while on standby in ${channel!.toString()}. ` +
-                        `Wait until standby finishes, join ${channel!.toString()}, or use </skip:${skipId}> to continue playing first.`
+                    description: `Temporarily paused in ${channel!.toString()} on standby. ` +
+                        `Join ${channel!.toString()}, wait for auto-skip if nobody joins, or use </skip:${skipId}> to continue playing.`
                 }],
             } );
 
