@@ -602,7 +602,7 @@ export class GuildContract {
         this.sendHomeChannelMessage(
             "An error occurred when attempting to play the next request! Skipping to the next request, if one exists.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
         );
 
         return;
@@ -616,7 +616,7 @@ export class GuildContract {
         this.sendHomeChannelMessage(
             "An error occurred when attempting to pause the current request! The request could not be paused.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
         );
 
         return;
@@ -630,7 +630,7 @@ export class GuildContract {
         this.sendHomeChannelMessage(
             "An error occurred when attempting to temporarily pause the current request for standby! The request could not be paused.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
         );
 
         return;
@@ -644,7 +644,7 @@ export class GuildContract {
         this.sendHomeChannelMessage(
             "An error occurred with the audio player! Skipping to the next request, if one exists.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
         );
 
         return;
@@ -658,7 +658,7 @@ export class GuildContract {
         this.sendHomeChannelMessage(
             "An error occurred with the voice connection! Skipping to the next request, if one exists.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
+            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
         );
 
         return;
