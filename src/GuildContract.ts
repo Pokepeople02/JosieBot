@@ -201,6 +201,8 @@ export class GuildContract {
         if ( !connection )
             return false;
 
+        globalThis.client.log( `Moved into channel.`, this.guildId, channelId );
+
         if ( !this.areVoiceListenersSet )
             this.setupVoiceConnListeners();
 
@@ -217,6 +219,7 @@ export class GuildContract {
 
         try { await this._queue[0].pause(); }
         catch ( error ) {
+            globalThis.client.log( `Pause error for "${this._queue[0]?.title ?? "unknown request"}": ${error}`, this.guildId );
             this.sendPauseError( error as Error );
             return;
         }//end try-catch
@@ -312,6 +315,7 @@ export class GuildContract {
 
             try { await this._queue[0].pause(); }
             catch ( error ) {
+                globalThis.client.log( `Standby pause error for "${this._queue[0]?.title ?? "unknown request"}": ${error}`, this.guildId );
                 this.sendStandbyError( error as Error );
             }//end try-catch
 
@@ -410,6 +414,8 @@ export class GuildContract {
             queue.unshift( current );
         this._queue = queue;
 
+        globalThis.client.log( `Skipped ${skipped.length} ${skipped.length === 1 ? "entry" : "entries"} in queue.`, this.guildId );
+
         return skipped;
     }//end skipTo
 
@@ -480,6 +486,7 @@ export class GuildContract {
             globalThis.client.log( `Now playing "${currRequest.title}"`, this.guildId, voiceId );
         } catch ( error ) {
             this.sendRequestError( error as Error );
+            globalThis.client.log( `Play/Resume error for "${currRequest.title ?? "unknown request"}": ${error}`, this.guildId );
             return false;
         }//end try-catch
 
@@ -562,6 +569,8 @@ export class GuildContract {
             `<queued by ${requestingUser?.toString() ?? "unknown user"}>`
         );
 
+        globalThis.client.log( "Attempted to send 'Now Playing' message.", this.guildId, this.homeId ?? undefined );
+
         return;
     }//end method sendNowPlaying
 
@@ -572,11 +581,12 @@ export class GuildContract {
         const resumeId: Snowflake = commands.filter( command => command.name === "resume" ).first()!.id;
         const skipId: Snowflake = commands.filter( command => command.name === "skip" ).first()!.id;
 
-
         this.sendHomeChannelMessage(
             "Currently paused" + ( currentChannel ? ` in ${currentChannel.toString()}` : "" ) + ".\n" +
             `Use </resume:${resumeId}> to continue playing or </skip:${skipId}> to skip to the next request.`
         );
+
+        globalThis.client.log( "Attempted to send 'Currently Paused' message.", this.guildId, this.homeId ?? undefined );
 
         return;
     }//end method sendPaused
@@ -585,11 +595,14 @@ export class GuildContract {
      * @param {Error} error The error that has occurred.
      */
     private sendRequestError( error: Error ): void {
+
         this.sendHomeChannelMessage(
             "An error occurred when attempting to play the next request! Skipping to the next request, if one exists.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
+
+        globalThis.client.log( "Attempted to send 'Play Error' message.", this.guildId, this.homeId ?? undefined );
 
         return;
     }//end method sendRequestError
@@ -598,11 +611,14 @@ export class GuildContract {
      * @param {Error} error The error that has occurred.
      */
     private sendPauseError( error: Error ): void {
+
         this.sendHomeChannelMessage(
             "An error occurred when attempting to pause the current request! The request could not be paused.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
+
+        globalThis.client.log( "Attempted to send 'Pause Error' message.", this.guildId, this.homeId ?? undefined );
 
         return;
     }//end method sendPauseError
@@ -611,11 +627,14 @@ export class GuildContract {
      * @param {Error} error The error that has occurred.
      */
     private sendStandbyError( error: Error ): void {
+
         this.sendHomeChannelMessage(
             "An error occurred when attempting to temporarily pause the current request for standby! The request could not be paused.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
+
+        globalThis.client.log( "Attempted to send 'Standby Error' message.", this.guildId, this.homeId ?? undefined );
 
         return;
     }//end method sendStandbyError
@@ -624,11 +643,14 @@ export class GuildContract {
      * @param {Error} error The error that has occurred.
      */
     private sendPlayerError( error: Error ): void {
+
         this.sendHomeChannelMessage(
             "An error occurred with the audio player! Skipping to the next request, if one exists.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
+
+        globalThis.client.log( "Attempted to send 'Player Error' message.", this.guildId, this.homeId ?? undefined );
 
         return;
     }//end method sendPlayerError
@@ -637,11 +659,14 @@ export class GuildContract {
      * @param {Error} error The error that has occurred.
     */
     private sendConnectionError( error: Error ): void {
+
         this.sendHomeChannelMessage(
             "An error occurred with the voice connection! Skipping to the next request, if one exists.\n" +
             `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
             `Kindly throw this at <@258387135932006410> and try to explain to him how it happened.`
         );
+
+        globalThis.client.log( "Attempted to send 'Connection Error' message.", this.guildId, this.homeId ?? undefined );
 
         return;
     }//end method sendConnectionError
