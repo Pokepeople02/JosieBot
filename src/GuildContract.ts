@@ -193,12 +193,14 @@ export class GuildContract {
         const guild = globalThis.client.guilds.resolve( this.guildId )!;
         let connection: VoiceConnection;
 
+        console.log( "CALLING MOVE" );
+
         if ( !channel )
             throw new UnresolvedChannelError( `Channel ID is not resolvable (ID: ${channelId})` );
         else if ( !channel.isVoiceBased() )
             throw new NonTextChannelError( `Channel "${channel}" is not voice-based` );
-        else if ( channelId === guild.members.me?.voice.channelId )
-            return true;
+        //else if ( channelId === guild.members.me?.voice.channelId )
+        //return true;
 
         connection = joinVoiceChannel( {
             channelId: channelId,
