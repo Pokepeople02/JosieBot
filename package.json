@@ -40,9 +40,10 @@
     "discord.js": "^14.7.1",
     "erlpack": "github:discord/erlpack",
     "ffmpeg": "^0.0.4",
-    "play-dl": "^1.9.6",
+    "play-dl": "^1.9.7",
     "sodium-native": "^4.0.1",
     "ts": "^0.0.0",
+    "typescript": "^5.2.2",
     "utf-8-validate": "^6.0.3",
     "zlib-sync": "^0.1.8"
   }
