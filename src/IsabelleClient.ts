@@ -1,5 +1,7 @@
 import { ChatInputCommandInteraction, Client, ClientOptions, GuildChannel, Snowflake, ThreadChannel } from "discord.js";
 import { GuildContract } from "./GuildContract";
+import { ContractData } from "./ContractData";
+import fs = require( "node:fs" );
 
 /** Bot client managing interactions with the Discord API and global behavior across all guilds.
  * @see https://discord.js.org/#/docs/discord.js/main/class/Client
@@ -61,5 +63,27 @@ export class IsabelleClient extends Client {
 
         return;
     }//end method log
+
+    /**Writes a file named for the given guild's ID to the /data subdirectory. File contains POD set by the fields of ContractData.
+     * @param contact GuildContract for the given guild.
+     */
+    public writeContractToFile( contract: GuildContract ): void {
+        let data: ContractData = new ContractData(
+            contract.guildId,
+            contract.homeId
+        );
+
+        fs.writeFileSync( globalThis.dataDirectory + "\\" + contract.guildId + ".json", JSON.stringify( data ) );
+        this.log( "Wrote contract to file.", contract.guildId );
+
+        return;
+    }//end method writeContractToFile
+
+    /**Given a path, verifies a file exists at that path containing a ContractData JSON object, then parses and returns that ContractData.
+     * @param path The file path provided.
+     */
+    //public readContractFromFile( path: string ): ContractData {
+
+    //}//end method readContractFromFile
 
 }//end class IsabelleClient

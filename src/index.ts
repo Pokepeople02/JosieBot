@@ -6,11 +6,22 @@ import { Command } from "./Command";
 import fs = require( "node:fs" );
 import path = require( "node:path" );
 
+let resolvedPath = path.resolve( __dirname );
+
 //Initialize globals
 globalThis.client = new IsabelleClient( { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] } );
 globalThis.promiseTimeout = 3_000; //3 sec.
 globalThis.waitingTimeout = 600_000; //10 min.
 globalThis.standbyTimeout = 120_000; //2 min.
+globalThis.rootPath = resolvedPath.substring( 0, resolvedPath.lastIndexOf( '\\' ) );
+globalThis.dataDirectory = globalThis.rootPath + "\\data";
+
+//Make folder for contract data and load any existing contracts
+if ( fs.existsSync( globalThis.dataDirectory ) ) {
+    //TODO: Read from file
+} else {
+    fs.mkdirSync( globalThis.dataDirectory );
+}
 
 //Gather commands
 const commands = new Collection<string, Command>();
@@ -40,8 +51,11 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
     globalThis.client.log( `${interaction.user.tag} executed ${interaction.toString()}`, interaction );
 
     try {
-        if ( !globalThis.client.contracts.has( interaction.guildId ) )
-            globalThis.client.contracts.set( interaction.guildId, new GuildContract( interaction.guildId ) );
+        if ( !globalThis.client.contracts.has( interaction.guildId ) ) {
+            let newContract = new GuildContract( interaction.guildId );
+            globalThis.client.contracts.set( interaction.guildId, newContract );
+            globalThis.client.writeContractToFile( newContract );
+        }
     } catch ( error ) {
         globalThis.client.log( `Failed to create contract -- ${error}` );
         return;

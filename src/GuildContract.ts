@@ -76,8 +76,10 @@ export class GuildContract {
      * If the current home channel no longer exists, getting the value will update it to null.
      */
     public get homeId(): Snowflake | null {
-        if ( this._homeId !== null && !globalThis.client.channels.resolve( this._homeId ) )
+        if ( this._homeId !== null && !globalThis.client.channels.resolve( this._homeId ) ) {
             this._homeId = null;
+            globalThis.client.writeContractToFile( this );
+        }//end if
 
         return this._homeId;
     }//end getter homeId
@@ -100,6 +102,7 @@ export class GuildContract {
         }//end if
 
         this._homeId = homeId;
+        globalThis.client.writeContractToFile( this );
 
         if ( this.currentMode === Mode.Playing )
             this.sendNowPlaying();
