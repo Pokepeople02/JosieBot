@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, Client, ClientOptions, GuildChannel, Snowf
 import { GuildContract } from "./GuildContract";
 import { ContractData } from "./ContractData";
 import fs = require( "node:fs" );
+import { DataMismatchError } from "./errors/DataMismatchError";
 
 /** Bot client managing interactions with the Discord API and global behavior across all guilds.
  * @see https://discord.js.org/#/docs/discord.js/main/class/Client
@@ -79,11 +80,18 @@ export class IsabelleClient extends Client {
         return;
     }//end method writeContractToFile
 
-    /**Given a path, verifies a file exists at that path containing a ContractData JSON object, then parses and returns that ContractData.
+    /**Given a path, verifies a file exists at that path containing a ContractData JSON object, then parses and returns a new GuildContract with the read data.
+     * Does not validate whether the provided path leads to an existant file.
      * @param path The file path provided.
+     * @throws SyntaxError When reading a non-JSON file.
+     * @throws DataMismatchError When the JSON data read did not have the expected fields for ContractData.
+     * @return The re-created guildContract.
      */
-    //public readContractFromFile( path: string ): ContractData {
+    public readContractFromFile( path: string ): GuildContract {
+        let contractData: ContractData = JSON.parse( fs.readFileSync( path, { encoding: "utf8" } ) );
+        if ( !contractData.guildId ) throw new DataMismatchError( `Malformed contract file read at path "${path}"` );
 
-    //}//end method readContractFromFile
+        return new GuildContract( contractData );
+    }//end method readContractFromFile
 
 }//end class IsabelleClient

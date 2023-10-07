@@ -7,6 +7,7 @@ import { Request } from "./requests/Request";
 import { Mode } from "./Mode";
 import { TimeoutError } from "./errors/TimeoutError";
 import { EmbedBuilder } from "@discordjs/builders";
+import { ContractData } from "./ContractData";
 
 /**Represents the relationship between bot and guild. Stores information and carries out core bot activities. */
 export class GuildContract {
@@ -32,15 +33,23 @@ export class GuildContract {
     readonly guildId: Snowflake;
 
     /**Creates a new contract.
-     * @param {Snowflake} guildId The ID of the associated guild.
+     * @param {Snowflake | ContractData} guildIdOrContractData The ID of the associated guild OR persistent guild contract data read from file.
      */
-    constructor( guildId: Snowflake ) {
-        if ( !globalThis.client.guilds.resolve( guildId ) )
-            throw new UnresolvedGuildError( `Contracted guild ID ${guildId} does not resolve to a valid guild` );
+    constructor( guildIdOrContractData: Snowflake | ContractData ) {
 
-        globalThis.client.log( `Created new contract for this guild.`, guildId );
+        if ( typeof guildIdOrContractData !== "string" ) {
+            //Load persistent contract data
+            this.guildId = guildIdOrContractData.guildId;
+            this._homeId = guildIdOrContractData.homeId;
+        } else {
+            //Do post-login first-time setup and verification
 
-        this.guildId = guildId;
+            if ( !globalThis.client.guilds.resolve( guildIdOrContractData ) )
+                throw new UnresolvedGuildError( `Contracted guild ID ${guildIdOrContractData} does not resolve to a valid guild` );
+
+            this.guildId = guildIdOrContractData;
+            globalThis.client.log( `Created new contract for this guild.`, this.guildId );
+        }//end if-else
 
         this.audioPlayer.on( "error", ( error: AudioPlayerError ) => {
             globalThis.client.log( `Audio player error: ${error}`, this.guildId );
@@ -51,6 +60,7 @@ export class GuildContract {
         this.audioPlayer.on( AudioPlayerStatus.Idle, ( _prev: any, _curr: any ) => {
             this.skip();
         } );
+
     }//end constructor
 
     /**A shallow copy of the guild's stored active queue. The current request, if `Playing`, is the first item in the queue. */

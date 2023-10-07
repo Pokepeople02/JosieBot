@@ -3,11 +3,11 @@ import { Snowflake } from "discord.js";
 /** POD class for GuildContact data which is saved to file between sessions */
 export class ContractData {
     public readonly guildId: Snowflake;
-    public readonly homeChannelId: Snowflake | null;
+    public readonly homeId: Snowflake | null;
 
-    constructor( guildId: Snowflake, homeChannelId: Snowflake | null ) {
+    constructor( guildId: Snowflake, homeId: Snowflake | null ) {
         this.guildId = guildId;
-        this.homeChannelId = homeChannelId;
+        this.homeId = homeId;
     }//end constructor
 
 }//end class GuildData

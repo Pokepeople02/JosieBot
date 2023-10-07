@@ -18,7 +18,15 @@ globalThis.dataDirectory = globalThis.rootPath + "\\data";
 
 //Make folder for contract data and load any existing contracts
 if ( fs.existsSync( globalThis.dataDirectory ) ) {
-    //TODO: Read from file
+    fs.readdirSync( globalThis.dataDirectory ).forEach( filename => {
+        let oldContract: GuildContract;
+
+        try { oldContract = globalThis.client.readContractFromFile( globalThis.dataDirectory + "\\" + filename ); }
+        catch { return; } //Ignore erroneous files
+
+        globalThis.client.contracts.set( oldContract.guildId, oldContract );
+        globalThis.client.log( `Loaded contract for guild with ID ${oldContract.guildId}` );
+    } );
 } else {
     fs.mkdirSync( globalThis.dataDirectory );
 }
