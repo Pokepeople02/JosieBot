@@ -21,4 +21,15 @@ declare global {
      * @global
      */
     var standbyTimeout: number;
+
+    /**The root directory path, as determined by the path to the directory above that containing Index.
+     * @global
+     */
+    var rootPath: string;
+
+    /**The directory containing guild contract data which is persistent between sessions.
+     * @global
+      */
+    var dataDirectory: string;
+
 }//end declaration global
