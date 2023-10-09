@@ -19,8 +19,8 @@ export class IsabelleClient extends Client {
     }//end constructor
 
     /**Logs message to console with appropriately tagged info.
-     * @param {string} message The message content.
-     * @param {ChatInputCommandInteraction} interaction Descriptive tags are synthesized from this Interaction.
+     * @param {string} [message] The message content.
+     * @param {ChatInputCommandInteraction} [interaction] Descriptive tags are synthesized from this Interaction.
      */
     public log( message: string, interaction: ChatInputCommandInteraction ): void;
     /**Logs message to console with appropriately tagged info.
@@ -66,7 +66,7 @@ export class IsabelleClient extends Client {
     }//end method log
 
     /**Writes a file named for the given guild's ID to the /data subdirectory. File contains POD set by the fields of ContractData.
-     * @param contact GuildContract for the given guild.
+     * @param {GuildContract} [contract] GuildContract for the given guild.
      */
     public writeContractToFile( contract: GuildContract ): void {
         let data: ContractData = new ContractData(
