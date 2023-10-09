@@ -596,8 +596,8 @@ export class GuildContract {
         const requestingUser = globalThis.client.users.resolve( currRequest.userId );
 
         this.sendHomeChannelMessage(
-            `Now playing ${requestString} in ${requestChannel?.toString() ?? "unknown"}\n` +
-            `<queued by ${requestingUser?.toString() ?? "unknown user"}>`
+            `Now playing ${requestString} in ${requestChannel?.toString() ?? "unknown"}.\n\n` +
+            `Queued by ${requestingUser?.toString() ?? "unknown user"}.`
         );
 
         return;
