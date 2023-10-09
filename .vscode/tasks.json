@@ -15,6 +15,11 @@
 			"command": "if ( Test-Path out/src ) { cmd /c del /s /q \"out\\src\" }"
 		},
 		{
+			"label": "clear persistent data",
+			"type": "shell",
+			"command": "Remove-Item out/data/* -Recurse -Force"
+		},
+		{
 			"label": "Cleanup and Build",
 			"type": "shell",
 			"dependsOrder": "sequence",
