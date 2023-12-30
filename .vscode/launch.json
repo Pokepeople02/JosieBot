@@ -11,11 +11,12 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\out\\src\\index.js",
+            "program": "${workspaceFolder}\\out\\Index.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ],
-            "preLaunchTask": "Cleanup and Build"
+            "preLaunchTask": "Cleanup and Build",
+            "console": "externalTerminal"
         }
     ]
 }
