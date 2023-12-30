@@ -20,3 +20,6 @@ out/
 
 # Sensitive configuration info
 config.json
+
+# Sensitive Play-DL cookie data
+.data/
