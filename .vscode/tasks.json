@@ -12,7 +12,7 @@
 		{
 			"label": "cleanup",
 			"type": "shell",
-			"command": "if ( Test-Path out/src ) { cmd /c del /s /q \"out\\src\" }"
+			"command": "if ( Test-Path out ) { cmd /c del /s /q \"out\" }"
 		},
 		{
 			"label": "clear persistent data",
