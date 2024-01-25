@@ -1,9 +1,11 @@
 const fs = require( "fs" );
 const { REST } = require( '@discordjs/rest' );
 const { Routes } = require( 'discord-api-types/v10' );
+const path = require( "node:path" )
 
-const configPath = "../out/config"; //JSON file containing Discord authorization token and clientId
-const commandsPath = "../out/src/commands/data/"; //Directory that contains command data files
+const rootPath = path.resolve( __dirname ).substring( 0, path.resolve( __dirname ).lastIndexOf( '\\' ) );
+const configPath = rootPath + "\\config"; //JSON file containing Discord authorization token and clientId
+const commandsPath = rootPath + "\\src\\commands\\data\\"; //Directory that contains command data files
 
 let token;
 let clientId;
