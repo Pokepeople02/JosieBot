@@ -33,18 +33,17 @@
   },
   "homepage": "https://github.com/Pokepeople02/IsabelleBot#readme",
   "dependencies": {
-    "@discordjs/builders": "^1.4.0",
+    "@discordjs/builders": "^1.7.0",
     "@discordjs/opus": "^0.9.0",
-    "@discordjs/voice": "^0.14.0",
-    "bufferutil": "^4.0.7",
-    "discord.js": "^14.7.1",
+    "@discordjs/voice": "^0.16.1",
+    "bufferutil": "^4.0.8",
+    "discord.js": "^14.14.1",
     "erlpack": "github:discord/erlpack",
     "ffmpeg": "^0.0.4",
     "play-dl": "^1.9.7",
-    "sodium-native": "^4.0.1",
-    "ts": "^0.0.0",
-    "typescript": "^5.2.2",
+    "sodium-native": "^4.0.5",
+    "typescript": "^5.3.3",
     "utf-8-validate": "^6.0.3",
-    "zlib-sync": "^0.1.8"
+    "zlib-sync": "^0.1.9"
   }
 }
