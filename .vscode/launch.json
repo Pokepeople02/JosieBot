@@ -16,7 +16,6 @@
                 "${workspaceFolder}/**/*.js"
             ],
             "preLaunchTask": "Cleanup and Build",
-            "console": "externalTerminal"
         }
     ]
 }
