@@ -109,7 +109,17 @@ export function getPlayFailedResponseEmbed( error: unknown, ): EmbedBuilder {
     } else if ( error instanceof TimeoutError ) {
         replyEmbed.setDescription( "This request took too long to resolve. Please try again or try a different request." );
     } else if ( error instanceof ResourceUnobtainableError ) {
-        replyEmbed.setDescription( "Could not obtain necessary info about this request, it may not be valid. Please try again, or try a different request." );
+        switch ( error.type ) {
+            case "ageRestrictedCookies":
+                replyEmbed.setDescription( "This request is age-restricted and the YouTube cookies loaded are for an account below age 18. Please try a different request, ask the bot owner to set cookies for an 18+ YouTube account, or wait until the corresponding account is age 18." );
+                break;
+            case "ageRestrictedNoCookies":
+                replyEmbed.setDescription( "This request is age-restricted and no YouTube cookies are available to sign in. Please try a different request, or ask the bot owner to set YouTube cookies and try again." );
+                break;
+            case "unknown":
+                replyEmbed.setDescription( "Could not obtain necessary info about this request, it may not be valid. Please try again or try a different request." );
+                break;
+        }//end switch
     } else if ( error instanceof NoResultsError ) {
         replyEmbed.setDescription( "There were no search results for this request. Please try a different request." );
     } else {
