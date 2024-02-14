@@ -1,12 +1,12 @@
 import { Collection, DiscordAPIError, GatewayIntentBits, Interaction } from "discord.js";
-import play from 'play-dl';
 import * as config from "../config.json";
 import { GuildContract } from "./GuildContract";
 import { IsabelleClient } from "./IsabelleClient";
 import { Command } from "./Command";
 import fs = require( "node:fs" );
 import path = require( "node:path" );
-import readline = require( 'node:readline' );
+
+import { setToken } from "play-dl";
 
 
 let resolvedPath = path.resolve( __dirname );
@@ -102,38 +102,16 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
     return;
 } );
 
+//Set YouTube cookies, if applicable
+if ( config.youtubeCookie ) {
+    setToken( {
+        youtube: {
+            cookie: config.youtubeCookie
+        }
+    } ).then( () => {
+        globalThis.client.log( "YouTube cookies loaded successfully." );
+    } );
 
-//Check if should do first-time setup for cookies
-let askUser = readline.createInterface( process.stdin, process.stdout );
+}//end if
 
-globalThis.client.log( "Performing first-time setup. Please answer the following question(s):" );
-askUser.setPrompt( "Would you like to configure cookies? This will allow you to play age-restricted videos for YouTube. (Yes/No)\n" );
-
-askUser.prompt();
-
-askUser.on( "line", ( answer: string ) => {
-    answer = answer.trim().toLowerCase();
-
-    //TODO: Strange behavior when prompting. Input appears multiple times per character. Unfinished.
-
-    switch ( answer ) {
-        case "yes":
-        case "y":
-            //Hand things off to Play-DL for authorization
-            console.log( "NOTE: You will need to re-run this program after performing cookie setup." );
-            play.authorization();
-            break;
-        case "no":
-        case "n":
-            askUser.close();
-            break;
-        default:
-            console.log( 'Unrecognized option. Please try again...' );
-            askUser.prompt();
-    };
-
-} );
-
-askUser.on( "close", () => {
-    globalThis.client.login( config.token );
-} );
+globalThis.client.login( config.token );
