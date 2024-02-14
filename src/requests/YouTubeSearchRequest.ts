@@ -23,7 +23,7 @@ export class YouTubeSearchRequest extends YouTubeVideoRequest {
                 unblurNSFWThumbnails: true
             } );
         } catch ( error ) {
-            throw new NoResultsError( error as string );
+            throw new NoResultsError( `${error}` );
         }//end try-catch
 
         if ( !searchResults || searchResults.length < 1 )
@@ -32,7 +32,7 @@ export class YouTubeSearchRequest extends YouTubeVideoRequest {
         try {
             this.info = await video_info( searchResults[0].url );
         } catch ( error ) {
-            throw new ResourceUnobtainableError( error as string );
+            throw new ResourceUnobtainableError( `${error}` );
         }//end try-catch
 
         return;

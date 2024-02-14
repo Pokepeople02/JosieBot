@@ -49,7 +49,7 @@ export async function createRequest( input: string, userId: Snowflake, channelId
             setTimeout( () => { reject( new TimeoutError( "Request validation timed out" ) ); }, globalThis.promiseTimeout );
         } )] ) as Awaited<ReturnType<typeof validate>>;
     } catch ( error ) {
-        throw new BadRequestError( error! as string, "unknown" );
+        throw new BadRequestError( `${error}`, "unknown" );
     }//end try-catch
 
     //Passes errors up

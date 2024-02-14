@@ -90,7 +90,7 @@ export class YouTubeVideoRequest extends Request {
 
         try { this.info = await video_info( this.cleanInput ); }
         catch ( error ) {
-            throw new ResourceUnobtainableError( error as string );
+            throw new ResourceUnobtainableError( `${error}` );
         }//end try-catch
 
         return;
@@ -113,7 +113,7 @@ export class YouTubeVideoRequest extends Request {
                 { discordPlayerCompatibility: true }
             );
         } catch ( error ) {
-            throw new ResourceUnobtainableError( error as string );
+            throw new ResourceUnobtainableError( `${error}` );
         }//end try-catch
 
         resource = createAudioResource(
