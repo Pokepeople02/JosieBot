@@ -66,9 +66,9 @@ export abstract class Request {
         let resultChannel = globalThis.client.channels.resolve( newId );
 
         if ( !resultChannel )
-            throw new UnresolvedChannelError( `Unable to resolve request playback channel ID (ID: ${newId})` );
+            throw new UnresolvedChannelError( `Request playback channel ID "${newId})" does not resolve` );
         else if ( !resultChannel.isVoiceBased() )
-            throw new NonVoiceChannelError( `The target channel "${resultChannel}" is not a voice-based channel` );
+            throw new NonVoiceChannelError( `Request's target channel "${resultChannel}" is not voice-based` );
 
         this._channelId = newId;
     }//end setter channelId

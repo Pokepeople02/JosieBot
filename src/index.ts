@@ -103,13 +103,13 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
 } );
 
 //Set YouTube cookies, if applicable
-if ( config.youtubeCookie ) {
+if ( config.youtubeCookies ) {
     setToken( {
         youtube: {
-            cookie: config.youtubeCookie
+            cookie: config.youtubeCookies
         }
     } ).then( () => {
-        globalThis.client.log( "YouTube cookies loaded successfully." );
+        globalThis.client.log( "Loaded YouTube cookie data." );
     } );
 
 }//end if

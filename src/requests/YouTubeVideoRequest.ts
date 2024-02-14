@@ -90,7 +90,7 @@ export class YouTubeVideoRequest extends Request {
 
         try { this.info = await video_info( this.cleanInput ); }
         catch ( error ) {
-            throw new ResourceUnobtainableError( `Unable to obtain video info: ${error}` );
+            throw new ResourceUnobtainableError( error as string );
         }//end try-catch
 
         return;
@@ -105,7 +105,7 @@ export class YouTubeVideoRequest extends Request {
         let stream: YouTubeStream;
 
         if ( !this.ready )
-            throw new UninitializedRequestError( `Request with input "${this.input}" played before ready` );
+            throw new UninitializedRequestError( `Request for "${this.input}" played before ready` );
 
         try {
             stream = await stream_from_info(
@@ -113,7 +113,7 @@ export class YouTubeVideoRequest extends Request {
                 { discordPlayerCompatibility: true }
             );
         } catch ( error ) {
-            throw new ResourceUnobtainableError( `Unable to obtain stream: ${error}` );
+            throw new ResourceUnobtainableError( error as string );
         }//end try-catch
 
         resource = createAudioResource(
@@ -137,7 +137,7 @@ export class YouTubeVideoRequest extends Request {
      */
     public async pause(): Promise<void> {
         if ( !this.ready )
-            throw new UninitializedRequestError( `Request with input "${this.input}" paused before ready` );
+            throw new UninitializedRequestError( `Request for "${this.input}" paused before ready` );
 
         if ( !this.started )
             throw new Error( "Unable to pause request: request not started. " );
@@ -161,7 +161,7 @@ export class YouTubeVideoRequest extends Request {
      */
     public async resume(): Promise<void> {
         if ( !this.ready )
-            throw new UninitializedRequestError( `Request with input "${this.input}" paused before ready` );
+            throw new UninitializedRequestError( `Request for "${this.input}" resumed before ready` );
 
         if ( !this.paused )
             throw new Error( "Unable to resume request: request is not paused" );
@@ -169,7 +169,7 @@ export class YouTubeVideoRequest extends Request {
         if ( this.info!.video_details.live )
             this.play( this.player! );
         else if ( !this.player!.unpause() )
-            throw new Error( "Unable to resume request: discord.js player refused to unpause" );
+            throw new Error( "discord.js player refused to unpause" );
 
         this._paused = false;
         this._playing = true;

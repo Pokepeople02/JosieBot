@@ -89,7 +89,7 @@ export class IsabelleClient extends Client {
      */
     public readContractFromFile( path: string ): GuildContract {
         let contractData: ContractData = JSON.parse( fs.readFileSync( path, { encoding: "utf8" } ) );
-        if ( !contractData.guildId ) throw new DataMismatchError( `Malformed contract file read at path "${path}"` );
+        if ( !contractData.guildId ) throw new DataMismatchError( `Malformed contract file at path "${path}"` );
 
         return new GuildContract( contractData );
     }//end method readContractFromFile

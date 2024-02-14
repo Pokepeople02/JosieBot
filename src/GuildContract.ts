@@ -1,6 +1,7 @@
 import { AudioPlayer, AudioPlayerError, AudioPlayerState, AudioPlayerStatus, createAudioPlayer, getVoiceConnection, joinVoiceChannel, VoiceConnection, VoiceConnectionState, VoiceConnectionStatus } from "@discordjs/voice";
 import { ApplicationCommand, Collection, Guild, MessageCreateOptions, MessagePayload, Snowflake, TextBasedChannel, TextChannel, VoiceBasedChannel, VoiceState } from "discord.js";
 import { NonTextChannelError } from "./errors/NonTextChannelError";
+import { NonVoiceChannelError } from "./errors/NonVoiceChannelError";
 import { UnresolvedChannelError } from "./errors/UnresolvedChannelError";
 import { UnresolvedGuildError } from "./errors/UnresolvedGuildError";
 import { Request } from "./requests/Request";
@@ -105,9 +106,9 @@ export class GuildContract {
             channel = globalThis.client.channels.resolve( homeId );
 
             if ( !channel )
-                throw new UnresolvedChannelError( `Home ID is not resolvable (ID: ${homeId})` );
+                throw new UnresolvedChannelError( `Requested home ID "${homeId})" does not resolve` );
             else if ( !channel.isTextBased() )
-                throw new NonTextChannelError( `"Requested home channel "${channel}" is not text-based` );
+                throw new NonTextChannelError( `"Requested home "${channel}" is not text-based` );
 
         }//end if
 
@@ -207,9 +208,9 @@ export class GuildContract {
         let connection: VoiceConnection;
 
         if ( !channel )
-            throw new UnresolvedChannelError( `Channel ID is not resolvable (ID: ${channelId})` );
+            throw new UnresolvedChannelError( `Destination channel ID "${channelId})" does not resolve` );
         else if ( !channel.isVoiceBased() )
-            throw new NonTextChannelError( `Channel "${channel}" is not voice-based` );
+            throw new NonVoiceChannelError( `Destination channel "${channel}" is not voice-based` );
 
         connection = joinVoiceChannel( {
             channelId: channelId,

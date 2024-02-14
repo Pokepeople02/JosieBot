@@ -23,16 +23,16 @@ export class YouTubeSearchRequest extends YouTubeVideoRequest {
                 unblurNSFWThumbnails: true
             } );
         } catch ( error ) {
-            throw new ResourceUnobtainableError( `Unable to retrieve search results: ${error}` );
+            throw new NoResultsError( error as string );
         }//end try-catch
 
         if ( !searchResults || searchResults.length < 1 )
-            throw new NoResultsError( `Searching for "${this.input}" gave no results` );
+            throw new NoResultsError( `No results for "${this.input}"` );
 
         try {
             this.info = await video_info( searchResults[0].url );
         } catch ( error ) {
-            throw new ResourceUnobtainableError( `Unable to obtain video info: ${error}` );
+            throw new ResourceUnobtainableError( error as string );
         }//end try-catch
 
         return;
