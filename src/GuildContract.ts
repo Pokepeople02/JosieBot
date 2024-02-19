@@ -625,9 +625,9 @@ export class GuildContract {
     private sendRequestError( error: Error ): void {
 
         this.sendHomeChannelMessage(
-            "An error occurred when attempting to play the next request! Skipping to the next request, if one exists.\n" +
-            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
+            "An error occurred when attempting to play the next request! Skipping to the next request, if one exists.\n\nHere is the error message:\n" +
+            `\`${error.message.substring( 0, 1500 )}\`\n` +
+            "Please follow the instructions for reporting this issue on GitHub [here](https://github.com/Pokepeople02/IsabelleBot/issues)."
         );
 
         return;
@@ -639,9 +639,9 @@ export class GuildContract {
     private sendPauseError( error: Error ): void {
 
         this.sendHomeChannelMessage(
-            "An error occurred when attempting to pause the current request! The request could not be paused.\n" +
-            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
+            "An error occurred when attempting to pause the current request! The request could not be paused.\n\nHere is the error message:\n" +
+            `\`${error.message.substring( 0, 1500 )}\`\n` +
+            "Please follow the instructions for reporting this issue on GitHub [here](https://github.com/Pokepeople02/IsabelleBot/issues)."
         );
 
         return;
@@ -653,9 +653,9 @@ export class GuildContract {
     private sendStandbyError( error: Error ): void {
 
         this.sendHomeChannelMessage(
-            "An error occurred when attempting to temporarily pause the current request for standby! The request could not be paused.\n" +
-            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
+            "An error occurred when attempting to temporarily pause the current request for standby! The request could not be paused.\n\nHere is the error message:\n" +
+            `\`${error.message.substring( 0, 1500 )}\`\n` +
+            "Please follow the instructions for reporting this issue on GitHub [here](https://github.com/Pokepeople02/IsabelleBot/issues)."
         );
 
         return;
@@ -667,9 +667,9 @@ export class GuildContract {
     private sendPlayerError( error: Error ): void {
 
         this.sendHomeChannelMessage(
-            "An error occurred with the audio player! Skipping to the next request, if one exists.\n" +
-            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
+            "An error occurred with the audio player! Skipping to the next request, if one exists.\n\nHere is the error message:\n" +
+            `\`${error.message.substring( 0, 1500 )}\`\n` +
+            "Please follow the instructions for reporting this issue on GitHub [here](https://github.com/Pokepeople02/IsabelleBot/issues)."
         );
 
         return;
@@ -681,9 +681,9 @@ export class GuildContract {
     private sendConnectionError( error: Error ): void {
 
         this.sendHomeChannelMessage(
-            "An error occurred with the voice connection! Skipping to the next request, if one exists.\n" +
-            `Error message:\n\`${error.message.substring( 0, 1500 )}\`\n` +
-            `Kindly throw this at CoolstuffStudios11#7063 and try to explain to him how it happened.`
+            "An error occurred with the voice connection! Skipping to the next request, if one exists.\n\nHere is the error message:\n" +
+            `\`${error.message.substring( 0, 1500 )}\`\n` +
+            "Please follow the instructions for reporting this issue on GitHub [here](https://github.com/Pokepeople02/IsabelleBot/issues)."
         );
 
         return;
