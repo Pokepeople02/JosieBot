@@ -43,8 +43,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
         await interaction.reply( {
             embeds: [{
                 title: "❌  Unable to Add Request",
-                description: `${user.toString()} is not currently in a voice channel. Provide a member currently in a voice channel or ` +
-                    `I guess tell them to join or whatever.`,
+                description: `${user.toString()} is not currently in a voice channel. Tell them to join voice chat, provide a member currently in a voice channel, or use a different command to add requests.`,
             }],
         } );
 
