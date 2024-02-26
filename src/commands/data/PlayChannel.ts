@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, StageChannel } from "discord.js";
 import { play } from "../execution/Play";
 import { Request } from "../../requests/Request";
-import { getPlayFailedResponseEmbed } from "./Play";
+import { getPlayFailedResponseEmbed, getPlaySuccessEmbedFields } from "./Play";
 
 /** JSON data for the /play command. */
 export const data = new SlashCommandBuilder()
@@ -67,15 +67,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
             title: "✅  Added a Request",
             description: `Successfully queued [${request.title!}](${request.resourceUrl!}) for ${channel.toString()}.`,
             thumbnail: request.thumbnailUrl ? { url: request.thumbnailUrl } : undefined,
-            fields: [{
-                name: "Duration",
-                value: request.lengthFormatted!,
-                inline: true,
-            }, {
-                name: "Uploaded by",
-                value: request.creator!,
-                inline: true,
-            }]
+            fields: getPlaySuccessEmbedFields( request )
         }],
     } );
 

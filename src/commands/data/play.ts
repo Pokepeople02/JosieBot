@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, Snowflake, StageChannel } from "discord.js";
+import { APIEmbedField, ChatInputCommandInteraction, SlashCommandBuilder, Snowflake, StageChannel } from "discord.js";
 import { play } from "../execution/Play";
 import { Request } from "../../requests/Request";
 import { BadRequestError } from "../../errors/BadRequestError";
@@ -68,15 +68,7 @@ export async function execute( interaction: ChatInputCommandInteraction<"cached"
             title: "✅  Added a Request",
             description: `Successfully queued [${request.title!}](${request.resourceUrl!}) for your channel (${userVoice.toString()}).`,
             thumbnail: request.thumbnailUrl ? { url: request.thumbnailUrl } : undefined,
-            fields: [{
-                name: "Duration",
-                value: request.lengthFormatted!,
-                inline: true,
-            }, {
-                name: "Uploaded by",
-                value: request.creator!,
-                inline: true,
-            }]
+            fields: getPlaySuccessEmbedFields( request )
         }],
     } );
 
@@ -116,7 +108,7 @@ export function getPlayFailedResponseEmbed( error: unknown, ): EmbedBuilder {
             case "ageRestrictedNoCookies":
                 replyEmbed.setDescription( "This request is age-restricted and no YouTube cookies are available for sign-in. Please try a different request, or ask the bot owner to set YouTube cookies and try again." );
                 break;
-            case "unknown":
+            default:
                 replyEmbed.setDescription( "Could not obtain necessary info about this request, it may not be valid. Please try again or try a different request." );
                 break;
         }//end switch
@@ -128,3 +120,52 @@ export function getPlayFailedResponseEmbed( error: unknown, ): EmbedBuilder {
 
     return replyEmbed;
 }//end method getPlayFailedResponseEmbed
+
+/**Builds the duration, Uploaded By, and optional Note embed fields for the reply after a sucessful /play command.
+ * @param {Request} request The request queued
+ * @return Array containing the created embed fields
+ */
+export function getPlaySuccessEmbedFields( request: Request ): APIEmbedField[] {
+    let embedFields: APIEmbedField[];
+    let lengthText: string = "";
+    let descriptionText: string | undefined;
+
+    //Set up length text and optional description. Special values apply for livestreams or upcoming/not yet published requests.
+    if ( request.live ) {
+        lengthText = "🔴 LIVE";
+    } else if ( request.upcoming! ) {
+        lengthText = "⭕ UPCOMING";
+
+        if ( request.upcoming === true ) {
+            descriptionText = "This request is upcoming. It has not been published yet.";
+        } else {
+            descriptionText = `This request is upcoming and scheduled to premiere on ${request.upcoming.toDateString()} at ${request.upcoming.toTimeString()}.`;
+        }//end if-else
+
+    } else {
+        lengthText = request.lengthFormatted!;
+    }//end if-else
+
+    console.log( lengthText );
+
+    //Build embed fields
+    embedFields = [{
+        name: "Duration",
+        value: lengthText,
+        inline: true,
+    }, {
+        name: "Uploaded by",
+        value: request.creator!,
+        inline: true,
+    }];
+
+    if ( descriptionText ) {
+        embedFields.push( {
+            name: "",
+            value: descriptionText,
+            inline: false
+        } );
+    }//end if
+
+    return embedFields;
+}//end method getPlaySuccessEmbedFields
