@@ -83,7 +83,7 @@ globalThis.client.on( "interactionCreate", async ( interaction: Interaction ) =>
             await command.execute( interaction );
 
     } catch ( error ) {
-        globalThis.client.log( `Unexpected error during command -- ${error}`, interaction );
+        globalThis.client.log( `Unexpected error during command -- ${error instanceof Error ? error!.stack : error}`, interaction );
 
         //No way to recover, just give up
         if ( error instanceof DiscordAPIError )
