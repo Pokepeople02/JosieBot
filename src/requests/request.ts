@@ -116,14 +116,20 @@ export abstract class Request {
     /**The attributed creator of this request's underlying resource. Undefined until request is ready. */
     public abstract get creator(): string | undefined;
 
-    /**The total length of this request's underlying resource. Undefined until request is ready. `Infinity` if request is live. */
-    public abstract get length(): number | undefined;
+    /**The total length of this request's underlying resource. Undefined until request is ready. `Infinity` if request is live. Null if video is upcoming. */
+    public abstract get length(): number | null | undefined;
 
-    /**Formatted string for the total length of this request's underlying resource. Undefined until request is ready. */
-    public abstract get lengthFormatted(): string | undefined;
+    /**Formatted string for the total length of this request's underlying resource. Null for livestreams and upcoming. Undefined until request is ready. */
+    public abstract get lengthFormatted(): string | null | undefined;
 
     /**The URL of the thumbnail of this request's underlying resource. Undefined until request is ready. */
     public abstract get thumbnailUrl(): string | undefined;
+
+    /**Whether this request's underlying resource is still upcoming/not yet published. Truth-y when request is still upcoming. Date only when the future publish time is known. False-y when request is available now. Undefined until request is ready. */
+    public abstract get upcoming(): Date | boolean | undefined;
+
+    /**Whether this request's underlying resource is currently livestreaming or not. Undefined until request is ready. */
+    public abstract get live(): boolean | undefined;
 
     /**Initializes asynchronously-filled properties and marks this request as ready to be used. */
     public abstract init(): Promise<void>;

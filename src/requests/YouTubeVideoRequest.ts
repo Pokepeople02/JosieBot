@@ -60,26 +60,48 @@ export class YouTubeVideoRequest extends Request {
         return this.info?.video_details.channel?.name;
     }//end getter creator
 
-    /**The total length of this YouTube video request in seconds, or `Infinity` if this request is a YouTube live stream.
+    /**The total length of this YouTube video request in seconds, or `Infinity` if this request is a YouTube live stream. Null if video is upcoming/premiere.
      * Undefined until request is ready.
      */
-    public get length(): number | undefined {
+    public get length(): number | null | undefined {
         if ( this.info?.video_details.live === undefined ) return undefined;
 
-        return this.info?.video_details.live ? Infinity : this.info.video_details.durationInSec;
+        if ( this.info?.video_details.live ) return Infinity;
+
+        if ( this.info?.video_details.upcoming ) return null;
+
+        return this.info.video_details.durationInSec;
     }//end getter length
 
-    /**String for the total duration of this YouTube video request, formatted as HH:MM:SS. Undefined until request is ready. */
-    public get lengthFormatted(): string | undefined {
+    /**String for the total duration of this YouTube video request, formatted as HH:MM:SS. Null for livestreams and upcoming/premieres. Undefined until request is ready. */
+    public get lengthFormatted(): string | null | undefined {
         if ( this.info?.video_details.live === undefined ) return undefined;
 
-        return this.info?.video_details.live ? "🔴 LIVE" : this.info.video_details.durationRaw;
+        //Same bodge as .live
+        if ( ( !this.info.video_details.durationInSec && !this.info.video_details.upcoming ) || this.info?.video_details.upcoming ) return null;
+
+        return this.info.video_details.durationRaw;
     }//end getter lengthFormatted
 
     public get thumbnailUrl(): string | undefined {
         try { return this.info?.video_details.thumbnails[0].url; }
         catch { return undefined; }
     }//end getter thumbnailUrl
+
+    public get upcoming(): Date | boolean | undefined {
+        if ( !this.info ) return undefined;
+
+        if ( !this.info.video_details.upcoming ) return false;
+
+        return this.info.video_details.upcoming;
+    }//end getter upcoming
+
+    public get live(): boolean | undefined {
+        if ( !this.info ) return undefined;
+
+        //Dirty bodge, but blame YT/Play-DL
+        return !this.info.video_details.durationInSec && !this.info.video_details.upcoming;
+    }//end getter live
 
     /**
      * @throws {@link ResourceUnobtainableError} When an error occurs while retreiving request info.
