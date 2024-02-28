@@ -39,7 +39,7 @@
     "bufferutil": "^4.0.8",
     "discord.js": "^14.14.1",
     "erlpack": "github:discord/erlpack",
-    "ffmpeg": "^0.0.4",
+    "ffmpeg-static": "^4.2.7",
     "play-dl": "^1.9.7",
     "sodium-native": "^4.0.5",
     "typescript": "^5.3.3",
