@@ -9,6 +9,7 @@ import { Mode } from "./Mode";
 import { TimeoutError } from "./errors/TimeoutError";
 import { EmbedBuilder } from "@discordjs/builders";
 import { ContractData } from "./ContractData";
+import { ResourceUnobtainableError } from "./errors/ResourceUnobtainableError";
 
 /**Represents the relationship between bot and guild. Stores information and carries out core bot activities. */
 export class GuildContract {
@@ -144,8 +145,10 @@ export class GuildContract {
 
         if ( this._queue.length === 1 && !( await this.play() ) ) {
 
-            if ( guild.members.me!.voice.channel ) this.wait(); //Successful join but not play
-            else this.idle();
+            if ( guild.members.me!.voice.channel ) {
+                this.remove( 0 ); //Successful join but not play.
+                this.wait();
+            } else this.idle();
 
         }//end if
 
@@ -517,8 +520,16 @@ export class GuildContract {
             voiceId = globalThis.client.guilds.resolve( this.guildId )!.members.me?.voice.channelId ?? undefined;
             globalThis.client.log( `Now playing "${currRequest.title}"`, this.guildId, voiceId );
         } catch ( error ) {
-            this.sendRequestError( error as Error );
-            globalThis.client.log( `Play/Resume error for "${currRequest.title ?? "unknown request"}": ${error}`, this.guildId );
+
+            //Failed to play unpublished resource
+            if ( ( error as Error ) instanceof ResourceUnobtainableError && ( error as ResourceUnobtainableError ).type === "upcomingOrPremiere" ) {
+                this.sendSkippedUnpublished();
+                globalThis.client.log( `Unable to play upcoming/premiere "${currRequest.title}"`, this.guildId );
+            } else {
+                this.sendRequestError( error as Error );
+                globalThis.client.log( `Play/Resume error for "${currRequest.title ?? "unknown request"}": ${error}`, this.guildId );
+            }//end if-else
+
             return false;
         }//end try-catch
 
@@ -618,6 +629,19 @@ export class GuildContract {
 
         return;
     }//end method sendPaused
+
+    private async sendSkippedUnpublished(): Promise<void> {
+        const currRequest = this.queue[0];
+        const requestString = currRequest.resourceUrl ? "[" + currRequest.title + "](" + currRequest.resourceUrl + ")" : "unknown";
+        const requestChannel = globalThis.client.channels.resolve( currRequest.channelId ?? "0" );
+        const requestingUser = globalThis.client.users.resolve( currRequest.userId );
+
+        this.sendHomeChannelMessage(
+            `Skipped  ${requestString} for ${requestChannel} as it has not yet been published. Please try this request again later.`
+            + `\n\nQueued by ${requestingUser?.toString() ?? "unknown user"}.`
+        );
+
+    }//end method sendSkippedUnpublished
 
     /**Sends the 'Error Occurred when Playing Request' message to the guild's home channel, if one exists.
      * @param {Error} error The error that has occurred.
