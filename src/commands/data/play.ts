@@ -137,9 +137,9 @@ export function getPlaySuccessEmbedFields( request: Request ): APIEmbedField[] {
         lengthText = "⭕ UPCOMING";
 
         if ( request.upcoming === true ) {
-            descriptionText = "This request is upcoming. It has not been published yet.";
+            descriptionText = "This request is upcoming and has not been published yet.\n\n⚠️ This request will be skipped if played before it is published. ⚠️";
         } else {
-            descriptionText = `This request is upcoming and scheduled to premiere on ${request.upcoming.toDateString()} at ${request.upcoming.toTimeString()}.`;
+            descriptionText = `This request is scheduled to premiere on ${request.upcoming.toDateString()} at ${request.upcoming.toTimeString()}.\n\n⚠️ This request will be skipped if played prior to this time. ⚠️`;
         }//end if-else
 
     } else {
