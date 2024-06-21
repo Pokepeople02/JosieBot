@@ -9,10 +9,12 @@ export class ResourceUnobtainableError extends URIError {
      * 
      * "ageRestrictedCookies" - Unable to retreive an age-restricted YouTube video due to cookies for a YouTube account below age 18.
      * 
+     * "upcomingOrPremiere" - Unable to get YouTube video stream as video is still upcoming. Upcoming videos still return info.
+     * 
      * "unknown" - No information is available.
      * 
      */
-    public readonly type: "ageRestrictedNoCookies" | "ageRestrictedCookies" | "unknown";
+    public readonly type: "ageRestrictedNoCookies" | "ageRestrictedCookies" | "upcomingOrPremiere" | "unknown";
 
     /**Creates a new ResourceUbobtainableError for when an external resource associated with a request is unreachable.
      * @param message The error message.
@@ -23,6 +25,8 @@ export class ResourceUnobtainableError extends URIError {
         //Determine nature of the error from play-dl's YouTube error string.
         if ( message.includes( "Sign in to confirm your age" ) ) {
             this.type = "ageRestrictedNoCookies";
+        } else if ( message.includes( "Upcoming and premiere videos that are not currently live cannot be streamed" ) ) {
+            this.type = "upcomingOrPremiere";
         } else {
             this.type = "unknown";
         }//end if-else
