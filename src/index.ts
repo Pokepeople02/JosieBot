@@ -36,7 +36,7 @@ if ( fs.existsSync( globalThis.dataDirectory ) ) {
 
 //Gather commands
 const commands = new Collection<string, Command>();
-const commandsPath: string = path.join( __dirname, "commands/data" );
+const commandsPath: string = path.join( __dirname, "commands", "data" );
 const commandFiles: string[] = fs.readdirSync( commandsPath ).filter( file => file.endsWith( ".js" ) );
 
 for ( const fileName of commandFiles ) {
