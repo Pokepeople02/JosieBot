@@ -17,7 +17,7 @@ globalThis.promiseTimeout = 3_000; //3 sec.
 globalThis.waitingTimeout = 600_000; //10 min.
 globalThis.standbyTimeout = 120_000; //2 min.
 globalThis.rootPath = resolvedPath.substring( 0, resolvedPath.lastIndexOf( '\\' ) );
-globalThis.dataDirectory = globalThis.rootPath + "\\data";
+globalThis.dataDirectory = path.join( globalThis.rootPath, "data" );
 
 //Make folder for contract data and load any existing contracts
 if ( fs.existsSync( globalThis.dataDirectory ) ) {
